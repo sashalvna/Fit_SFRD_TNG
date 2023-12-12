@@ -4,3 +4,6 @@
 
 # Ignore all pdf files
 *.pdf
+
+# Ignore all dat files
+*.dat
