@@ -1,0 +1,6 @@
+# Ignore all hdf5 files
+*.hdf5
+*.h5
+
+# Ignore all pdf files
+*.pdf
