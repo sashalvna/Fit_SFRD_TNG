@@ -139,7 +139,7 @@ def getFullSFRMetallicityFromGas(TNGpath, TNG, lvl, snaps, nfiles, starting_snap
             f.close()
 
 
-if __name__ == "__main__"
+if __name__ == "__main__":
 
     # Define command line options for the most commonly varied options
     parser = argparse.ArgumentParser()
@@ -166,4 +166,4 @@ if __name__ == "__main__"
 
     # Run data download
     #nfiles = 6 #TESTING with less files in snapshot
-    getFullSFRMetallicityFromGas(TNGpath, args.TNG, args.lvl, snaps, nfiles, ssnap=args.ssnap, nbins=args.nbins) #run data download
+    getFullSFRMetallicityFromGas(TNGpath, args.TNG, args.lvl, snaps, nfiles, starting_snap=args.ssnap, nbins=args.nbins) #run data download
