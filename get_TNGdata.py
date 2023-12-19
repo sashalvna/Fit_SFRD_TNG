@@ -125,7 +125,7 @@ def getFullSFRMetallicityFromGas(TNGpath, TNG, lvl, snaps, nfiles, starting_snap
         if snap==0: #if starting from beginning, assume no file exists to append into
             mbins = np.logspace( -10, 0., nbins+1 )
             if os.path.exists(outfname): #check if file with same name exists; if not append, does not overwrite it, makes a new separate file
-                outname = outfname + "-1"
+                outfname = outfname + "-1"
             with h5.File(outfname, "w") as f:
                 f.create_dataset('MetalBins', data=mbins )
                 f.create_dataset('Redshifts', data=redshifts )
