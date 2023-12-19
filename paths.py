@@ -9,6 +9,7 @@ os.environ["PATH"] += os.pathsep + str(Path.home() / "bin")
 
 # Absolute path to the top level of the repository
 root = Path(__file__).resolve().parents[0].absolute()
+root2 = Path(__file__).resolve().parents[1].absolute()
 
 # Absolute path to the `src` folder
 src = root
@@ -30,3 +31,6 @@ figures = root / "figures"
 
 # Absolute path to the `src/tex/output` folder (contains other user-defined output)
 output = root / "output"
+
+# Absolute path to TNG data
+tng = root2 / "TNGdata"
