@@ -1,2 +1,14 @@
 # Ignore all pyc files
 *.pyc
+
+# Ignore all hdf5 files
+*.hdf5
+*.h5
+
+# Ignore all pdf files
+*.pdf
+
+# Ignore all dat files
+*.dat
+
+*.txt
