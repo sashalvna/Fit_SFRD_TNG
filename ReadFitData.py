@@ -10,7 +10,7 @@ from astropy.cosmology import Planck15  as cosmo# Planck 2015
 from astropy.cosmology import z_at_value
 
 
-def load_TNG100(loc = './'):
+def load_TNG(loc = './', rbox=75):
     ##########################################
     # Simulated SFRD data (from TNG)
     ##########################################
@@ -25,7 +25,7 @@ def load_TNG100(loc = './'):
 
     # Convert SFR from sfr/box to sfr Mpc-3
     littleh  = 0.6774
-    Rbox     = 75/littleh
+    Rbox     = rbox/littleh
     Sim_SFRD = BoxSfr / Rbox**3 *u.Mpc**-3
     Sim_SFRD = Sim_SFRD.value
 
