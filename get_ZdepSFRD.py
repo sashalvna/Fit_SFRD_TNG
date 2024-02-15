@@ -74,7 +74,7 @@ def skew_metallicity_distribution(redshifts, metals = [], min_logZ_COMPAS = np.l
         p_draw_metallicity --> float            Probability of drawing a certain metallicity in COMPAS (float because assuming uniform)
     """ 
     ##################################
-    # Log-Linear redshift dependence of omega
+    # Log-Linear redshift dependence of omega, eq. 9 van Son 2023
     omega = omega_0* 10**(omega_z*redshifts)
     
     ##################################
@@ -82,7 +82,7 @@ def skew_metallicity_distribution(redshifts, metals = [], min_logZ_COMPAS = np.l
     # eq. 7 
     mean_metallicities = mu_0 * 10**(mu_z * redshifts) 
     
-    ## The first moment of ou log-skew-normal (i.e. E[dP/dZ] is:
+    ## The first moment of our log-skew-normal (i.e. E[dP/dZ] is:
     # eq. 8 here: https://www-sciencedirect-com.ezp-prod1.hul.harvard.edu/science/article/pii/S0021850219300400
     beta = alpha/(np.sqrt(1 + (alpha)**2))
     PHI  = NormDist.cdf(beta * omega)  
@@ -112,7 +112,7 @@ def skew_metallicity_distribution(redshifts, metals = [], min_logZ_COMPAS = np.l
     #(see also eq.  1 here: https://www.emis.de/journals/RCE/V36/v36n1a03.pdf)
 
     ##################################
-    # normalise the distribution over al metallicities
+    # normalise the distribution over all metallicities
     norm    = dPdlogZ.sum(axis=-1) * step_logZ
     dPdlogZ = dPdlogZ /norm[:,np.newaxis]
 
