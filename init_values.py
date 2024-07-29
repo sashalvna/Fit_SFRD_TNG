@@ -20,7 +20,7 @@ def init():
 
     COMPASfilename  = 'COMPAS_Output_wWeights.h5'#'small_COMPAS_Output_wWeights.h5'
     rate_file_name  = 'Rate_info.h5'#'small_Rate_info.h5'
-    user_email      = "aac.van.son@gmail.com"
+    user_email      = "alevina1@jhu.edu"
 
 
     # Name of the txt file for best fit parameters
