@@ -12,16 +12,13 @@ from astropy.cosmology import Planck15  as cosmo #Planck 2015 since that's what 
 # Custom scripts
 sys.path.append('../')
 import get_ZdepSFRD as Z_SFRD
-import importlib
 import paths
 import Fit_model_TNG_SFRD as fitmodel
 from TNG_BBHpop_properties import read_best_fits
-
-import ReadFitData as read
-importlib.reload(read)
+from Fit_model_TNG_SFRD import readTNGdata
 
 
-def SFRDplot_2D(metals, Lookbacktimes, SFRD, tngs=[], ver=[], model=[], xlim=[], ylim=[10**-1, 10**1], levels = [], plottype='data', nlevels=20, cmap='rocket'):
+def SFRDplot_2D(metals, Lookbacktimes, SFRD, tngs=[], ver=[], model=[], xlim=[], ylim=[10**-1, 10**1], levels = [], plottype='data', nlevels=20, cmap='rocket', showplot=True):
 
     """
     plottype (str): type of SFRD 2D plot, options: 'data', 'percenterr'
@@ -170,7 +167,8 @@ def SFRDplot_2D(metals, Lookbacktimes, SFRD, tngs=[], ver=[], model=[], xlim=[],
             cbar.set_label('SFRD(Z, z) percent error', rotation=270, fontsize=20, labelpad=30);
             fig.savefig('figures/SFRD_Z_z_TNGdiff.png', bbox_inches='tight')
     
-    plt.show()
+    if showplot==True:
+        plt.show()
 
 
 if __name__ == "__main__":
@@ -195,7 +193,7 @@ if __name__ == "__main__":
             rbox=75
         elif tng==300:
             rbox=205
-        Sim_SFRD, Lookbacktimes, Sim_center_Zbin, step_fit_logZ, Redshifts = read.load_TNG(loc = Cosmol_sim_location, rbox=rbox)
+        Sim_SFRD, Lookbacktimes, Redshifts, Sim_center_Zbin, step_fit_logZ = readTNGdata(loc = Cosmol_sim_location, rbox=rbox)
         SFRDnew, redshift_new, Lookbacktimes_new, metals_new = fitmodel.interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng, vers[n], saveplot=False)
         SFRDsTNG.append(SFRDnew)
         redshiftsTNG.append(redshift_new)
@@ -216,4 +214,4 @@ if __name__ == "__main__":
                                                   metals=metalsTNG[n])
         models.append(sfr[:,np.newaxis] * dPdlogZ)
 
-    SFRDplot_2D(metalsTNG, LookbacktimesTNG, SFRDsTNG, tngs, vers, model=models, plottype='percenterr')
+    SFRDplot_2D(metalsTNG, LookbacktimesTNG, SFRDsTNG, tngs, vers, model=models, plottype='data')

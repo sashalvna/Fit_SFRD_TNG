@@ -1,6 +1,8 @@
 import sys
+import h5py as h5
 import numpy as np
 import matplotlib.pyplot as plt
+import astropy.units as u
 
 from scipy import interpolate
 from scipy.optimize import minimize
@@ -11,11 +13,34 @@ from astropy.cosmology import Planck15  as cosmo # Planck 2015 since that's what
 # Custom scripts
 sys.path.append('../')
 import get_ZdepSFRD as Z_SFRD
-import importlib
 import paths
 
-import ReadFitData as read
-importlib.reload(read)
+def readTNGdata(loc = './', rbox=75, SFR=False):
+    ##########################################
+    # Simulated SFRD data (from TNG)
+    ##########################################
+    ## Read in the pure simulation data
+    with h5.File(loc, "r") as f:
+        MetalBins     = f["MetalBins"][:]
+        Lookbacktimes = f["Lookbacktimes"][:]
+        BoxSfr        = f["Sfr"][:]
+        Redshifts     = f["Redshifts"][:]
+
+    Sim_center_Zbin  = (MetalBins[:-1] + MetalBins[1:])/2.
+
+    # Convert SFR from sfr/box to sfr Mpc-3
+    littleh  = 0.6774
+    Rbox     = rbox/littleh
+    Sim_SFRD = BoxSfr / Rbox**3 *u.Mpc**-3
+    Sim_SFRD = Sim_SFRD.value
+
+    step_fit_logZ  = np.diff(np.log(MetalBins))[0]    
+
+    if SFR == False:
+        ## The model comes in SFRD/DeltaZ, make sure your data does as well!! 
+        Sim_SFRD       = Sim_SFRD/step_fit_logZ
+    
+    return Sim_SFRD, Lookbacktimes, Redshifts, Sim_center_Zbin, step_fit_logZ
 
 
 def interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng, ver, minZ_popSynth=1e-6, saveplot=False):
@@ -123,7 +148,7 @@ def test_chi(x0 = [-0.09, 0.026, 1.9, 0.1, -3.3, 0.01, 2.6, 3.2, 6.2] ):
 
 if __name__ == "__main__":
     #Change file names to match TNG version <- turn these into arguments
-    tng=100
+    tng=50
     ver = 1
     Cosmol_sim_location = paths.data / str("SFRMetallicityFromGasTNG%s-%s.hdf5"%(tng,ver))
     fit_filename = 'test_best_fit_parameters_TNG%s-%s.txt'%(tng,ver)
@@ -142,7 +167,7 @@ if __name__ == "__main__":
         minimize_method = 'BFGS'
 
     #Read the TNG data and interpolate it
-    Sim_SFRD, Lookbacktimes, Sim_center_Zbin, step_fit_logZ, Redshifts = read.load_TNG(loc = Cosmol_sim_location, rbox=rbox)
+    Sim_SFRD, Lookbacktimes, Redshifts, Sim_center_Zbin, step_fit_logZ = readTNGdata(loc = Cosmol_sim_location, rbox=rbox)
     SFRDnew, redshift_new, Lookbacktimes_new, metals_new = interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, saveplot=True, tng=tng, ver=ver)
     
     #Fit the model to the data

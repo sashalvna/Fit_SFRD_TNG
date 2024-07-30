@@ -1,16 +1,9 @@
-import sys
 import os
 import h5py as h5
 import numpy as np
-import matplotlib.pyplot as plt
-import astropy.units as u
 from astropy.cosmology import Planck15 as cosmo
-from astropy.cosmology import z_at_value
-import illustris_python as il
 import argparse
 
-import get_ZdepSFRD as Z_SFRD
-import importlib
 import paths
 import requests
 
@@ -46,7 +39,6 @@ def get_TNGsnapcols(TNGpath, TNG, lvl, snap, nfiles, singlefile=False, cols='gas
             fname = TNGpath + "/%03d/snap_%03d.%s.hdf5" %(snap, snap, ifile)
             if not os.path.isfile(fname):
                 os.system("wget -nd -nc -nv -e robots=off -l 1 -r -A hdf5 --content-disposition --header='API-Key: e36226423a0cc5e62f2e553f39b44238' 'http://www.tng-project.org/api/TNG%s-%s/files/snapshot-%03d.%s.hdf5?%s'" %(TNG, lvl, snap, ifile, cols))
-
 
 
 def delete_snapshotsubfile(TNGpath, snap, ifile):
