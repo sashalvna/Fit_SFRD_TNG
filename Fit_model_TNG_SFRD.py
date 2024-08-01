@@ -15,7 +15,7 @@ sys.path.append('../')
 import get_ZdepSFRD as Z_SFRD
 import paths
 
-def readTNGdata(loc = './', rbox=75, SFR=False):
+def readTNGdata(loc = './', rbox=75, SFR=False, metals=False):
     ##########################################
     # Simulated SFRD data (from TNG)
     ##########################################
@@ -25,6 +25,7 @@ def readTNGdata(loc = './', rbox=75, SFR=False):
         Lookbacktimes = f["Lookbacktimes"][:]
         BoxSfr        = f["Sfr"][:]
         Redshifts     = f["Redshifts"][:]
+        Metals        = f["Metals"][:]
 
     Sim_center_Zbin  = (MetalBins[:-1] + MetalBins[1:])/2.
 
@@ -40,10 +41,13 @@ def readTNGdata(loc = './', rbox=75, SFR=False):
         ## The model comes in SFRD/DeltaZ, make sure your data does as well!! 
         Sim_SFRD       = Sim_SFRD/step_fit_logZ
     
-    return Sim_SFRD, Lookbacktimes, Redshifts, Sim_center_Zbin, step_fit_logZ
+    if metals==True:
+        return Sim_SFRD, Lookbacktimes, Redshifts, Sim_center_Zbin, step_fit_logZ, Metals
+    else:
+        return Sim_SFRD, Lookbacktimes, Redshifts, Sim_center_Zbin, step_fit_logZ
 
 
-def interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng, ver, minZ_popSynth=1e-6, saveplot=False):
+def interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng, ver, minZ_popSynth=1e-6, saveplot=False, redshiftlimandstep=[0, 10.1, 0.05]):
 
     # Adjust what metallicities to include 
     tofit_Sim_metals = Sim_center_Zbin[np.where(Sim_center_Zbin > minZ_popSynth)[0]]   
@@ -56,7 +60,7 @@ def interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng
     f_interp = interpolate.interp2d(tofit_Sim_lookbackt, tofit_Sim_metals, tofit_Sim_SFRD.T, kind='cubic')
 
     # Retrieve values at higher res regular intervals
-    redshift_new         = np.arange(0, 10.1, 0.05)
+    redshift_new         = np.arange(redshiftlimandstep[0], redshiftlimandstep[1], redshiftlimandstep[2])
     Lookbacktimes_new    = [cosmo.lookback_time(z).value for z in redshift_new]
     redshifts_Sim = Redshifts
 
