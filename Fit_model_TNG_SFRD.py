@@ -42,7 +42,7 @@ def readTNGdata(loc = './', rbox=75, SFR=False, metals=False):
         Sim_SFRD       = Sim_SFRD/step_fit_logZ
     
     if metals==True:
-        return Sim_SFRD, Lookbacktimes, Redshifts, Sim_center_Zbin, step_fit_logZ, Metals
+        return Sim_SFRD, Lookbacktimes, Redshifts, Sim_center_Zbin, step_fit_logZ, Metals, MetalBins
     else:
         return Sim_SFRD, Lookbacktimes, Redshifts, Sim_center_Zbin, step_fit_logZ
 
@@ -152,9 +152,9 @@ def test_chi(x0 = [-0.09, 0.026, 1.9, 0.1, -3.3, 0.01, 2.6, 3.2, 6.2] ):
 
 if __name__ == "__main__":
     #Change file names to match TNG version <- turn these into arguments
-    tng=50
+    tng= 300
     ver = 1
-    Cosmol_sim_location = paths.data / str("SFRMetallicityFromGasTNG%s-%s.hdf5"%(tng,ver))
+    Cosmol_sim_location = paths.data / str("SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5"%(tng,ver))
     fit_filename = 'test_best_fit_parameters_TNG%s-%s.txt'%(tng,ver)
     if tng==50:
         rbox=35

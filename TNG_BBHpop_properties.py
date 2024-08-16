@@ -20,7 +20,7 @@ def read_best_fits(fit_param_files):
 
 def plot_BBH_merger_rate(data_dir, rates, fit_param_vals, plot_zoomed=False, showplot=True):
 
-    fig, axes = plt.subplots(1, 1, figsize=(10, 7))
+    fig, axes = plt.subplots(1, 1, figsize=(12, 8))
     redshifts = []
     merger_rates = []
     for i, rfile in enumerate(rates):
@@ -33,7 +33,7 @@ def plot_BBH_merger_rate(data_dir, rates, fit_param_vals, plot_zoomed=False, sho
                                                                                       np.round(fit_param_vals[i][6], 3), 
                                                                                       np.round(fit_param_vals[i][7], 3), 
                                                                                       np.round(fit_param_vals[i][8], 3))
-    
+        
         with h5.File(data_dir + rfile ,'r') as File:
             redshift      = File[rate_key]['redshifts'][()]
             merger_rate    = File[rate_key]['merger_rate'][()]
@@ -42,6 +42,7 @@ def plot_BBH_merger_rate(data_dir, rates, fit_param_vals, plot_zoomed=False, sho
         plt.plot(redshift, total_merger_rate, label='TNG%s'%labels[i], ls=linestyles[i], lw=lineweights[i], color=bbh_colors[i])
         redshifts.append(redshift)
         merger_rates.append(total_merger_rate)
+        print("The TNG%s merger rate at z=%s is: "%(labels[i], redshift[0]), total_merger_rate[0])
     
     plt.xlabel('Redshift', fontsize=20)
     plt.ylabel(r'Merger rate $[\rm \frac{\mathrm{d}N}{\mathrm{d}Gpc^3 \mathrm{d}yr}]$', fontsize=20)
@@ -55,13 +56,80 @@ def plot_BBH_merger_rate(data_dir, rates, fit_param_vals, plot_zoomed=False, sho
         for i in range(len(merger_rates)):
             plt.plot(redshifts[i], merger_rates[i], label='TNG%s'%labels[i], ls=linestyles[i], lw=lineweights[i], color=bbh_colors[i])
 
-        plt.xlabel('Redshift', fontsize=25)
-        plt.ylabel(r'Merger rate $[\rm \frac{\mathrm{d}N}{\mathrm{d}Gpc^3 \mathrm{d}yr}]$', fontsize=25)
+        plt.xlabel('Redshift', fontsize=20)
+        plt.ylabel(r'Merger rate $[\rm \frac{\mathrm{d}N}{\mathrm{d}Gpc^3 \mathrm{d}yr}]$', fontsize=20)
         fig.legend(bbox_to_anchor=(0.9, 0.3), fontsize=15)
         plt.xlim(9.5, 10)
         #plt.ylim(10**-5, 1)
         plt.yscale('log')
         plt.savefig('figures/merger_rates_TNG_zoomed.png', bbox_inches='tight')
+
+    if showplot==True:
+        plt.show()
+
+
+def compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, plot_merger_rates=True, showplot=True):
+
+    fig, axes = plt.subplots(1, 1, figsize=(12, 8))
+
+    data_colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown']
+    model_colors = ['darkblue', 'darkorange', 'darkgreen', 'darkred', 'darkpurple', 'darkbrown']
+
+    for i, rfile in enumerate(model_rates):
+        rate_key = 'Rates_mu0%s_muz%s_alpha%s_sigma0%s_sigmaz%s_a%s_b%s_c%s_d%s_zBinned'%(np.round(fit_param_vals[i][0], 3), 
+                                                                                      np.round(fit_param_vals[i][1], 3), 
+                                                                                      np.round(fit_param_vals[i][4], 3), 
+                                                                                      np.round(fit_param_vals[i][2], 3), 
+                                                                                      np.round(fit_param_vals[i][3], 3), 
+                                                                                      np.round(fit_param_vals[i][5], 3), 
+                                                                                      np.round(fit_param_vals[i][6], 3), 
+                                                                                      np.round(fit_param_vals[i][7], 3), 
+                                                                                      np.round(fit_param_vals[i][8], 3))
+        
+        with h5.File(data_dir + rfile ,'r') as File:
+            redshift      = File[rate_key]['redshifts'][()]
+            formation_rate = File[rate_key]['formation_rate'][()]
+            merger_rate    = File[rate_key]['merger_rate'][()]
+
+        with h5.File(data_dir + data_rates[i] ,'r') as File:
+            data_redshift      = File[rate_key]['redshifts'][()]
+            data_formation_rate = File[rate_key]['formation_rate'][()]
+            data_merger_rate    = File[rate_key]['merger_rate'][()]
+
+        if plot_merger_rates == True:
+            #Plot merger rates
+            total_merger_rate = np.sum(merger_rate, axis=0)
+            total_data_merger_rate = np.sum(data_merger_rate, axis=0)
+            plt.plot(data_redshift, total_data_merger_rate, label='TNG%s'%labels[i], lw=5, c=data_colors[i], alpha=0.9)
+            plt.plot(redshift, total_merger_rate, lw=2, c=model_colors[i], ls='--')
+            print("The TNG%s model merger rate at z=%s is: "%(labels[i], redshift[0]), total_merger_rate[0])
+            print("The TNG%s data merger rate at z=%s is: "%(labels[i], data_redshift[0]), total_data_merger_rate[0])
+
+        else:
+            #Plot formation rates
+            total_formation_rate = np.sum(formation_rate, axis=0)
+            total_data_formation_rate = np.sum(data_formation_rate, axis=0)
+
+            plt.plot(data_redshift, total_data_formation_rate, label='TNG%s'%labels[i], lw=5, c=data_colors[i], alpha=0.9)
+            plt.plot(redshift, total_formation_rate, lw=2, c=model_colors[i], ls='--')
+            print("The TNG%s model formation rate at z=%s is: "%(labels[i], redshift[0]), total_formation_rate[0])
+            print("The TNG%s data formation rate at z=%s is: "%(labels[i], data_redshift[0]), total_data_formation_rate[0])
+
+    x = [-0.0001]
+    y1 = [1]
+    y2 = [1]
+    plt.plot(x, y1, c='black', ls = '-', lw=5, label='Data')
+    plt.plot(x, y2, c='black', ls = '--', lw=2, label='Model')
+    plt.xlabel('Redshift', fontsize=20)
+    #plt.yscale('log')
+    fig.legend(bbox_to_anchor=(0.9, 0.88), fontsize=15)
+    if plot_merger_rates == True:
+        plt.ylabel(r'Merger rate $[\rm \frac{\mathrm{d}N}{\mathrm{d}Gpc^3 \mathrm{d}yr}]$', fontsize=20)
+        plt.savefig('figures/merger_rates_datavsmodel_TNG.png', bbox_inches='tight')
+
+    else:
+        plt.ylabel(r'Formation rate $[\rm \frac{\mathrm{d}N}{\mathrm{d}Gpc^3 \mathrm{d}yr}]$', fontsize=20)
+        plt.savefig('figures/formation_rates_datavsmodel_TNG.png', bbox_inches='tight')
 
     if showplot==True:
         plt.show()
@@ -181,8 +249,8 @@ def plot_BBH_mass_dist(rates, fit_param_vals, only_stable = True, only_CE = True
     # Channel
     #plt.text(0.75, 0.66, '$\mathrm{%s \ channel}$'%(channel_string), ha = 'center', transform=ax.transAxes, size = 20)
 
-    ax.set_xlabel(xlabel, fontsize = 25)
-    ax.set_ylabel(ylabel, fontsize = 25)
+    ax.set_xlabel(xlabel, fontsize = 20)
+    ax.set_ylabel(ylabel, fontsize = 20)
     ax.set_yscale('log')
     fig.legend(bbox_to_anchor=(0.9, 0.88), fontsize=15)
     fig.savefig('figures/massdist.png', bbox_inches='tight')
@@ -203,9 +271,12 @@ if __name__ == "__main__":
     fit_param_files = ['test_best_fit_parameters_TNG50-1.txt', 'test_best_fit_parameters_TNG100-1.txt', 'test_best_fit_parameters_TNG300-1.txt']
              # 'test_best_fit_parameters_TNG50-1.txt', 'test_best_fit_parameters_TNG50-1.txt']
             #'test_best_fit_parameters_TNG100-2.txt'] #, 'test_best_fit_parameters_TNG50-2.txt', 'test_best_fit_parameters_TNG50-3.txt']
-    rates = ['detailed_Rate_info_TNG50.h5', 'detailed_Rate_info_TNG100.h5', 'detailed_Rate_info_TNG300.h5']
+    rates = ['Rate_info_TNG50-1.h5', 'Rate_info_TNG100-1.h5', 'Rate_info_TNG300-1.h5']
             #'Rate_info_TNG50-1_data.h5', 'Rate_info_TNG50-1_test.h5'] 
             #'detailed_Rate_info_TNG100-2.h5', 'detailed_Rate_info_TNG50-2.h5', 'detailed_Rate_info_TNG50-3.h5'] 
+
+    model_rates = ['1_Rate_info_TNG50-1.h5', '1_Rate_info_TNG100-1.h5', '1_Rate_info_TNG300-1.h5']
+    data_rates = ['1_data_Rate_info_TNG50-1.h5', '1_data_Rate_info_TNG100-1.h5', '1_data_Rate_info_TNG300-1.h5']
 
 
     #Plot setup
@@ -221,6 +292,10 @@ if __name__ == "__main__":
 
     #Plot merger rates for all TNGs in one plot
     plot_BBH_merger_rate(data_dir, rates, fit_param_vals, plot_zoomed=False, showplot=True)
+
+    #Compare model and data merger and formation rates
+    compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, plot_merger_rates=False, showplot=True)
+    compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, plot_merger_rates=True, showplot=True)
 
     #Plot primary mass distribution for all TNGs in one plot
     plot_BBH_mass_dist(rates, fit_param_vals, only_stable = True, only_CE = True, channel_string='all', showplot=True)

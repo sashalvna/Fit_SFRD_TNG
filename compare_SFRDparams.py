@@ -72,26 +72,31 @@ def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], plotmodel=Tr
             rbox=205
 
         #Plot the TNG data
-        Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=True)
+        Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=True)
 
         if plotredshift == True:
             xvals = Sim_Redshifts
         else:
             xvals = Sim_Lookbacktimes
-        plt.plot(xvals, np.sum(Sim_SFRD, axis=1), label="TNG%s-%s data"%(tng, vers[n]), lw=5, c=data_colors[n], alpha=0.6)
+        plt.plot(xvals, np.sum(Sim_SFRD, axis=1), label="TNG%s-%s"%(tng, vers[n]), lw=5, c=data_colors[n], alpha=0.6)
 
         #Plot the TNG model
         if plotmodel==True:
             
             sfr = Z_SFRD.Madau_Dickinson2014(Sim_Redshifts, a=fit_params[n][5], b=fit_params[n][6], c=fit_params[n][7], d=fit_params[n][8]).value
-            plt.plot(xvals, sfr, label='TNG%s-%s model'%(tng, vers[n]), lw=2, c=fit_colors[n], ls='--')
+            plt.plot(xvals, sfr, lw=2, c=fit_colors[n], ls='--')
 
     if show_MD17 == True:
         #default Madau & Fragos 17
         ax.plot(xvals, Z_SFRD.Madau_Dickinson2014(Sim_Redshifts, a=0.01, b=2.6, c=3.2, d=6.2), 
-                 label = 'Madau & Fragos 2017'+'\n'+'$a=%.2f, b=%.2f, c=%.2f, d=%.2f$'% (0.01,2.6,3.2,6.2), 
+                 label = 'Madau & Fragos 2017', #+'\n'+'$a=%.2f, b=%.2f, c=%.2f, d=%.2f$'% (0.01,2.6,3.2,6.2), 
                  c = 'darkgrey', ls = ':',lw=2)
         
+    x = [-0.0001]
+    y1 = [0.0001]
+    y2 = [0.0001]
+    plt.plot(x, y1, c='black', ls = '-', lw=5, label='Data')
+    plt.plot(x, y2, c='black', ls = '--', lw=2, label='Model')
     ax.set_ylabel("SFRD(z)", fontsize = 20)
     ax.legend(fontsize = 15)
     if len(xlim) > 0:
@@ -160,7 +165,7 @@ def compare_dPdlogZ(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[],
         elif tng==300:
             rbox=205
 
-        Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=True)
+        Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=True)
         SFRDnew, redshift_new, Lookbacktimes_new, metals_new = interpolate_TNGdata(Sim_Redshifts, Sim_Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng, vers[n], saveplot=False)
 
         dPdlogZ, metallicities, step_logZ, p_draw_metallicity = \
@@ -249,8 +254,8 @@ def compare_dPdlogZ(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[],
 if __name__ == "__main__":
     #Change file names to match TNG version <- turn these into arguments
     path = '/Users/sashalvna/Research/Fit_SFRD_TNG/data/'
-    tngs=[50, 100, 300, 100] 
-    vers = [1, 1, 1, 2]
+    tngs=[50, 100, 300] 
+    vers = [1, 1, 1]
 
     compare_params(tngs, vers)
     compare_SFR(path, tngs, vers, plotmodel=True, plotredshift=True, xlim=[0, 10])
