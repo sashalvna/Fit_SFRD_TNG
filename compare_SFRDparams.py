@@ -5,7 +5,6 @@ from astropy.cosmology import Planck15  as cosmo #Planck 2015 since that's what 
 import seaborn as sns
 from math import ceil
 import matplotlib.ticker as ticker
-import matplotlib
 
 # Custom scripts
 sys.path.append('../')

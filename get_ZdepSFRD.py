@@ -1,9 +1,6 @@
 import numpy as np
 import astropy.units as u
-import scipy
 from scipy.stats import norm as NormDist
-
-import warnings
 
 ########################################################
 ## Chrip mass

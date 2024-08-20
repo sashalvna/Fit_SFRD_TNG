@@ -21,7 +21,7 @@ import astropy.units as u
 from astropy import constants as const
 
 # Chosen cosmology 
-from astropy.cosmology import WMAP9 as cosmo
+from astropy.cosmology import Planck15 as cosmo
 from astropy.cosmology import z_at_value
 
 import json

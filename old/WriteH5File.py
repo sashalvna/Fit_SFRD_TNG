@@ -3,8 +3,6 @@ import h5py  as h5
 import numpy as np
 import os
 
-
-
 def sanityChecks(h_old, filename, columns, seeds):
 
     data = h_old[filename]

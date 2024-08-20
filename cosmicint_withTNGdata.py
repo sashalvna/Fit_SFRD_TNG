@@ -6,7 +6,7 @@ import seaborn as sns
 from colour import Color
 
 from scipy.interpolate import interp1d
-from astropy.cosmology import Planck15  as cosmo# Planck15 since that's what TNG uses
+from astropy.cosmology import Planck15 as cosmo # Planck15 since that's what TNG uses
 
 from scipy.stats import norm as NormDist
 

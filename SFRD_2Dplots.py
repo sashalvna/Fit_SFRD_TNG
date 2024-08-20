@@ -185,7 +185,7 @@ if __name__ == "__main__":
     param_filenames = []
 
     for n, tng in enumerate(tngs):
-        Cosmol_sim_location = paths.data / str("SFRMetallicityFromGasTNG%s-%s.hdf5"%(tng,vers[n]))
+        Cosmol_sim_location = paths.data / str("SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5"%(tng,vers[n]))
         fit_filename = 'test_best_fit_parameters_TNG%s-%s.txt'%(tng,vers[n])
         if tng==50:
             rbox=35

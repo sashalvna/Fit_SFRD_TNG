@@ -273,7 +273,7 @@ if __name__ == "__main__":
     #Change file names to match TNG version <- turn these into arguments
     tng= 50
     ver = 1
-    Cosmol_sim_location = paths.data / str("SFRMetallicityFromGasTNG%s-%s.hdf5"%(tng,ver))
+    Cosmol_sim_location = paths.data / str("SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5"%(tng,ver))
     fit_filename = ['test_best_fit_parameters_TNG%s-%s.txt'%(tng,ver)]
     if tng==50:
         rbox=35
