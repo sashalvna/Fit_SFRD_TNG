@@ -1,5 +1,4 @@
 import sys
-import h5py as h5
 import numpy as np
 import matplotlib.pyplot as plt
 import astropy.units as u
@@ -11,7 +10,6 @@ from astropy.cosmology import Planck15  as cosmo# Planck15 since that's what TNG
 
 from scipy.stats import norm as NormDist
 
-import get_ZdepSFRD as Z_SFRD
 from Fit_model_TNG_SFRD import readTNGdata, interpolate_TNGdata
 from TNG_BBHpop_properties import read_best_fits
 import read_TNGdata as read
@@ -93,7 +91,7 @@ def find_metallicity_distribution(redshifts, metals = [], min_logZ_COMPAS = np.l
     return dPdlogZ, metallicities, step_logZ, p_draw_metallicity
 
 
-def calc_dPdlogZ(COMPAS_metallicity, metallicities, Metal_dist, showdist=False):
+def calc_dPdlogZ(COMPAS_metallicity, metallicities, Metal_dist):
         
     #dPdlogZs = []
     #metals_form = []
@@ -137,7 +135,7 @@ def SFRfrom_TNGdata(path, tng, ver, rbox, fit_filename, showplot=True):
     Sim_SFRD, Lookbacktimes, Redshifts, Sim_center_Zbin, step_fit_logZ = readTNGdata(loc = path, rbox=rbox, SFR=True)
 
     #Method 2: Interpolate 
-    SFRDinterp, redshiftinterp, Lookbacktimesinterp, metalsinterp= interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng, ver, redshiftlimandstep=[0, 20, 0.05], saveplot=False)
+    SFRDinterp, redshiftinterp, Lookbacktimesinterp, metalsinterp, step_fit_logZ_new = interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng, ver, redshiftlimandstep=[0, 20, 0.05], saveplot=False)
 
     #Method 3: Model from best fit parameters (these are based on interpolated, method 2)
     best_fits = read_best_fits(fit_filename)[0]
@@ -201,7 +199,7 @@ def dPdlogZfrom_TNGdata(path, tng, ver, rbox, showplot=True, shownormalized=True
 def comparedPdlogZ(path, fit_params, rbox, COMPAS_metallicities, Average_SF_mass_needed, showplot=True, compareformationrates=True):
     
     Sim_SFRD, Lookbacktimes, Redshifts, Sim_center_Zbin, step_fit_logZ, Metals, MetalBins = readTNGdata(loc = path, rbox=rbox, metals=True)
-    SFRD_new, redshift_new, Lookbacktimes_new, metals_new= interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng, ver, saveplot=False)
+    SFRD_new, redshift_new, Lookbacktimes_new, metals_new, step_fit_logZ_new= interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng, ver, saveplot=False)
     mu0, muz, omega0, omegaz, alpha0,sf_a, sf_b, sf_c, sf_d = fit_params
 
     #sfr using interpolated z range
@@ -334,7 +332,7 @@ def formationratefrom_TNGdata(path, rbox, COMPAS_metallicities, COMPAS_weights, 
     for i in range(n_binaries):
 
         formation_rate[i, :] = n_formed * calc_dPdlogZ(COMPAS_metallicities[i], metallicities, 
-                                normalized_metal_dists, showdist=showdist) / p_draw_metallicity * COMPAS_weights[i]
+                                normalized_metal_dists) / p_draw_metallicity * COMPAS_weights[i]
 
         if i==0:
             print("The binary metallicity is", COMPAS_metallicities[i])
@@ -413,8 +411,8 @@ if __name__ == "__main__":
     fit_params = read_best_fits(fit_filename)[0]
 
     #Conversion to per Gpc^3
-    #gpc = 1*u.Gpc**3
-    #mpc = gpc.to(u.Mpc**3).value
+    gpc = 1*u.Gpc**3
+    mpc = gpc.to(u.Mpc**3).value
 
     blue = Color("blue")
     colors = list(blue.range_to(Color("green"),100))

@@ -15,7 +15,7 @@ sys.path.append('../')
 import get_ZdepSFRD as Z_SFRD
 import paths
 
-def readTNGdata(loc = './', rbox=75, SFR=False, metals=False):
+def readTNGdata(loc = './', rbox=75, SFR=False, metals=True):
     ##########################################
     # Simulated SFRD data (from TNG)
     ##########################################
@@ -70,6 +70,7 @@ def interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng
 
     SFRDnew = f_interp(Lookbacktimes_new,metals_new)
     SFRDnew[SFRDnew < 0] = 0
+    step_fit_logZ_new = np.diff(np.log(metals_new))[0]
 
     if saveplot==True:
         #check what the SFR and interpolated SFRD (with metallicities) look like 
@@ -90,7 +91,7 @@ def interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng
         else:
             fig.savefig('figures/TNG%s_dataSFRD.png'%tng, bbox_inches='tight')
 
-    return(SFRDnew, redshift_new, Lookbacktimes_new, metals_new)
+    return(SFRDnew, redshift_new, Lookbacktimes_new, metals_new, step_fit_logZ_new)
 
 
 def calc_chi_square(fit_metals, Redshifts = [],  simulation_SFRD = [],

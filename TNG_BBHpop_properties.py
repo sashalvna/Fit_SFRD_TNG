@@ -266,18 +266,11 @@ if __name__ == "__main__":
     save_loc = str(paths.figures) + '/'
     COMPASfilename = 'COMPAS_Output_wWeights.h5'
 
-    filenames = ['SFRMetallicityFromGasTNG50-1.hdf5', 'SFRMetallicityFromGasTNG100-1.hdf5', 'SFRMetallicityFromGasTNG300-1.hdf5'] 
-            #'SFRMetallicityFromGasTNG100-2.hdf5'] #, 'SFRMetallicityFromGasTNG50-2.hdf5', 'SFRMetallicityFromGasTNG50-3.hdf5']
+    filenames = ['SFRMetallicityFromGasWithMetalsTNG50-1.hdf5', 'SFRMetallicityFromGasWithMetalsTNG100-1.hdf5', 'SFRMetallicityFromGasWithMetalsTNG300-1.hdf5'] 
     fit_param_files = ['test_best_fit_parameters_TNG50-1.txt', 'test_best_fit_parameters_TNG100-1.txt', 'test_best_fit_parameters_TNG300-1.txt']
-             # 'test_best_fit_parameters_TNG50-1.txt', 'test_best_fit_parameters_TNG50-1.txt']
-            #'test_best_fit_parameters_TNG100-2.txt'] #, 'test_best_fit_parameters_TNG50-2.txt', 'test_best_fit_parameters_TNG50-3.txt']
     rates = ['Rate_info_TNG50-1.h5', 'Rate_info_TNG100-1.h5', 'Rate_info_TNG300-1.h5']
-            #'Rate_info_TNG50-1_data.h5', 'Rate_info_TNG50-1_test.h5'] 
-            #'detailed_Rate_info_TNG100-2.h5', 'detailed_Rate_info_TNG50-2.h5', 'detailed_Rate_info_TNG50-3.h5'] 
-
-    model_rates = ['1_Rate_info_TNG50-1.h5', '1_Rate_info_TNG100-1.h5', '1_Rate_info_TNG300-1.h5']
-    data_rates = ['1_data_Rate_info_TNG50-1.h5', '1_data_Rate_info_TNG100-1.h5', '1_data_Rate_info_TNG300-1.h5']
-
+    model_rates = ['Rate_info_TNG50-1.h5', 'Rate_info_TNG100-1.h5', 'Rate_info_TNG300-1.h5']
+    data_rates = ['data_Rate_info_TNG50-1.h5', 'data_Rate_info_TNG100-1.h5', 'data_Rate_info_TNG300-1.h5']
 
     #Plot setup
     labels = ['50-1', '100-1', '300-1']
