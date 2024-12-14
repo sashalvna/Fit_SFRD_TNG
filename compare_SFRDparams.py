@@ -47,7 +47,7 @@ def compare_params(tngs=[50, 100, 300], vers=[1, 1, 1], showplot=True):
         plt.show()
 
 
-def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], plotmodel=True, plotredshift=True, show_MD17=True, showplot=True):
+def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], plotmodel=True, plotredshift=True, show_MD17=True, plotlogscale=False, showplot=True):
 
     #Get model fit parameters 
     fit_param_files = []
@@ -71,13 +71,13 @@ def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], plotmodel=Tr
             rbox=205
 
         #Plot the TNG data
-        Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=True)
+        Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=True, metals=False)
 
         if plotredshift == True:
             xvals = Sim_Redshifts
         else:
             xvals = Sim_Lookbacktimes
-        plt.plot(xvals, np.sum(Sim_SFRD, axis=1), label="TNG%s-%s"%(tng, vers[n]), lw=5, c=data_colors[n], alpha=0.6)
+        plt.plot(xvals, np.sum(Sim_SFRD, axis=1), label="TNG%s-%s"%(tng, vers[n]), lw=5, c=data_colors[n], alpha=0.9)
 
         #Plot the TNG model
         if plotmodel==True:
@@ -98,8 +98,12 @@ def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], plotmodel=Tr
     plt.plot(x, y2, c='black', ls = '--', lw=2, label='Model')
     ax.set_ylabel("SFRD(z)", fontsize = 20)
     ax.legend(fontsize = 15)
+    if plotlogscale==True:
+        ax.set_yscale('log')
     if len(xlim) > 0:
         ax.set_xlim(xlim[0], xlim[1])
+    if len(ylim) > 0:
+        ax.set_ylim(ylim[0], ylim[1])
 
     if plotredshift:
         ax.set_xlabel("Redshift", fontsize = 20)
@@ -164,8 +168,8 @@ def compare_dPdlogZ(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[],
         elif tng==300:
             rbox=205
 
-        Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=True)
-        SFRDnew, redshift_new, Lookbacktimes_new, metals_new = interpolate_TNGdata(Sim_Redshifts, Sim_Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng, vers[n], saveplot=False)
+        Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=True, metals=False)
+        SFRDnew, redshift_new, Lookbacktimes_new, metals_new, step_fit_logZ_new = interpolate_TNGdata(Sim_Redshifts, Sim_Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng, vers[n], saveplot=False)
 
         dPdlogZ, metallicities, step_logZ, p_draw_metallicity = \
                 Z_SFRD.skew_metallicity_distribution(redshift_new , mu_0 = fit_params[n][0], mu_z = fit_params[n][1],
@@ -257,5 +261,5 @@ if __name__ == "__main__":
     vers = [1, 1, 1]
 
     compare_params(tngs, vers)
-    compare_SFR(path, tngs, vers, plotmodel=True, plotredshift=True, xlim=[0, 10])
+    compare_SFR(path, tngs, vers, plotmodel=True, plotredshift=False, xlim=[0, 14], ylim=[10**-3, 10**-0.5], plotlogscale=True)
     compare_dPdlogZ(path, tngs, vers, ylim=[1e-2, 1e1], levels = [0, 0.55], nlevels=30)

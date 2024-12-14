@@ -171,6 +171,37 @@ def SFRDplot_2D(metals, Lookbacktimes, SFRD, tngs=[], ver=[], model=[], xlim=[],
         plt.show()
 
 
+def SFRDmodels_2D(metals, Lookbacktimes, SFRD, tngs=[], ver=[], model=[], xlim=[], ylim=[10**-1, 10**1], levels = [], showplot=True):
+
+    fig, ax = plt.subplots(1, 1, figsize=(12, 8))
+
+    #Model contours
+    if tng==50:
+        clevels = [1e-3, 0.005, 0.01, 0.02, 0.03, 0.04, 0.045, 0.05] 
+    elif tng==100:
+        clevels = [1e-3, 0.005, 0.01, 0.015, 0.02, 0.025, 0.03, 0.033] 
+    elif tng==300:
+        clevels = [1e-3, 0.005, 0.01, 0.015,0.02, 0.024] 
+    
+    for n, tng in enumerate(tngs):
+        modelplot = ax.contour(Lookbacktimes[n], metals[n]/Zsun, model[n].T, levels=clevels, colors='white')
+        ax.clabel(modelplot, fontsize=12, inline=True)
+    
+        #Set yscale, TNG version label on each plot, and axis labels
+        ax.set_yscale('log')
+        fig.supxlabel('Lookback time', y=0.05, fontsize=20)
+        fig.supylabel(r'$\mathrm{Metallicity}, \ Z/Z_{\rm{\odot}}$', x=0.07, fontsize=20)
+
+    #Set redshift ticks; make sure they don't overlap
+    ax2 = ax.twiny()
+    if n==1:
+        redshift_tick_list = [0,0.1, 0.25, 0.5, 0.75, 1.0,1.5, 2, 3, 6, 10]
+    elif len(tngs) == 1:
+        redshift_tick_list = [0,0.1, 0.25, 0.5, 0.75, 1.0,1.5, 2, 3, 6, 10]
+    else:
+        redshift_tick_list = [0,0.1, 0.25, 0.5, 0.75, 1.0,1.5, 2, 3, 6]
+
+
 if __name__ == "__main__":
     #Change file names to match TNG version <- turn these into arguments
     tngs=[50, 100, 300, 100] 
