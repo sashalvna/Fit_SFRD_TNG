@@ -17,6 +17,15 @@ import Fit_model_TNG_SFRD as fitmodel
 from TNG_BBHpop_properties import read_best_fits
 from Fit_model_TNG_SFRD import readTNGdata
 
+## PLOT setttings
+plt.rc('font', family='serif')
+from matplotlib import rc
+import matplotlib
+plt.rc('font', family='serif', weight='bold')
+plt.rc('text', usetex=True)
+matplotlib.rcParams['font.weight']= 'bold'
+matplotlib.rcParams.update({'font.weight': 'bold'})
+
 
 def SFRDplot_2D(metals, Lookbacktimes, SFRD, tngs=[], ver=[], model=[], xlim=[], ylim=[10**-1, 10**1], levels = [], plottype='data', nlevels=20, cmap='rocket', showplot=True):
 
@@ -61,7 +70,7 @@ def SFRDplot_2D(metals, Lookbacktimes, SFRD, tngs=[], ver=[], model=[], xlim=[],
         #Plot data and is model is given plot model
         if plottype=='data':
             data = ax.contourf(Lookbacktimes[n], metals[n]/Zsun, SFRD[n], levels=levels, cmap=cmap)
-            ax.text(0.02, 0.02, "TNG%s-%s, model"%(tng, ver[n]), transform=ax.transAxes, fontsize=15, color='white')
+            ax.text(0.02, 0.02, "TNG%s-%s, model"%(tng, ver[n]), transform=ax.transAxes, fontsize=20, color='white')
 
         if plottype=='percenterr':
             SFRD[n][SFRD[n] < 1e-7] = 0
@@ -81,14 +90,18 @@ def SFRDplot_2D(metals, Lookbacktimes, SFRD, tngs=[], ver=[], model=[], xlim=[],
                 clevels = [1e-3, 0.005, 0.01, 0.015,0.02, 0.024] 
             if plottype=='data':
                 modelplot = ax.contour(Lookbacktimes[n], metals[n]/Zsun, model[n].T, levels=clevels, colors='white')
-                ax.clabel(modelplot, fontsize=12, inline=True)
+                ax.clabel(modelplot, fontsize=11, inline=True)
             elif plottype=='percenterr':
                 modelplot = ax.contour(Lookbacktimes[n], metals[n]/Zsun, model[n].T, levels=clevels, colors='black', linestyles='dashed')
 
         #Set yscale, TNG version label on each plot, and axis labels
         ax.set_yscale('log')
-        fig.supxlabel('Lookback time', y=0.05, fontsize=20)
-        fig.supylabel(r'$\mathrm{Metallicity}, \ Z/Z_{\rm{\odot}}$', x=0.07, fontsize=20)
+        fig.supxlabel('Lookback time (Gyr)', y=0.04, fontsize=30)
+        fig.supylabel(r'$Z/Z_{\rm{\odot}}$', x=0.03, fontsize=30)
+        ax.tick_params(axis='both', which='major', labelsize=20)
+        ax.xaxis.set_minor_locator(ticker.MultipleLocator(1))
+        ax.tick_params(length=10, width=2, which='major')
+        ax.tick_params(length=5, width=1, which='minor')
 
         #Set redshift ticks; make sure they don't overlap
         ax2 = ax.twiny()
@@ -101,8 +114,9 @@ def SFRDplot_2D(metals, Lookbacktimes, SFRD, tngs=[], ver=[], model=[], xlim=[],
         
         #Hide overlapping tick labels
         if n>0:
-            nbins = len(ax.get_yticklabels())
-            ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins=nbins, prune='upper'))
+            labels = ax.get_yticklabels()
+            labels[-1] = ''
+            ax.set_yticklabels(labels)
 
         #Hide tick labels depending on how many subplots are in the figure, and their configuration
         if n%2==0:
@@ -110,7 +124,7 @@ def SFRDplot_2D(metals, Lookbacktimes, SFRD, tngs=[], ver=[], model=[], xlim=[],
                 ax.tick_params(axis='x',  which='both', bottom=False, labelbottom=False)
         else:
             if len(tngs) > 1 and len(tngs) <= 2: #if right subplot with only one row, hide left ticks on the left side
-                ax.tick_params(axis='y',  which='both', left=False, labelleft=False)
+                ax.tick_params(axis='both',  which='both', left=False, labelleft=False)
             elif len(tngs) > 2 and n<len(tngs)-2: #if right subplot with more than one row, hide left and bottom ticks
                 ax.tick_params(axis='both',  which='both', left=False, labelleft=False, bottom=False, labelbottom=False)
             else: #if last right subplot, hide left label
@@ -118,13 +132,16 @@ def SFRDplot_2D(metals, Lookbacktimes, SFRD, tngs=[], ver=[], model=[], xlim=[],
 
         #Set redshift axis labels for only first row of subplots
         if n < 2: 
-            ax2.set_xlabel('Redshift', fontsize = 20)
+            ax2.set_xlabel('Redshift', fontsize = 25, labelpad=5)
             ax2.set_xticks([cosmo.lookback_time(z).value for z in redshift_tick_list])
             ax2.set_xticklabels(['${:g}$'.format(z) for z in redshift_tick_list])
         else:
-            ax2.set_xlabel('', fontsize = 20)
+            ax2.set_xlabel('', fontsize = 25)
             ax2.set_xticks([cosmo.lookback_time(z).value for z in redshift_tick_list*0])
             ax2.set_xticklabels(['${:g}$'.format(z) for z in redshift_tick_list*0])
+
+        ax2.tick_params(axis='both', which='major', labelsize=15)
+        ax2.tick_params(length=5, width=1.5, which='major')
 
         #Set limits for horizontal (lookback time) and vertical (metallicity) axes
         if len(xlim) > 0:
@@ -139,37 +156,37 @@ def SFRDplot_2D(metals, Lookbacktimes, SFRD, tngs=[], ver=[], model=[], xlim=[],
 
     
     #Set up the colorbar
-    fig.subplots_adjust(right=0.8)
+    fig.subplots_adjust(right=0.81)
     cbar_ax = fig.add_axes([0.83, 0.15, 0.03, 0.7])
-    cbar = fig.colorbar(data, cax=cbar_ax, format=ticker.FormatStrFormatter('%.2g'))
+    cbar = fig.colorbar(data, cax=cbar_ax, format=ticker.FormatStrFormatter('%.3f'))
+    cbar.ax.tick_params(labelsize=20)
 
     #Set the colorbar labels and save the plot
     if plottype=='data':
         if len(tngs)==1:
             if ver[0]>1:
-                cbar.set_label('SFRD(Z, z) TNG%s-%s data'%(tngs[0], ver[0]), rotation=270, fontsize=20, labelpad=30);
-                fig.savefig('figures/SFRD_Z_z_TNG%s_%s.png'%(tngs[0], ver[0]), bbox_inches='tight')
+                cbar.set_label(r'$\mathcal{S}(Z_{\rm{i}},z)$ TNG%s-%s data'%(tngs[0], ver[0]), rotation=270, fontsize=30, labelpad=30);
+                fig.savefig('figures/SFRD_Z_z_TNG%s_%s.png'%(tngs[0], ver[0]), bbox_inches='tight', dpi=300)
             else:
-                cbar.set_label('SFRD(Z, z) TNG%s data'%tngs[0], rotation=270, fontsize=20, labelpad=30);
-                fig.savefig('figures/SFRD_Z_z_TNG%s.png'%tngs[0], bbox_inches='tight')
+                cbar.set_label(r'$\mathcal{S}(Z_{\rm{i}},z)$ TNG%s data'%tngs[0], rotation=270, fontsize=30, labelpad=30);
+                fig.savefig('figures/SFRD_Z_z_TNG%s.png'%tngs[0], bbox_inches='tight', dpi=300)
         else:
-            cbar.set_label('SFRD(Z, z), TNG data', rotation=270, fontsize=20, labelpad=30);
-            fig.savefig('figures/SFRD_Z_z_TNG.png', bbox_inches='tight')
+            cbar.set_label(r'$\mathcal{S}(Z_{\rm{i}},z)$ TNG data', rotation=270, fontsize=30, labelpad=30);
+            fig.savefig('figures/SFRD_Z_z_TNG.png', bbox_inches='tight', dpi=300)
     elif plottype=='percenterr':
         if len(tngs)==1:
             if ver[0]>1:
-                cbar.set_label('SFRD(Z, z) percent error, TNG%s-%s data'%(tngs[0], ver[0]), rotation=270, fontsize=20, labelpad=30);
+                cbar.set_label(r'$\mathcal{S}(Z_{\rm{i}},z)$ percent error, TNG%s-%s data'%(tngs[0], ver[0]), rotation=270, fontsize=30, labelpad=30);
                 fig.savefig('figures/SFRD_Z_z_TNG%s_%sdiff.png'%(tngs[0], ver[0]), bbox_inches='tight')
             else:
-                cbar.set_label('SFRD(Z, z) percent error, TNG%s data'%tngs[0], rotation=270, fontsize=20, labelpad=30);
-                fig.savefig('figures/SFRD_Z_z_TNG%sdiff.png'%tngs[0], bbox_inches='tight')
+                cbar.set_label(r'$\mathcal{S}(Z_{\rm{i}},z)$ percent error, TNG%s data'%tngs[0], rotation=270, fontsize=30, labelpad=30);
+                fig.savefig('figures/SFRD_Z_z_TNG%sdiff.png'%tngs[0], bbox_inches='tight', dpi=300)
         else:
-            cbar.set_label('SFRD(Z, z) percent error', rotation=270, fontsize=20, labelpad=30);
-            fig.savefig('figures/SFRD_Z_z_TNGdiff.png', bbox_inches='tight')
+            cbar.set_label(r'$\mathcal{S}(Z_{\rm{i}},z)$ percent error', rotation=270, fontsize=30, labelpad=30);
+            fig.savefig('figures/SFRD_Z_z_TNGdiff.png', bbox_inches='tight', dpi=300)
     
     if showplot==True:
         plt.show()
-
 
 def SFRDmodels_2D(metals, Lookbacktimes, SFRD, tngs=[], ver=[], model=[], xlim=[], ylim=[10**-1, 10**1], levels = [], showplot=True):
 
@@ -217,6 +234,8 @@ if __name__ == "__main__":
 
     for n, tng in enumerate(tngs):
         Cosmol_sim_location = paths.data / str("SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5"%(tng,vers[n]))
+        if vers[n] == 2:
+            Cosmol_sim_location = paths.data / str("SFRMetallicityFromGasTNG%s-%s.hdf5"%(tng,vers[n]))
         fit_filename = 'test_best_fit_parameters_TNG%s-%s.txt'%(tng,vers[n])
         if tng==50:
             rbox=35
@@ -224,8 +243,8 @@ if __name__ == "__main__":
             rbox=75
         elif tng==300:
             rbox=205
-        Sim_SFRD, Lookbacktimes, Redshifts, Sim_center_Zbin, step_fit_logZ = readTNGdata(loc = Cosmol_sim_location, rbox=rbox)
-        SFRDnew, redshift_new, Lookbacktimes_new, metals_new = fitmodel.interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng, vers[n], saveplot=False)
+        Sim_SFRD, Lookbacktimes, Redshifts, Sim_center_Zbin, step_fit_logZ = readTNGdata(loc = Cosmol_sim_location, rbox=rbox, metals=False)
+        SFRDnew, redshift_new, Lookbacktimes_new, metals_new, step_fit_logZ_new = fitmodel.interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng, vers[n], saveplot=False)
         SFRDsTNG.append(SFRDnew)
         redshiftsTNG.append(redshift_new)
         LookbacktimesTNG.append(Lookbacktimes_new)

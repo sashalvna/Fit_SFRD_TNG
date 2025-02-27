@@ -25,7 +25,8 @@ def readTNGdata(loc = './', rbox=75, SFR=False, metals=True):
         Lookbacktimes = f["Lookbacktimes"][:]
         BoxSfr        = f["Sfr"][:]
         Redshifts     = f["Redshifts"][:]
-        Metals        = f["Metals"][:]
+        if metals==True:
+            Metals        = f["Metals"][:]
 
     Sim_center_Zbin  = (MetalBins[:-1] + MetalBins[1:])/2.
 
