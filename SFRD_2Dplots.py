@@ -172,7 +172,7 @@ def SFRDplot_2D(metals, Lookbacktimes, SFRD, tngs=[], ver=[], model=[], xlim=[],
                 fig.savefig('figures/SFRD_Z_z_TNG%s.png'%tngs[0], bbox_inches='tight', dpi=300)
         else:
             cbar.set_label(r'$\mathcal{S}(Z_{\rm{i}},z)$ TNG data', rotation=270, fontsize=30, labelpad=30);
-            fig.savefig('figures/SFRD_Z_z_TNG.png', bbox_inches='tight', dpi=300)
+            fig.savefig('figures/SFRD_Z_z_TNG_1.png', bbox_inches='tight', dpi=300, transparent=True)
     elif plottype=='percenterr':
         if len(tngs)==1:
             if ver[0]>1:
