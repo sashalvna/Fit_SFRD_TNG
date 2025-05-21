@@ -222,33 +222,33 @@ def find_formation_and_merger_rates(n_binaries, redshifts, times, time_first_SF,
         if len(Metal_distributions) > 0:
             formation_rate[i, :] = n_formed * calc_dPdlogZ(COMPAS_metallicites[i], metallicities, normalized_metal_dists) / p_draw_metallicity * COMPAS_weights[i]
 
-            if i==0:
-                print("The binary metallicity is", COMPAS_metallicites[i])
+            #if i==0:
+                #print("The binary metallicity is", COMPAS_metallicites[i])
 
-                fig, ax = plt.subplots(figsize = (12,8))
-                plt.plot(redshifts, formation_rate[i])
-                plt.xlim(0, 10)
-                plt.ylabel("Formation rate", fontsize=20)
-                plt.xlabel("Redshift", fontsize=20)
-                plt.title('Z = %s'%COMPAS_metallicites[i])
-                plt.savefig('/home/alevina1/figures/formationrate_data.png')
-                plt.clf()
+                #fig, ax = plt.subplots(figsize = (12,8))
+                #plt.plot(redshifts, formation_rate[i])
+                #plt.xlim(0, 10)
+                #plt.ylabel("Formation rate", fontsize=20)
+                #plt.xlabel("Redshift", fontsize=20)
+                #plt.title('Z = %s'%COMPAS_metallicites[i])
+                #plt.savefig('/home/alevina1/figures/formationrate_data.png')
+                #plt.clf()
 
-                fig, ax = plt.subplots(figsize = (12,8))
-                plt.plot(redshifts, calc_dPdlogZ(COMPAS_metallicites[i], metallicities, normalized_metal_dists))
-                plt.xlim(0, 10)
-                plt.ylabel("dP/dlogZ", fontsize=20)
-                plt.xlabel("Redshift", fontsize=20)
-                plt.title('Z = %s'%COMPAS_metallicites[i])
-                plt.savefig('/home/alevina1/figures/dPdlogZ_data.png')
-                plt.clf()
+                #fig, ax = plt.subplots(figsize = (12,8))
+                #plt.plot(redshifts, calc_dPdlogZ(COMPAS_metallicites[i], metallicities, normalized_metal_dists))
+                #plt.xlim(0, 10)
+                #plt.ylabel("dP/dlogZ", fontsize=20)
+                #plt.xlabel("Redshift", fontsize=20)
+                #plt.title('Z = %s'%COMPAS_metallicites[i])
+                #plt.savefig('/home/alevina1/figures/dPdlogZ_data.png')
+                #plt.clf()
 
-                print("min max Z", min(metallicities), max(metallicities))
-                print("min max COMPAS Z", min(COMPAS_metallicites), max(COMPAS_metallicites))
-                print("np digitize", np.digitize(COMPAS_metallicites[i], metallicities))
-                print("metallicities", metallicities[np.digitize(COMPAS_metallicites[i], metallicities)], len(metallicities))
-                print("len dPdlogZ", (calc_dPdlogZ(COMPAS_metallicites[i], metallicities, normalized_metal_dists)).shape)
-                print("dPdlogZ", calc_dPdlogZ(COMPAS_metallicites[i], metallicities, normalized_metal_dists))
+                #print("min max Z", min(metallicities), max(metallicities))
+                #print("min max COMPAS Z", min(COMPAS_metallicites), max(COMPAS_metallicites))
+                #print("np digitize", np.digitize(COMPAS_metallicites[i], metallicities))
+                #print("metallicities", metallicities[np.digitize(COMPAS_metallicites[i], metallicities)], len(metallicities))
+                #print("len dPdlogZ", (calc_dPdlogZ(COMPAS_metallicites[i], metallicities, normalized_metal_dists)).shape)
+                #print("dPdlogZ", calc_dPdlogZ(COMPAS_metallicites[i], metallicities, normalized_metal_dists))
 
             #with open("COMPASbinaryindex.txt", 'w') as f:
             #    f.write("%s"%i)
@@ -257,32 +257,32 @@ def find_formation_and_merger_rates(n_binaries, redshifts, times, time_first_SF,
             # calculate formation rate (see Neijssel+19 Section 4) - note this uses dPdlogZ for *closest* metallicity
             formation_rate[i, :] = n_formed * dPdlogZ[:, np.digitize(COMPAS_metallicites[i], metallicities)] / p_draw_metallicity * COMPAS_weights[i]
 
-            if i==0:
-                print("The binary metallicity is", COMPAS_metallicites[i])
-                print("min max Z", min(metallicities), max(metallicities))
-                print("min max COMPAS Z", min(COMPAS_metallicites), max(COMPAS_metallicites))
-                print("np digitize", np.digitize(COMPAS_metallicites[i], metallicities))
-                print("metallicities", metallicities[np.digitize(COMPAS_metallicites[i], metallicities)], metallicities, len(metallicities))
-                print("len dPdlogZ", (dPdlogZ[:, np.digitize(COMPAS_metallicites[i], metallicities)]).shape)
-                print("dPdlogZ", (dPdlogZ[:, np.digitize(COMPAS_metallicites[i], metallicities)]))
+            #if i==0:
+                #print("The binary metallicity is", COMPAS_metallicites[i])
+                #print("min max Z", min(metallicities), max(metallicities))
+                #print("min max COMPAS Z", min(COMPAS_metallicites), max(COMPAS_metallicites))
+                #print("np digitize", np.digitize(COMPAS_metallicites[i], metallicities))
+                #print("metallicities", metallicities[np.digitize(COMPAS_metallicites[i], metallicities)], metallicities, len(metallicities))
+                #print("len dPdlogZ", (dPdlogZ[:, np.digitize(COMPAS_metallicites[i], metallicities)]).shape)
+                #print("dPdlogZ", (dPdlogZ[:, np.digitize(COMPAS_metallicites[i], metallicities)]))
 
-                fig, ax = plt.subplots(figsize = (12,8))
-                plt.plot(redshifts, formation_rate[i])
-                plt.xlim(0, 10)
-                plt.ylabel("Formation rate", fontsize=20)
-                plt.xlabel("Redshift", fontsize=20)
-                plt.title('Z = %s'%COMPAS_metallicites[i])
-                plt.savefig('/home/alevina1/figures/formationrate_model.png')
-                plt.clf()
+                #fig, ax = plt.subplots(figsize = (12,8))
+                #plt.plot(redshifts, formation_rate[i])
+                #plt.xlim(0, 10)
+                #plt.ylabel("Formation rate", fontsize=20)
+                #plt.xlabel("Redshift", fontsize=20)
+                #plt.title('Z = %s'%COMPAS_metallicites[i])
+                #plt.savefig('/home/alevina1/figures/formationrate_model.png')
+                #plt.clf()
 
-                fig, ax = plt.subplots(figsize = (12,8))
-                plt.plot(redshifts, dPdlogZ[:, np.digitize(COMPAS_metallicites[i], metallicities)])
-                plt.xlim(0, 10)
-                plt.ylabel("dP/dlogZ", fontsize=20)
-                plt.xlabel("Redshift", fontsize=20)
-                plt.title('Z = %s'%COMPAS_metallicites[i])
-                plt.savefig('/home/alevina1/figures/dPdlogZ_model.png')
-                plt.clf()
+                #fig, ax = plt.subplots(figsize = (12,8))
+                #plt.plot(redshifts, dPdlogZ[:, np.digitize(COMPAS_metallicites[i], metallicities)])
+                #plt.xlim(0, 10)
+                #plt.ylabel("dP/dlogZ", fontsize=20)
+                #plt.xlabel("Redshift", fontsize=20)
+                #plt.title('Z = %s'%COMPAS_metallicites[i])
+                #plt.savefig('/home/alevina1/figures/dPdlogZ_model.png')
+                #plt.clf()
 
             #with open("COMPASbinaryindex_model.txt", 'w') as f:
                 #f.write("%s"%i)
@@ -555,12 +555,12 @@ def find_detection_rate(path, filename="COMPAS_Output.h5", dco_type="BBH", weigh
         print('Average_SF_mass_needed = ', Average_SF_mass_needed) # print this, because it might come in handy to know when writing up results :)
         n_formed = sfr / Average_SF_mass_needed # Divide the star formation rate density by the representative SF mass
 
-        fig, ax = plt.subplots(figsize = (12,8))
-        plt.plot(redshifts, sfr)
-        plt.ylabel("SFRD(z)", fontsize=20)
-        plt.xlabel("Redshift", fontsize=20)
-        plt.savefig('/home/alevina1/figures/SFR_data.png')
-        plt.clf()
+        #fig, ax = plt.subplots(figsize = (12,8))
+        #plt.plot(redshifts, sfr)
+        #plt.ylabel("SFRD(z)", fontsize=20)
+        #plt.xlabel("Redshift", fontsize=20)
+        #plt.savefig('/home/alevina1/figures/SFR_data.png')
+        #plt.clf()
         
         # assume a flat in log distribution in metallicity to find probability of drawing Z in COMPAS
         min_logZ_COMPAS = np.log(np.min(COMPAS.initialZ))
@@ -574,21 +574,21 @@ def find_detection_rate(path, filename="COMPAS_Output.h5", dco_type="BBH", weigh
                                                                      COMPAS.metallicitySystems, COMPAS.delayTimes, COMPAS.sw_weights, 
                                                                      Metal_distributions=Metalsnew, n_formed=n_formed)
         
-        print(formation_rate.shape, merger_rate.shape)
+        #print(formation_rate.shape, merger_rate.shape)
 
-        fig, ax = plt.subplots(figsize = (12,8))
-        plt.plot(redshifts, np.sum(formation_rate, axis=0))
-        plt.ylabel("Formation rate", fontsize=20)
-        plt.xlabel("Redshift", fontsize=20)
-        plt.savefig('/home/alevina1/figures/full_formationrate_data.png')
-        plt.clf()
+        #fig, ax = plt.subplots(figsize = (12,8))
+        #plt.plot(redshifts, np.sum(formation_rate, axis=0))
+        #plt.ylabel("Formation rate", fontsize=20)
+        #plt.xlabel("Redshift", fontsize=20)
+        #plt.savefig('/home/alevina1/figures/full_formationrate_data.png')
+        #plt.clf()
 
-        fig, ax = plt.subplots(figsize = (12,8))
-        plt.plot(redshifts, np.sum(merger_rate, axis=0))
-        plt.ylabel("Merger rate", fontsize=20)
-        plt.xlabel("Redshift", fontsize=20)
-        plt.savefig('/home/alevina1/figures/mergerrate_data.png')
-        plt.clf()
+        #fig, ax = plt.subplots(figsize = (12,8))
+        #plt.plot(redshifts, np.sum(merger_rate, axis=0))
+        #plt.ylabel("Merger rate", fontsize=20)
+        #plt.xlabel("Redshift", fontsize=20)
+        #plt.savefig('/home/alevina1/figures/mergerrate_data.png')
+        #plt.clf()
         
     else:
 
@@ -603,12 +603,12 @@ def find_detection_rate(path, filename="COMPAS_Output.h5", dco_type="BBH", weigh
         print('Average_SF_mass_needed = ', Average_SF_mass_needed) # print this, because it might come in handy to know when writing up results :)
         n_formed = sfr / Average_SF_mass_needed # Divide the star formation rate density by the representative SF mass
 
-        fig, ax = plt.subplots(figsize = (12,8))
-        plt.plot(redshifts, sfr)
-        plt.ylabel("SFRD(z)", fontsize=20)
-        plt.xlabel("Redshift", fontsize=20)
-        plt.savefig('/home/alevina1/figures/SFR_model.png')
-        plt.clf()
+        #fig, ax = plt.subplots(figsize = (12,8))
+        #plt.plot(redshifts, sfr)
+        #plt.ylabel("SFRD(z)", fontsize=20)
+        #plt.xlabel("Redshift", fontsize=20)
+        #plt.savefig('/home/alevina1/figures/SFR_model.png')
+        #plt.clf()
         
         dPdlogZ, metallicities, p_draw_metallicity = find_metallicity_distribution(redshifts, min_logZ_COMPAS = np.log(np.min(COMPAS.initialZ)),
                                                                                 max_logZ_COMPAS = np.log(np.max(COMPAS.initialZ)),
@@ -622,21 +622,21 @@ def find_detection_rate(path, filename="COMPAS_Output.h5", dco_type="BBH", weigh
                                                                     metallicities, p_draw_metallicity, COMPAS.metallicitySystems,
                                                                     COMPAS.delayTimes, COMPAS.sw_weights, n_formed= n_formed, dPdlogZ=dPdlogZ)
 
-        print(formation_rate.shape, merger_rate.shape)
+        #print(formation_rate.shape, merger_rate.shape)
 
-        fig, ax = plt.subplots(figsize = (12,8))
-        plt.plot(redshifts, np.sum(formation_rate, axis=0))
-        plt.ylabel("Formation rate", fontsize=20)
-        plt.xlabel("Redshift", fontsize=20)
-        plt.savefig('/home/alevina1/figures/full_formationrate_model.png')
-        plt.clf()
+        #fig, ax = plt.subplots(figsize = (12,8))
+        #plt.plot(redshifts, np.sum(formation_rate, axis=0))
+        #plt.ylabel("Formation rate", fontsize=20)
+        #plt.xlabel("Redshift", fontsize=20)
+        #plt.savefig('/home/alevina1/figures/full_formationrate_model.png')
+        #plt.clf()
 
-        fig, ax = plt.subplots(figsize = (12,8))
-        plt.plot(redshifts, np.sum(merger_rate, axis=0))
-        plt.ylabel("Merger rate", fontsize=20)
-        plt.xlabel("Redshift", fontsize=20)
-        plt.savefig('/home/alevina1/figures/mergerrate_model.png')
-        plt.clf()
+        #fig, ax = plt.subplots(figsize = (12,8))
+        #plt.plot(redshifts, np.sum(merger_rate, axis=0))
+        #plt.ylabel("Merger rate", fontsize=20)
+        #plt.xlabel("Redshift", fontsize=20)
+        #plt.savefig('/home/alevina1/figures/mergerrate_model.png')
+        #plt.clf()
 
     print("Calculating snr")
     # create lookup tables for the SNR at 1Mpc as a function of the masses and the probability of detection as a function of SNR

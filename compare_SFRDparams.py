@@ -214,7 +214,7 @@ def SFR_residuals(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], p
             xvals = Sim_Lookbacktimes
 
         sfr = Z_SFRD.Madau_Dickinson2014(Sim_Redshifts, a=fit_params[n][5], b=fit_params[n][6], c=fit_params[n][7], d=fit_params[n][8]).value
-        residuals =  abs(sfr - np.sum(Sim_SFRD, axis=1))/np.sum(Sim_SFRD, axis=1)
+        residuals =  abs(sfr - np.sum(Sim_SFRD, axis=1))/np.sum(Sim_SFRD, axis=1) * 100
 
         plt.plot(xvals, residuals, lw=4, c=data_colors[n], label=r'TNG%s-%s'%(tng, vers[n]))
 
@@ -316,7 +316,7 @@ def SFR_residuals_MD(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[]
         #default Madau & Fragos 17
         MD_sfr = np.array(Z_SFRD.Madau_Dickinson2014(Sim_Redshifts, a=0.01, b=2.6, c=3.2, d=6.2))
         
-        plt.plot(xvals, abs(np.sum(Sim_SFRD, axis=1)-MD_sfr)/MD_sfr, lw=4, c=data_colors[n], label=r'TNG%s-%s'%(tng, vers[n]))
+        plt.plot(xvals, abs(np.sum(Sim_SFRD, axis=1)-MD_sfr)/MD_sfr * 100, lw=4, c=data_colors[n], label=r'TNG%s-%s'%(tng, vers[n]))
 
         #Plot the TNG model
         if plotmodel==True:
@@ -543,12 +543,12 @@ if __name__ == "__main__":
     fit_colors = ['#0C0034', '#4B0012', '#005B2F', '#787878']
     line_styles = ['solid', 'dashed', 'dotted']
 
-    compare_params(tngs, vers)
-    compare_SFR(path, tngs, vers, plotmodel=True, plotredshift=True, xlim=[0, 14], ylim=[10**-3, 10**-0.8], plotlogscale=True)
-    compare_SFR(path, tngs, vers, plotmodel=True, plotredshift=False, xlim=[0, 14], ylim=[10**-3, 10**-0.8], plotlogscale=True)
+    #compare_params(tngs, vers)
+    #compare_SFR(path, tngs, vers, plotmodel=True, plotredshift=True, xlim=[0, 14], ylim=[10**-3, 10**-0.8], plotlogscale=True)
+    #compare_SFR(path, tngs, vers, plotmodel=True, plotredshift=False, xlim=[0, 14], ylim=[10**-3, 10**-0.8], plotlogscale=True)
 
-    SFR_residuals(path, tngs, vers, plotredshift=True, xlim=[0, 14], ylim=[1e-4, 1e1], plotlogscale=True, show_MD17=False)
-    SFR_residuals(path, tngs, vers, plotredshift=False, xlim=[0, 14], ylim=[1e-4, 1e1], plotlogscale=True, show_MD17=False)
-    SFR_residuals_MD(path, tngs, vers, plotredshift=True, xlim=[0, 14], ylim=[1e-3, 1e1], plotlogscale=True, show_MD17=False)
-    SFR_residuals_MD(path, tngs, vers, plotredshift=False, xlim=[0, 14], ylim=[1e-3, 1e1], plotlogscale=True, show_MD17=False)
+    SFR_residuals(path, tngs, vers, plotredshift=True, xlim=[0, 14], ylim=[1e-2, 1e3], plotlogscale=True, show_MD17=False)
+    SFR_residuals(path, tngs, vers, plotredshift=False, xlim=[0, 14], ylim=[1e-2, 1e3], plotlogscale=True, show_MD17=False)
+    #SFR_residuals_MD(path, tngs, vers, plotredshift=True, xlim=[0, 14], ylim=[1e-3, 1e1], plotlogscale=True, show_MD17=False)
+    #SFR_residuals_MD(path, tngs, vers, plotredshift=False, xlim=[0, 14], ylim=[1e-3, 1e1], plotlogscale=True, show_MD17=False)
     #compare_dPdlogZ(path, tngs, vers, ylim=[1e-2, 1e1], levels = [0, 0.55], nlevels=30)

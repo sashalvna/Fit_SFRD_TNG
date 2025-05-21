@@ -25,7 +25,7 @@ def read_best_fits(fit_param_files):
     #Read in best fit parameters for each TNG into one array of arrays
     fit_param_vals = []
     for file in fit_param_files:
-        mu0_best, muz_best, omega0_best, omegaz_best, alpha0_best, sf_a_best, sf_b_best, sf_c_best, sf_d_best = np.loadtxt(str(paths.data)+'/'+file,unpack=True, delimiter=',')
+        mu0_best, muz_best, omega0_best, omegaz_best, alpha0_best, sf_a_best, sf_b_best, sf_c_best, sf_d_best = np.loadtxt(str(paths.data)+'/' + file,unpack=True, delimiter=',')
         fit_param_vals.append([mu0_best, muz_best, omega0_best, omegaz_best, alpha0_best, sf_a_best, sf_b_best, sf_c_best, sf_d_best])
     return np.array(fit_param_vals)
 
@@ -219,7 +219,7 @@ def residuals_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_pa
             #Plot merger rates
             total_merger_rate = np.sum(merger_rate, axis=0)
             total_data_merger_rate = np.sum(data_merger_rate, axis=0)
-            percenterr = abs(total_merger_rate - total_data_merger_rate)/total_data_merger_rate
+            percenterr = abs(total_merger_rate - total_data_merger_rate)/total_data_merger_rate * 100
             plt.plot(data_redshift, percenterr, label='TNG%s'%labels[i], lw=4, c=data_colors[i])
             res.append(min(percenterr))
             res.append(max(percenterr))
@@ -228,7 +228,7 @@ def residuals_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_pa
             #Plot formation rates
             total_formation_rate = np.sum(formation_rate, axis=0)
             total_data_formation_rate = np.sum(data_formation_rate, axis=0)
-            percenterr = abs(total_formation_rate - total_data_formation_rate)/total_data_formation_rate
+            percenterr = abs(total_formation_rate - total_data_formation_rate)/total_data_formation_rate * 100
             plt.plot(data_redshift, percenterr, label='TNG%s'%labels[i], lw=4, c=data_colors[i])
             res.append(min(percenterr))
             res.append(max(percenterr))
@@ -1069,7 +1069,7 @@ def residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_va
 
     bins = np.arange(0.,55,2.5)
     x_lim=(0.,50)
-    y_lim = (1e-2,40)
+    y_lim = (5e-3,1e5)
     xlabel = r'$M_{\mathrm{BH, 1}} \ \rm [M_{\odot}]$'
     ylabel = r'$\frac{d\mathcal{R}}{dM_{\mathrm{BH, 1} }} \ \mathrm{[Gpc^{-3}yr^{-1}M^{-1}_{\odot}]}$ percent error'
 
@@ -1205,12 +1205,12 @@ def residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_va
 
             x_KDE2 = np.arange(0.1,50.,0.1)
             KDEy_vals2 =  kernel(x_KDE2)*sum(hist) #re-normalize the KDE
-            ax[a1, a2].plot(x_KDE, abs(KDEy_vals2-KDEy_vals)/KDEy_vals, color=data_colors[nplot], lw=4, ls= '-')
+            ax[a1, a2].plot(x_KDE, abs(KDEy_vals2-KDEy_vals)/KDEy_vals * 100, color=data_colors[nplot], lw=4, ls= '-')
             nplot += 1
 
         # plot values
         ax[a1, a2].set_xlim(x_lim)
-        #ax[a1, a2].set_ylim(y_lim)
+        ax[a1, a2].set_ylim(y_lim)
         ax[a1, a2].tick_params(axis='both', which='major', labelsize=25)
         #ax[a1, a2].xaxis.set_minor_locator(ticker.MultipleLocator(1))
         ax[a1, a2].tick_params(length=15, width=3, which='major')
@@ -1220,7 +1220,7 @@ def residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_va
         if a1==2 and a2!=2:
             ax[a1, a2].set_xticklabels(['0', '10', '20', '30', '40', ''])
 
-        ax[a1, a2].text(35, 200, '$z=%s$'%(redshift), ha = 'left', size = 25)
+        ax[a1, a2].text(35, 2000, '$z=%s$'%(redshift), ha = 'left', size = 25)
         
     #########################################
 
@@ -1294,15 +1294,15 @@ if __name__ == "__main__":
     #compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, plot_merger_rates=False, plot_logscale=True, showplot=True)
     #compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, plot_merger_rates=True, plot_logscale=True, showplot=True)
 
-    #residuals_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, ylim = [1e-3, 1e3], plot_merger_rates=False, showplot=False)
-    #residuals_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, ylim = [1e-3, 1e3], plot_merger_rates=True, showplot=False)
+    residuals_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, ylim = [1e-1, 1e5], plot_merger_rates=False, showplot=False)
+    residuals_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, ylim = [1e-1, 1e5], plot_merger_rates=True, showplot=False)
 
     #Plot primary mass distribution for all TNGs in one plot
     #plot_BBH_mass_dist(rates, fit_param_vals, only_stable = True, only_CE = True, channel_string='all', z = z_of_massdist, showplot=True, show_reference_masses=False)
     #plot_BBH_mass_dist(rates, fit_param_vals, only_stable = True, only_CE = False, channel_string='stable', z = z_of_massdist, showplot=True, show_reference_masses=False)
     #plot_BBH_mass_dist(rates, fit_param_vals, only_stable = False, only_CE = True, channel_string='CE', z = z_of_massdist, showplot=True, show_reference_masses=False)
 
-    plot_BBH_mass_dist_over_z_allTNGs(data_rates, fit_param_vals, tngs=[50, 100, 300], z = [8, 7, 6, 5, 4, 3, 2, 1, 0.5, 0.2], showplot=False)
+    #plot_BBH_mass_dist_over_z_allTNGs(data_rates, fit_param_vals, tngs=[50, 100, 300], z = [8, 7, 6, 5, 4, 3, 2, 1, 0.5, 0.2], showplot=False)
 
     #plot_BBH_mass_dist_over_z([data_rates[0]], [fit_param_vals[0]], tng=50, only_stable = True, only_CE = True, channel_string='all', z = [8, 7, 6, 5, 4, 3, 2, 1, 0.5, 0.2], showplot=False)
     #plot_BBH_mass_dist_over_z([data_rates[0]], [fit_param_vals[0]], tng=50, only_stable = True, only_CE = False, channel_string='stable', z = [8, 7, 6, 5, 4, 3, 2, 1, 0.5, 0.2], showplot=False)
@@ -1316,5 +1316,5 @@ if __name__ == "__main__":
     #    compare_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_vals, only_stable = False, only_CE = True, channel_string='CE', z = z, showplot=False)
 
     #compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, fit_param_vals, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True)
-    #residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_vals, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True)
+    residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_vals, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True)
     
