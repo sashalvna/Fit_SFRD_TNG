@@ -76,7 +76,7 @@ def plot_BBH_merger_rate(data_dir, rates, fit_param_vals, plot_zoomed=False, plo
     ax2.tick_params(axis='both', which='major', labelsize=15)
     ax2.tick_params(length=5, width=1.5, which='major')
 
-    plt.savefig('figures/merger_rates_TNG.png', bbox_inches='tight', dpi=300)
+    plt.savefig('figures/merger_rates_TNG.pdf', format="pdf", bbox_inches='tight', dpi=300)
 
     if plot_zoomed == True:
         fig, axes = plt.subplots(1, 1, figsize=(10, 7))
@@ -89,7 +89,7 @@ def plot_BBH_merger_rate(data_dir, rates, fit_param_vals, plot_zoomed=False, plo
         fig.legend(bbox_to_anchor=(0.9, 0.3), fontsize=18, frameon=False)
         plt.xlim(9.5, 10)
         plt.yscale('log')
-        plt.savefig('figures/merger_rates_TNG_zoomed.png', bbox_inches='tight')
+        plt.savefig('figures/merger_rates_TNG_zoomed.pdf', format="pdf", bbox_inches='tight')
 
     if showplot==True:
         plt.show()
@@ -174,11 +174,11 @@ def compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_para
 
     if plot_merger_rates == True:
         plt.ylabel(r'Merger rate $[\rm \frac{\mathrm{d}N}{\mathrm{d}Gpc^3 \mathrm{d}yr}]$', fontsize=30)
-        plt.savefig('figures/merger_rates_datavsmodel_TNG.png', bbox_inches='tight', dpi=300)
+        plt.savefig('figures/merger_rates_datavsmodel_TNG.pdf', format="pdf", bbox_inches='tight', dpi=300)
 
     else:
         plt.ylabel(r'Formation rate $[\rm \frac{\mathrm{d}N}{\mathrm{d}Gpc^3 \mathrm{d}yr}]$', fontsize=30)
-        plt.savefig('figures/formation_rates_datavsmodel_TNG.png', bbox_inches='tight', dpi=300)
+        plt.savefig('figures/formation_rates_datavsmodel_TNG.pdf', format="pdf", bbox_inches='tight', dpi=300)
 
     if showplot==True:
         plt.show()
@@ -260,9 +260,9 @@ def residuals_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_pa
     ax2.tick_params(length=10, width=3, which='major')
 
     if plot_merger_rates == True:
-        plt.savefig('figures/merger_rates_res_datavsmodel_TNG.png', bbox_inches='tight', dpi=300)
+        plt.savefig('figures/merger_rates_res_datavsmodel_TNG.pdf', format="pdf", bbox_inches='tight', dpi=300)
     else:
-        plt.savefig('figures/formation_rates_res_datavsmodel_TNG.png', bbox_inches='tight', dpi=300)
+        plt.savefig('figures/formation_rates_res_datavsmodel_TNG.pdf', format="pdf", bbox_inches='tight', dpi=300)
 
     if showplot==True:
         plt.show()
@@ -368,7 +368,7 @@ def plot_BBH_mass_dist(rates, fit_param_vals, only_stable = True, only_CE = True
     ax.set_ylabel(ylabel, fontsize = 25)
     ax.set_yscale('log')
     fig.legend(bbox_to_anchor=(0.9, 0.88), fontsize=15)
-    fig.savefig('figures/massdist_%s_z%s.png'%(channel_string, z), bbox_inches='tight', dpi=300)
+    fig.savefig('figures/massdist_%s_z%s.pdf'%(channel_string, z), format="pdf", bbox_inches='tight', dpi=300)
 
     if showplot==True:
         plt.show()
@@ -489,7 +489,7 @@ def plot_BBH_mass_dist_over_z(rates, fit_param_vals, tng, model=True, only_stabl
     else:
         ax.set_title('%s channel'%channel_string, fontsize = 25)
     fig.legend(bbox_to_anchor=(0.9, 0.88), fontsize=18, frameon=False)
-    fig.savefig('figures/massdist_TNG%s_%s_redshift_evol.png'%(tng, channel_string), bbox_inches='tight', dpi=300)
+    fig.savefig('figures/massdist_TNG%s_%s_redshift_evol.pdf'%(tng, channel_string), format="pdf", bbox_inches='tight', dpi=300)
 
     if showplot==True:
         plt.show()
@@ -521,7 +521,7 @@ def plot_BBH_mass_dist_over_z_allTNGs(rates, fit_param_vals, tngs, z = [0.2, 1, 
         rate_keys.append('Rates_mu0%s_muz%s_alpha%s_sigma0%s_sigmaz%s_a%s_b%s_c%s_d%s_zBinned'%(np.round(i[0], 3), np.round(i[1], 3), np.round(i[4], 3), np.round(i[2], 3), np.round(i[3], 3), np.round(i[5],3), np.round(i[6], 3), np.round(i[7], 3), np.round(i[8],3)))
 
     bins = np.arange(0.,55,2.5)
-    x_lim=(0.,50)
+    x_lim=(0.,49)
     y_lim = (1e-2,40)
     xlabel = r'$M_{\mathrm{BH, 1}} \ \rm [M_{\odot}]$'
     ylabel = r'$\frac{d\mathcal{R}}{dM_{\mathrm{BH, 1} }} \ \mathrm{[Gpc^{-3}yr^{-1}M^{-1}_{\odot}]}$'
@@ -621,14 +621,13 @@ def plot_BBH_mass_dist_over_z_allTNGs(rates, fit_param_vals, tngs, z = [0.2, 1, 
                 ax[i, j].set_xlim(x_lim)
                 ax[i, j].set_ylim(y_lim)
                 ax[i, j].tick_params(axis='both', which='major', labelsize=20)
+                ax[i, j].xaxis.set_major_locator(ticker.MultipleLocator(10))
                 ax[i, j].xaxis.set_minor_locator(ticker.MultipleLocator(5))
+                #if i==2 and j!=2:
+                #    ax[i,j].set_xticklabels(['0', '10', '20', '30', '40', ''])
                 ax[i, j].tick_params(length=15, width=3, which='major')
                 ax[i, j].tick_params(length=10, width=2, which='minor')
                 ax[i, j].set_yscale('log')
-
-                if i==2 and j!=2:
-                    ax[i,j].set_xticklabels(['0', '10', '20', '30', '40', ''])
-
     
     fig.supxlabel(xlabel, y=0.05, fontsize = 30)
     fig.supylabel(ylabel, x=0.03, fontsize = 30)
@@ -653,7 +652,7 @@ def plot_BBH_mass_dist_over_z_allTNGs(rates, fit_param_vals, tngs, z = [0.2, 1, 
     cbar.ax.xaxis.set_label_position('top')
                 
     fig.legend(bbox_to_anchor=(0.5, 0.98), fontsize=22, ncol = 2)
-    fig.savefig('figures/massdist_allTNGs_redshift_evol.png', bbox_inches='tight', dpi=300)
+    fig.savefig('figures/massdist_allTNGs_redshift_evol.pdf', format="pdf", bbox_inches='tight', dpi=300)
 
     if showplot==True:
         plt.show()
@@ -826,7 +825,7 @@ def compare_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_vals
         plt.text(0.03, 0.88, '$\mathrm{%s \ channel}$\nz=%s'%(channel_string, z), ha = 'left', transform=ax.transAxes, size = 25)
 
     fig.legend(bbox_to_anchor=(0.9, 0.88), fontsize=18, frameon=False)
-    fig.savefig('figures/massdist_modelvsdata_%s_z%s.png'%(channel_string, z), bbox_inches='tight', dpi=300)
+    fig.savefig('figures/massdist_modelvsdata_%s_z%s.pdf'%(channel_string, z),format="pdf", bbox_inches='tight', dpi=300)
 
     if showplot==True:
         plt.show()
@@ -1041,7 +1040,7 @@ def compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, fit_par
     #    plt.text(0.03, 0.88, '$\mathrm{%s \ channel}$\nz=%s'%(channel_string, z), ha = 'left', transform=ax.transAxes, size = 25)
 
     fig.legend(bbox_to_anchor=(0.75, 0.95), fontsize=20, ncol = 3)
-    fig.savefig('figures/massdist_modelvsdata.png', bbox_inches='tight', dpi=300)
+    fig.savefig('figures/massdist_modelvsdata.pdf', format="pdf", bbox_inches='tight', dpi=300)
 
     if showplot==True:
         plt.show()
@@ -1243,7 +1242,7 @@ def residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_va
     plt.plot(x, y3, c=data_colors[2], ls = '-', lw=4, label=r'TNG300-1')
 
     fig.legend(bbox_to_anchor=(0.75, 0.93), fontsize=20, ncol = 3)
-    fig.savefig('figures/massdist_modelvsdata_res.png', bbox_inches='tight', dpi=300)
+    fig.savefig('figures/massdist_modelvsdata_res.pdf', format="pdf", bbox_inches='tight', dpi=300)
 
     if showplot==True:
         plt.show()
@@ -1281,7 +1280,7 @@ if __name__ == "__main__":
     cmap_pink = matplotlib.colors.LinearSegmentedColormap.from_list("pink_cmap", ['#F76FDD', '#C13277', '#490013'])
     cmap_green = matplotlib.colors.LinearSegmentedColormap.from_list("green_cmap", ['#CCE666', '#79B41C', '#004011'])
     cmap_gray = matplotlib.colors.LinearSegmentedColormap.from_list("gray_cmap", ['#D3D2D2', '#787878', '#222222'])
-    data_colors = ['#005385', '#C01874', '#98CB4F', '#D3D2D2']
+    data_colors = ["#0067A6", '#C01874', '#98CB4F', '#D3D2D2']
     model_colors = ['#0C0034', '#4B0012', '#005B2F', '#787878']
 
     #Read in SFRD model parameters for each TNG
@@ -1291,18 +1290,18 @@ if __name__ == "__main__":
     #plot_BBH_merger_rate(data_dir, rates, fit_param_vals, plot_zoomed=False,  plot_logscale=True, showplot=True)
 
     #Compare model and data merger and formation rates
-    #compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, plot_merger_rates=False, plot_logscale=True, showplot=True)
-    #compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, plot_merger_rates=True, plot_logscale=True, showplot=True)
+    compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, plot_merger_rates=False, plot_logscale=True, showplot=True)
+    compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, plot_merger_rates=True, plot_logscale=True, showplot=True)
 
-    residuals_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, ylim = [1e-1, 1e5], plot_merger_rates=False, showplot=False)
-    residuals_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, ylim = [1e-1, 1e5], plot_merger_rates=True, showplot=False)
+    residuals_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, ylim = [1e-1, 1e5], plot_merger_rates=False, showplot=True)
+    residuals_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, ylim = [1e-1, 1e5], plot_merger_rates=True, showplot=True)
 
     #Plot primary mass distribution for all TNGs in one plot
     #plot_BBH_mass_dist(rates, fit_param_vals, only_stable = True, only_CE = True, channel_string='all', z = z_of_massdist, showplot=True, show_reference_masses=False)
     #plot_BBH_mass_dist(rates, fit_param_vals, only_stable = True, only_CE = False, channel_string='stable', z = z_of_massdist, showplot=True, show_reference_masses=False)
     #plot_BBH_mass_dist(rates, fit_param_vals, only_stable = False, only_CE = True, channel_string='CE', z = z_of_massdist, showplot=True, show_reference_masses=False)
 
-    #plot_BBH_mass_dist_over_z_allTNGs(data_rates, fit_param_vals, tngs=[50, 100, 300], z = [8, 7, 6, 5, 4, 3, 2, 1, 0.5, 0.2], showplot=False)
+    plot_BBH_mass_dist_over_z_allTNGs(data_rates, fit_param_vals, tngs=[50, 100, 300], z = [8, 7, 6, 5, 4, 3, 2, 1, 0.5, 0.2], showplot=True)
 
     #plot_BBH_mass_dist_over_z([data_rates[0]], [fit_param_vals[0]], tng=50, only_stable = True, only_CE = True, channel_string='all', z = [8, 7, 6, 5, 4, 3, 2, 1, 0.5, 0.2], showplot=False)
     #plot_BBH_mass_dist_over_z([data_rates[0]], [fit_param_vals[0]], tng=50, only_stable = True, only_CE = False, channel_string='stable', z = [8, 7, 6, 5, 4, 3, 2, 1, 0.5, 0.2], showplot=False)
@@ -1315,6 +1314,6 @@ if __name__ == "__main__":
     #    compare_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_vals, only_stable = True, only_CE = False, channel_string='stable', z = z, showplot=False)
     #    compare_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_vals, only_stable = False, only_CE = True, channel_string='CE', z = z, showplot=False)
 
-    #compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, fit_param_vals, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True)
+    compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, fit_param_vals, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True)
     residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_vals, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True)
     

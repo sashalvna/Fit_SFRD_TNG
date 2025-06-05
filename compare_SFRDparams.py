@@ -118,7 +118,6 @@ def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], plo
     ax.tick_params(length=10, width=2, which='minor')
     ax.xaxis.set_minor_locator(ticker.MultipleLocator(1))
     ax.set_ylabel(r'$\rm SFRD(z) \ (\rm M_{\odot}yr^{-1} Mpc^{-3})$', fontsize = 30)
-    #Set redshift ticks; make sure they don't overlap
 
     ax.legend(fontsize = 25, frameon=False)
     if plotlogscale==True:
@@ -149,9 +148,9 @@ def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], plo
             ax2.set_xlim(min(Sim_Lookbacktimes), max(Sim_Lookbacktimes))
 
         if plotmodel:
-            fig.savefig('figures/SFR_redshift_fit.png',  bbox_inches='tight', dpi=300)
+            fig.savefig('figures/SFR_redshift_fit.pdf', format="pdf", bbox_inches='tight', dpi=300)
         else:
-            fig.savefig('figures/SFR_redshift.png',  bbox_inches='tight', dpi=300)
+            fig.savefig('figures/SFR_redshift.pdf', format="pdf",  bbox_inches='tight', dpi=300)
     else:
         ax.set_xlabel(r"Lookback time (Gyr)", fontsize = 30)
         
@@ -172,9 +171,9 @@ def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], plo
             ax2.set_xlim(min(Sim_Lookbacktimes), max(Sim_Lookbacktimes))
 
         if plotmodel:
-            fig.savefig('figures/SFR_lookbackt_fit.png',  bbox_inches='tight', dpi=300)
+            fig.savefig('figures/SFR_lookbackt_fit.pdf',  format="pdf", bbox_inches='tight', dpi=300)
         else:
-            fig.savefig('figures/SFR_lookbackt.png',  bbox_inches='tight', dpi=300)
+            fig.savefig('figures/SFR_lookbackt.pdf',  format="pdf", bbox_inches='tight', dpi=300)
     
     if showplot==True:
         plt.show()
@@ -259,7 +258,7 @@ def SFR_residuals(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], p
             ax.set_xlim(min(Sim_Lookbacktimes), max(Sim_Lookbacktimes))
             ax2.set_xlim(min(Sim_Lookbacktimes), max(Sim_Lookbacktimes))
 
-        fig.savefig('figures/SFR_res_redshift_fit.png',  bbox_inches='tight', dpi=300)
+        fig.savefig('figures/SFR_res_redshift_fit.pdf',  format="pdf", bbox_inches='tight', dpi=300)
 
     else:
         ax.set_xlabel(r"Lookback time (Gyr)", fontsize = 30)
@@ -280,7 +279,7 @@ def SFR_residuals(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], p
             ax.set_xlim(min(Sim_Lookbacktimes), max(Sim_Lookbacktimes))
             ax2.set_xlim(min(Sim_Lookbacktimes), max(Sim_Lookbacktimes))
 
-        fig.savefig('figures/SFR_res_lookbackt_fit.png',  bbox_inches='tight', dpi=300)
+        fig.savefig('figures/SFR_res_lookbackt_fit.pdf',  format="pdf", bbox_inches='tight', dpi=300)
     
     if showplot==True:
         plt.show()
@@ -539,13 +538,13 @@ if __name__ == "__main__":
     cmap_pink = matplotlib.colors.LinearSegmentedColormap.from_list("pink_cmap", ['#F76FDD', '#C13277', '#490013'])
     cmap_green = matplotlib.colors.LinearSegmentedColormap.from_list("green_cmap", ['#CCE666', '#79B41C', '#004011'])
     cmap_gray = matplotlib.colors.LinearSegmentedColormap.from_list("gray_cmap", ['#D3D2D2', '#787878', '#222222'])
-    data_colors = ['#005385', '#C01874', '#98CB4F', '#D3D2D2']
+    data_colors = ["#0067A6", '#C01874', '#98CB4F', '#D3D2D2']
     fit_colors = ['#0C0034', '#4B0012', '#005B2F', '#787878']
     line_styles = ['solid', 'dashed', 'dotted']
 
     #compare_params(tngs, vers)
-    #compare_SFR(path, tngs, vers, plotmodel=True, plotredshift=True, xlim=[0, 14], ylim=[10**-3, 10**-0.8], plotlogscale=True)
-    #compare_SFR(path, tngs, vers, plotmodel=True, plotredshift=False, xlim=[0, 14], ylim=[10**-3, 10**-0.8], plotlogscale=True)
+    compare_SFR(path, tngs, vers, plotmodel=True, plotredshift=True, xlim=[0, 14], ylim=[10**-3, 10**-0.8], plotlogscale=True)
+    compare_SFR(path, tngs, vers, plotmodel=True, plotredshift=False, xlim=[0, 14], ylim=[10**-3, 10**-0.8], plotlogscale=True)
 
     SFR_residuals(path, tngs, vers, plotredshift=True, xlim=[0, 14], ylim=[1e-2, 1e3], plotlogscale=True, show_MD17=False)
     SFR_residuals(path, tngs, vers, plotredshift=False, xlim=[0, 14], ylim=[1e-2, 1e3], plotlogscale=True, show_MD17=False)
