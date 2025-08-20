@@ -203,5 +203,75 @@ def get_crude_rate_density(intrinsic_rate_density, fine_redshifts, crude_redshif
     
     return crude_rate_density
 
+def broken_power_law(m1s,lmbda1,lmbda2,mBreak,mMin,mMax,dmMin):
     
+    """
+    From Callister&Farr 2024 - https://github.com/tcallister/autoregressive-bbh-inference/blob/main/figures/make_figure_03.ipynb
+
+    Helper function defining an unnormalized broken power law
+    
+    Parameters
+    ----------
+    m1s : Set of primary masses
+    lmbda1 : Power-law index at low masses
+    lmbda2 : Power-law index at high masses
+    mBreak : Break point at which power-law slope changes
+    mMin : Mass below which we will smoothly taper to zero
+    mMax : Maximum mass above which our distribution vanishes
+    dmMin : Scale over which low-mass tapering is performed
+    """
+    
+    # Define broken power law
+    bpl = np.where(m1s<mBreak,(m1s/mBreak)**lmbda1,(m1s/mBreak)**lmbda2)
+    
+    # Apply smooth tapering below mMin
+    tapering = np.exp(-(m1s-mMin)**2/(2.*dmMin**2))
+    bpl = np.where(m1s<mMin,bpl*tapering,bpl)
+    
+    # Set masses above mMax to zero
+    bpl[m1s>mMax] = 0
+    
+    return bpl
+
+def CallisterFarr_model(m1,f_peak_1,f_peak_2,mu1,sig1,mu2,sig2,lmbda1,lmbda2,mBreak,mMin,mMax,dmMin):
+    
+    """
+
+    Model from Callister&Farr 2024 - https://github.com/tcallister/autoregressive-bbh-inference/blob/main/figures/make_figure_03.ipynb
+
+    Full expression for our parametric model that we will fit to our AR mass results,
+    comprising a broken power law and two Gaussian peaks
+    
+    Parameters
+    ----------
+    m1 : Mass values at which to evaluate
+    f_peak_1 : Mixture fraction of events occurring in the low-mass peak
+    f_peak_2 : Mixture fraction of events occurring in the high-mass peak
+    mu1 : Location of low mass peak
+    sig1 : Standard deviation of low mass peak
+    mu2: Location of high mass peak
+    sig1 : Standard deviation of high mass peak
+    lmbda1 : Power-law slope below the break
+    lmbda2 : Power-law slope above the break
+    mBreak : Break point at which power-law slope changes
+    mMin : Mass below which the power-law component is smoothly tapered to zero
+    mMax : Maximum mass above which our distribution vanishes
+    dmMin : Scale over which low-mass tapering is performed
+    """
+    
+    # Define integral over tapered broken power law
+    m1_grid = np.linspace(2,100,1000)
+    bpl_grid = broken_power_law(m1_grid,lmbda1,lmbda2,mBreak,mMin,mMax,dmMin)
+    bpl_norm = np.trapz(bpl_grid,m1_grid)
+    
+    # Normalized broken (and tapered) power-law
+    bpl = broken_power_law(m1,lmbda1,lmbda2,mBreak,mMin,mMax,dmMin)/bpl_norm
+    
+    # Probability densities corresponding to each peak
+    peak_1 = np.exp(-(m1-mu1)**2/(2.*sig1**2))/np.sqrt(2.*np.pi*sig1**2)
+    peak_2 = np.exp(-(m1-mu2)**2/(2.*sig2**2))/np.sqrt(2.*np.pi*sig2**2)
+    
+    # Construct and return full distribution
+    p_m1 = f_peak_1*peak_1 + f_peak_2*peak_2 + (1.-f_peak_1-f_peak_2)*bpl
+    return p_m1
 

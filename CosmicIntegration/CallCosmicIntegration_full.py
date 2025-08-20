@@ -121,7 +121,7 @@ def Call_Cosmic_Integration(root_out_dir, COMPASfilename, rate_file_name, user_e
         " --mu0 " +str(mu0)+" --muz "+str(muz)+" --sigma0 "+str(sigma0)+" --sigmaz "+str(sigmaz)+" --alpha "+str(alpha0)+\
         " --aSF " +str(sf_a)+" --bSF "+str(sf_b)+" --cSF "+str(sf_c)+" --dSF "+str(sf_d)+\
         " --weight "+"mixture_weight"+ " --zstep "+"0.05"+" --sens "+"O3"+ " --m1min "+"5."+ " --dco_type BBH"+ " --BinAppend"+ \
-        " --redshiftBinSize "+"0.05" + ' --maxzdet ' + "14."  + " --cosmology " + "Planck15 " + " --zSF " + "10."
+        " --redshiftBinSize "+"0.05" + ' --maxzdet ' + "14."  + " --cosmology " + "Planck15 " + " --zSF " + "14."
 
         run_dir = In.script_dir +'/CosmicIntegration/'
 

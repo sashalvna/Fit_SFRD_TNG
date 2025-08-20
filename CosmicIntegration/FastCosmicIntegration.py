@@ -179,13 +179,6 @@ def find_formation_and_merger_rates(n_binaries, redshifts, times, time_first_SF,
     # make note of the first time at which star formation occured
     age_first_sfr = time_first_SF
     
-    print(n_formed)
-    print(n_binaries)
-    print(p_draw_metallicity)
-    print(len(COMPAS_metallicites))
-    print(len(metallicities))
-    print(len(dPdlogZ))
-
     # go through each binary in the COMPAS data
     for i in range(n_binaries):
         # calculate formation rate (see Neijssel+19 Section 4) - note this uses dPdlogZ for *closest* metallicity
@@ -865,7 +858,7 @@ if __name__ == "__main__":
                             min_logZ=-12.0, max_logZ=0.0, step_logZ=0.01, Mc_max=300.0, Mc_step=0.1, eta_max=0.25, eta_step=0.01, snr_max=1000.0, snr_step=0.1)
     end_CI = time.time()
     
-    print("rates calculatd, now appending rates")
+    print("rates calculated, now appending rates")
 
     #####################################
     # Append your freshly calculated merger rates to the hdf5 file

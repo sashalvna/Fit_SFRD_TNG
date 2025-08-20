@@ -5,6 +5,9 @@ from scipy import stats
 import matplotlib.ticker as ticker
 import matplotlib
 from astropy.cosmology import Planck15  as cosmo #Planck 2015 since that's what TNG uses
+from scipy.interpolate import interp1d
+import astropy.units as u
+import seaborn as sns
 
 ############################
 # Custom scripts
@@ -36,19 +39,9 @@ def plot_BBH_merger_rate(data_dir, rates, fit_param_vals, plot_zoomed=False, plo
     redshifts = []
     merger_rates = []
     for i, rfile in enumerate(rates):
-        rate_key = 'Rates_mu0%s_muz%s_alpha%s_sigma0%s_sigmaz%s_a%s_b%s_c%s_d%s_zBinned'%(np.round(fit_param_vals[i][0], 3), 
-                                                                                      np.round(fit_param_vals[i][1], 3), 
-                                                                                      np.round(fit_param_vals[i][4], 3), 
-                                                                                      np.round(fit_param_vals[i][2], 3), 
-                                                                                      np.round(fit_param_vals[i][3], 3), 
-                                                                                      np.round(fit_param_vals[i][5], 3), 
-                                                                                      np.round(fit_param_vals[i][6], 3), 
-                                                                                      np.round(fit_param_vals[i][7], 3), 
-                                                                                      np.round(fit_param_vals[i][8], 3))
-        
         with h5.File(data_dir + rfile ,'r') as File:
-            redshift      = File[rate_key]['redshifts'][()]
-            merger_rate    = File[rate_key]['merger_rate'][()]
+            redshift      = File[list(File.keys())[0]]['redshifts'][()]
+            merger_rate    = File[list(File.keys())[0]]['merger_rate'][()]
     
         total_merger_rate = np.sum(merger_rate, axis=0)
         plt.plot(redshift, total_merger_rate, label='TNG%s'%labels[i], ls=linestyles[i], lw=4, color=data_colors[i])
@@ -95,37 +88,27 @@ def plot_BBH_merger_rate(data_dir, rates, fit_param_vals, plot_zoomed=False, plo
         plt.show()
 
 
-def compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, plot_merger_rates=True, plot_logscale=False, showplot=True):
+def compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, plot_merger_rates=True, plot_logscale=False, showplot=True, showLVK=True):
 
     fig, ax = plt.subplots(figsize = (12, 8))
 
     for i, rfile in enumerate(model_rates):
-        rate_key = 'Rates_mu0%s_muz%s_alpha%s_sigma0%s_sigmaz%s_a%s_b%s_c%s_d%s_zBinned'%(np.round(fit_param_vals[i][0], 3), 
-                                                                                      np.round(fit_param_vals[i][1], 3), 
-                                                                                      np.round(fit_param_vals[i][4], 3), 
-                                                                                      np.round(fit_param_vals[i][2], 3), 
-                                                                                      np.round(fit_param_vals[i][3], 3), 
-                                                                                      np.round(fit_param_vals[i][5], 3), 
-                                                                                      np.round(fit_param_vals[i][6], 3), 
-                                                                                      np.round(fit_param_vals[i][7], 3), 
-                                                                                      np.round(fit_param_vals[i][8], 3))
-        
         with h5.File(data_dir + rfile ,'r') as File:
-            redshift      = File[rate_key]['redshifts'][()]
-            formation_rate = File[rate_key]['formation_rate'][()]
-            merger_rate    = File[rate_key]['merger_rate'][()]
+            redshift      = File[list(File.keys())[0]]['redshifts'][()]
+            formation_rate = File[list(File.keys())[0]]['formation_rate'][()]
+            merger_rate    = File[list(File.keys())[0]]['merger_rate'][()]
 
         with h5.File(data_dir + data_rates[i] ,'r') as File:
-            data_redshift      = File[rate_key]['redshifts'][()]
-            data_formation_rate = File[rate_key]['formation_rate'][()]
-            data_merger_rate    = File[rate_key]['merger_rate'][()]
+            data_redshift      = File[list(File.keys())[0]]['redshifts'][()]
+            data_formation_rate = File[list(File.keys())[0]]['formation_rate'][()]
+            data_merger_rate    = File[list(File.keys())[0]]['merger_rate'][()]
 
         if plot_merger_rates == True:
             #Plot merger rates
             total_merger_rate = np.sum(merger_rate, axis=0)
             total_data_merger_rate = np.sum(data_merger_rate, axis=0)
-            plt.plot(data_redshift, total_data_merger_rate, label='TNG%s'%labels[i], lw=8, c=data_colors[i])
-            plt.plot(redshift, total_merger_rate, lw=2, c=model_colors[i], ls='--')
+            ax.plot(data_redshift, total_data_merger_rate, label='TNG%s'%labels[i], lw=8, c=data_colors[i])
+            ax.plot(redshift, total_merger_rate, lw=3, c=model_colors[i], ls='--')
             print("The TNG%s model merger rate at z=%s is: "%(labels[i], redshift[0]), total_merger_rate[0])
             print("The TNG%s data merger rate at z=%s is: "%(labels[i], data_redshift[0]), total_data_merger_rate[0])
 
@@ -133,17 +116,21 @@ def compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_para
             #Plot formation rates
             total_formation_rate = np.sum(formation_rate, axis=0)
             total_data_formation_rate = np.sum(data_formation_rate, axis=0)
-            plt.plot(data_redshift, total_data_formation_rate, label='TNG%s'%labels[i], lw=8, c=data_colors[i])
-            plt.plot(redshift, total_formation_rate, lw=2, c=model_colors[i], ls='--')
+            ax.plot(data_redshift, total_data_formation_rate, label='TNG%s'%labels[i], lw=8, c=data_colors[i])
+            ax.plot(redshift, total_formation_rate, lw=3, c=model_colors[i], ls='--')
             print("The TNG%s model formation rate at z=%s is: "%(labels[i], redshift[0]), total_formation_rate[0])
             print("The TNG%s data formation rate at z=%s is: "%(labels[i], data_redshift[0]), total_data_formation_rate[0])
 
 
+    if showLVK == True:
+        lvkdata = plt.gca()
+        lvkdata.add_patch(matplotlib.patches.Rectangle((0.02, 17.9), 0.4, 26.1, facecolor="none", ec='gray', lw=3, zorder=6, label='GWTC-3'))
+
     x = [-0.0001]
     y1 = [1]
     y2 = [1]
-    plt.plot(x, y1, c='black', ls = '-', lw=5, label='Simulation')
-    plt.plot(x, y2, c='black', ls = '--', lw=2, label='Analytical fit')
+    ax.plot(x, y1, c='black', ls = '-', lw=5, label='Simulation')
+    ax.plot(x, y2, c='black', ls = '--', lw=3, label='Analytical fit')
     ax.set_xlim(0, 14)
     ax.set_ylim(10**-3, 10**3)
     ax.set_xlabel('Redshift', fontsize=30)
@@ -195,25 +182,15 @@ def residuals_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_pa
     plt.plot(xs, ys, c='lightgray', ls='-', lw=3)
 
     for i, rfile in enumerate(model_rates):
-        rate_key = 'Rates_mu0%s_muz%s_alpha%s_sigma0%s_sigmaz%s_a%s_b%s_c%s_d%s_zBinned'%(np.round(fit_param_vals[i][0], 3), 
-                                                                                      np.round(fit_param_vals[i][1], 3), 
-                                                                                      np.round(fit_param_vals[i][4], 3), 
-                                                                                      np.round(fit_param_vals[i][2], 3), 
-                                                                                      np.round(fit_param_vals[i][3], 3), 
-                                                                                      np.round(fit_param_vals[i][5], 3), 
-                                                                                      np.round(fit_param_vals[i][6], 3), 
-                                                                                      np.round(fit_param_vals[i][7], 3), 
-                                                                                      np.round(fit_param_vals[i][8], 3))
-        
         with h5.File(data_dir + rfile ,'r') as File:
-            redshift      = File[rate_key]['redshifts'][()]
-            formation_rate = File[rate_key]['formation_rate'][()]
-            merger_rate    = File[rate_key]['merger_rate'][()]
+            redshift      = File[list(File.keys())[0]]['redshifts'][()]
+            formation_rate = File[list(File.keys())[0]]['formation_rate'][()]
+            merger_rate    = File[list(File.keys())[0]]['merger_rate'][()]
 
         with h5.File(data_dir + data_rates[i] ,'r') as File:
-            data_redshift      = File[rate_key]['redshifts'][()]
-            data_formation_rate = File[rate_key]['formation_rate'][()]
-            data_merger_rate    = File[rate_key]['merger_rate'][()]
+            data_redshift      = File[list(File.keys())[0]]['redshifts'][()]
+            data_formation_rate = File[list(File.keys())[0]]['formation_rate'][()]
+            data_merger_rate    = File[list(File.keys())[0]]['merger_rate'][()]
 
         if plot_merger_rates == True:
             #Plot merger rates
@@ -287,6 +264,7 @@ def plot_BBH_mass_dist(rates, fit_param_vals, only_stable = True, only_CE = True
     ylabel = r'$\frac{d\mathcal{R}}{dM_{\mathrm{BH, 1} }} \ \left (\rm \frac{\mathrm{d}N}{\mathrm{d}Gpc^3 \mathrm{d}yr \mathrm{d}M_{\odot}} \right )$'
     #ylabel = r'$\frac{d\mathcal{R}}{dM_{\mathrm{BH, 1} }} \ \mathrm{[Gpc^{-3}yr^{-1}M^{-1}_{\odot}]}$'
 
+
     # GWTC-3 Powerlaw + Peak Mass distribution
     color_plpeak = 'grey'#'#1f78b4'
     input_fname = data_dir+'o3only_mass_c_iid_mag_iid_tilt_powerlaw_redshift_mass_data.h5'
@@ -301,6 +279,17 @@ def plot_BBH_mass_dist(rates, fit_param_vals, only_stable = True, only_CE = True
     # plot the max posterior and the 95th percentile
     ax.plot(mass_1, mass_1_ppd, lw=1.8, color=color_plpeak, zorder=1, label="GWTC-3")
     ax.fill_between(mass_1, mass_1_lower, mass_1_upper, alpha=0.14,color=color_plpeak,zorder=0)
+    """
+
+    #Callister&Farr 2024 non-parametric fit to LVK
+    input_fname = data_dir + "ar_lnm1_q_summary.hdf"
+    with h5.File(input_fname, "r") as f:
+        m1s = f['posterior/m1s'][()]
+        dR_dlnm1s = f['posterior/dR_dlnm1s'][()]
+
+    ax.plot(m1s,np.median(dR_dlnm1s,axis=1),color='gray',lw=1.8, zorder=1, label='GWTC-3')
+    ax.fill_between(m1s, np.quantile(dR_dlnm1s,0.05,axis=1), np.quantile(dR_dlnm1s,0.95,axis=1), alpha=0.14,color='gray',zorder=0)
+    """
     nplot=0
 
     DCO = mfunc.read_data(loc = data_dir +str(COMPASfilename))
@@ -312,9 +301,9 @@ def plot_BBH_mass_dist(rates, fit_param_vals, only_stable = True, only_CE = True
 
         #Reading Rate data 
         with h5.File(data_dir + tngpath ,'r') as File:
-            redshifts = File[rate_keys[i]]['redshifts'][()]
-            DCO_mask = File[rate_keys[i]]['DCOmask'][()] # Mask from DCO to merging systems  
-            intrinsic_rate_density = File[rate_keys[i]]['merger_rate'][()]
+            redshifts = File[list(File.keys())[0]]['redshifts'][()]
+            DCO_mask = File[list(File.keys())[0]]['DCOmask'][()] # Mask from DCO to merging systems  
+            intrinsic_rate_density = File[list(File.keys())[0]]['merger_rate'][()]
 
         CEcount = 'CE_Event_Counter'
         #first bring it to the same shape as the rate table
@@ -401,8 +390,8 @@ def plot_BBH_mass_dist_over_z(rates, fit_param_vals, tng, model=True, only_stabl
     xlabel = r'$M_{\mathrm{BH, 1}} \ \rm [M_{\odot}]$'
     ylabel = r'$\frac{d\mathcal{R}}{dM_{\mathrm{BH, 1} }} \ \mathrm{[Gpc^{-3}yr^{-1}M^{-1}_{\odot}]}$'
 
+    """
     # GWTC-3 Powerlaw + Peak Mass distribution
-    color_plpeak = 'grey'#'#1f78b4'
     input_fname = data_dir+'o3only_mass_c_iid_mag_iid_tilt_powerlaw_redshift_mass_data.h5'
     mass_1 = np.linspace(2, 100, 1000)
     mass_ratio = np.linspace(0.1, 1, 500)
@@ -413,8 +402,38 @@ def plot_BBH_mass_dist_over_z(rates, fit_param_vals, tng, model=True, only_stabl
         mass_1_lower = np.percentile(mass_lines["mass_1"], 5, axis=0)
         mass_1_upper = np.percentile(mass_lines["mass_1"], 95, axis=0)
     # plot the max posterior and the 95th percentile
-    ax.plot(mass_1, mass_1_ppd, lw=1.8, color=color_plpeak, zorder=1, label="GWTC-3")
-    ax.fill_between(mass_1, mass_1_lower, mass_1_upper, alpha=0.14,color=color_plpeak,zorder=0)
+    ax.plot(mass_1, mass_1_ppd, lw=1.8, color='gray', zorder=1, label="GWTC-3")
+    ax.fill_between(mass_1, mass_1_lower, mass_1_upper, alpha=0.14,color='gray',zorder=0)
+    """
+
+    #Callister&Farr 2024 non-parametric fit to LVK; their analytical fit to the non-parametric fit
+    """
+    mu1 = 10
+    sig1 = 1.1
+    mu2 = 33.4
+    sig2 = 4.2
+    f_peak_1 = 0.75
+    f_peak_2 = 0.07
+    alpha1 = -2.7
+    alpha2 = -4.2
+    mBreak = 42.7
+    mMin = 12.9
+    mMax = 100
+    dmMin = 0.6
+    params = (0.5,f_peak_1,f_peak_2,mu1,sig1,mu2,sig2,alpha1,alpha2,mBreak,mMin,mMax,dmMin) 
+    """
+    input_fname = data_dir + "ar_lnm1_q_summary.hdf"
+    with h5.File(input_fname, "r") as f:
+        m1s = f['posterior/m1s'][()]
+        dR_dlnm1s = f['posterior/dR_dlnm1s'][()]
+
+    #R_m1_model = mfunc.CallisterFarr_model(m1s,*params[1:])
+    #R_m1_model_ref = mfunc.CallisterFarr_model(20.,*params[1:])
+    #R_m1_model = R_m1_model*(params[0]/R_m1_model_ref)
+
+    ax.plot(m1s,np.median(dR_dlnm1s,axis=1)*(1/m1s),color='gray',lw=1.8, zorder=1, label='C \& F 2024')
+    #ax.plot(m1s,R_m1_model,color='gray',lw=1.8, zorder=1, label='GWTC-3')
+    ax.fill_between(m1s, np.quantile(dR_dlnm1s,0.05,axis=1)*(1/m1s), np.quantile(dR_dlnm1s,0.95,axis=1)*(1/m1s), alpha=0.14,color='gray',zorder=0)
 
     DCO = mfunc.read_data(loc = data_dir +str(COMPASfilename))
 
@@ -425,9 +444,9 @@ def plot_BBH_mass_dist_over_z(rates, fit_param_vals, tng, model=True, only_stabl
 
         #Reading Rate data 
         with h5.File(data_dir + tngpath ,'r') as File:
-            redshifts = File[rate_keys[i]]['redshifts'][()]
-            DCO_mask = File[rate_keys[i]]['DCOmask'][()] # Mask from DCO to merging systems  
-            intrinsic_rate_density = File[rate_keys[i]]['merger_rate'][()]
+            redshifts = File[list(File.keys())[0]]['redshifts'][()]
+            DCO_mask = File[list(File.keys())[0]]['DCOmask'][()] # Mask from DCO to merging systems  
+            intrinsic_rate_density = File[list(File.keys())[0]]['merger_rate'][()]
 
         CEcount = 'CE_Event_Counter'
         #first bring it to the same shape as the rate table
@@ -527,6 +546,7 @@ def plot_BBH_mass_dist_over_z_allTNGs(rates, fit_param_vals, tngs, z = [0.2, 1, 
     ylabel = r'$\frac{d\mathcal{R}}{dM_{\mathrm{BH, 1} }} \ \mathrm{[Gpc^{-3}yr^{-1}M^{-1}_{\odot}]}$'
     channel_names = [r'all channels', r'stable channel', r'CE channel']
 
+    
     # GWTC-3 Powerlaw + Peak Mass distribution
     color_plpeak = 'grey'#'#1f78b4'
     input_fname = data_dir+'o3only_mass_c_iid_mag_iid_tilt_powerlaw_redshift_mass_data.h5'
@@ -542,10 +562,24 @@ def plot_BBH_mass_dist_over_z_allTNGs(rates, fit_param_vals, tngs, z = [0.2, 1, 
     for i in range(3):
         for j in range(3):
             if i==j==0:
-                ax[i, j].plot(mass_1, mass_1_ppd, lw=1.8, color=color_plpeak, zorder=1, label="GWTC-3")
+                ax[i, j].plot(mass_1, mass_1_ppd, lw=1.8, color='gray', zorder=1, label="GWTC-3")
             else:
-                ax[i, j].plot(mass_1, mass_1_ppd, lw=1.8, color=color_plpeak, zorder=1)
-            ax[i, j].fill_between(mass_1, mass_1_lower, mass_1_upper, alpha=0.14,color=color_plpeak,zorder=0)
+                ax[i, j].plot(mass_1, mass_1_ppd, lw=1.8, color='gray', zorder=1)
+            ax[i,j].fill_between(mass_1, mass_1_lower, mass_1_upper, alpha=0.14,color='gray',zorder=0)
+    """
+    #Callister&Farr 2024 non-parametric fit to LVK
+    input_fname = data_dir + "ar_lnm1_q_summary.hdf"
+    with h5.File(input_fname, "r") as f:
+        m1s = f['posterior/m1s'][()]
+        dR_dlnm1s = f['posterior/dR_dlnm1s'][()]
+    for i in range(3):
+        for j in range(3):
+            if i==j==0:
+                ax[i, j].plot(m1s,np.median(dR_dlnm1s,axis=1),color='gray',lw=1.8, zorder=1, label='GWTC-3')
+            else:
+                ax[i, j].plot(m1s,np.median(dR_dlnm1s,axis=1),color='gray',lw=1.8, zorder=1)
+            ax[i,j].fill_between(m1s, np.quantile(dR_dlnm1s,0.05,axis=1), np.quantile(dR_dlnm1s,0.95,axis=1), alpha=0.14,color='gray',zorder=0)
+    """
 
     DCO = mfunc.read_data(loc = data_dir +str(COMPASfilename))
     channels = ['all', 'stable', 'CE']
@@ -557,9 +591,9 @@ def plot_BBH_mass_dist_over_z_allTNGs(rates, fit_param_vals, tngs, z = [0.2, 1, 
 
         #Reading Rate data 
         with h5.File(data_dir + tngpath ,'r') as File:
-            redshifts = File[rate_keys[i]]['redshifts'][()]
-            DCO_mask = File[rate_keys[i]]['DCOmask'][()] # Mask from DCO to merging systems  
-            intrinsic_rate_density = File[rate_keys[i]]['merger_rate'][()]
+            redshifts = File[list(File.keys())[0]]['redshifts'][()]
+            DCO_mask = File[list(File.keys())[0]]['DCOmask'][()] # Mask from DCO to merging systems  
+            intrinsic_rate_density = File[list(File.keys())[0]]['merger_rate'][()]
 
         for j, channel in enumerate(channels):
             print('Plotting %s channel'%channel)
@@ -683,6 +717,7 @@ def compare_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_vals
     xlabel = r'$M_{\mathrm{BH, 1}} \ \rm [M_{\odot}]$'
     ylabel = r'$\frac{d\mathcal{R}}{dM_{\mathrm{BH, 1} }} \ \mathrm{[Gpc^{-3}yr^{-1}M^{-1}_{\odot}]}$'
 
+
     # GWTC-3 Powerlaw + Peak Mass distribution
     color_plpeak = 'grey'#'#1f78b4'
     input_fname = data_dir+'o3only_mass_c_iid_mag_iid_tilt_powerlaw_redshift_mass_data.h5'
@@ -697,6 +732,17 @@ def compare_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_vals
     # plot the max posterior and the 95th percentile
     ax.plot(mass_1, mass_1_ppd, lw=1.8, color=color_plpeak, zorder=1, label="GWTC-3")
     ax.fill_between(mass_1, mass_1_lower, mass_1_upper, alpha=0.14,color=color_plpeak,zorder=0)
+    """
+
+    #Callister&Farr 2024 non-parametric fit to LVK
+    input_fname = data_dir + "ar_lnm1_q_summary.hdf"
+    with h5.File(input_fname, "r") as f:
+        m1s = f['posterior/m1s'][()]
+        dR_dlnm1s = f['posterior/dR_dlnm1s'][()]
+
+    ax.plot(m1s,np.median(dR_dlnm1s,axis=1),color='gray',lw=1.8, zorder=1, label='GWTC-3')
+    ax.fill_between(m1s, np.quantile(dR_dlnm1s,0.05,axis=1), np.quantile(dR_dlnm1s,0.95,axis=1), alpha=0.14,color='gray',zorder=0)
+    """
     nplot=0
 
     DCO = mfunc.read_data(loc = data_dir +str(COMPASfilename))
@@ -708,9 +754,9 @@ def compare_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_vals
 
         #Reading Rate data 
         with h5.File(data_dir + tngpath ,'r') as File:
-            redshifts = File[rate_keys_data[i]]['redshifts'][()]
-            DCO_mask = File[rate_keys_data[i]]['DCOmask'][()] # Mask from DCO to merging systems  
-            intrinsic_rate_density = File[rate_keys_data[i]]['merger_rate'][()]
+            redshifts = File[list(File.keys())[0]]['redshifts'][()]
+            DCO_mask = File[list(File.keys())[0]]['DCOmask'][()] # Mask from DCO to merging systems  
+            intrinsic_rate_density = File[list(File.keys())[0]]['merger_rate'][()]
 
         CEcount = 'CE_Event_Counter'
         #first bring it to the same shape as the rate table
@@ -758,9 +804,9 @@ def compare_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_vals
 
         #Reading Rate data 
         with h5.File(data_dir + tngpath ,'r') as File:
-            redshifts = File[rate_keys[i]]['redshifts'][()]
-            DCO_mask = File[rate_keys[i]]['DCOmask'][()] # Mask from DCO to merging systems  
-            intrinsic_rate_density = File[rate_keys[i]]['merger_rate'][()]
+            redshifts = File[list(File.keys())[0]]['redshifts'][()]
+            DCO_mask = File[list(File.keys())[0]]['DCOmask'][()] # Mask from DCO to merging systems  
+            intrinsic_rate_density = File[list(File.keys())[0]]['merger_rate'][()]
 
         CEcount = 'CE_Event_Counter'
         #first bring it to the same shape as the rate table
@@ -856,6 +902,7 @@ def compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, fit_par
     xlabel = r'$M_{\mathrm{BH, 1}} \ \rm [M_{\odot}]$'
     ylabel = r'$\frac{d\mathcal{R}}{dM_{\mathrm{BH, 1} }} \ \mathrm{[Gpc^{-3}yr^{-1}M^{-1}_{\odot}]}$'
 
+    
     # GWTC-3 Powerlaw + Peak Mass distribution
     color_plpeak = 'grey'#'#1f78b4'
     input_fname = data_dir+'o3only_mass_c_iid_mag_iid_tilt_powerlaw_redshift_mass_data.h5'
@@ -875,7 +922,21 @@ def compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, fit_par
             else:
                 ax[i, j].plot(mass_1, mass_1_ppd, lw=1.8, color=color_plpeak, zorder=1)
             ax[i, j].fill_between(mass_1, mass_1_lower, mass_1_upper, alpha=0.14,color=color_plpeak,zorder=0)
+    """
 
+    #Callister&Farr 2024 non-parametric fit to LVK
+    input_fname = data_dir + "ar_lnm1_q_summary.hdf"
+    with h5.File(input_fname, "r") as f:
+        m1s = f['posterior/m1s'][()]
+        dR_dlnm1s = f['posterior/dR_dlnm1s'][()]
+    for i in range(3):
+        for j in range(2):
+            if i==j==0:
+                ax[i, j].plot(m1s,np.median(dR_dlnm1s,axis=1),color='gray',lw=1.8, zorder=1, label='GWTC-3')
+            else:
+                ax[i, j].plot(m1s,np.median(dR_dlnm1s,axis=1),color='gray',lw=1.8, zorder=1)
+            ax[i,j].fill_between(m1s, np.quantile(dR_dlnm1s,0.05,axis=1), np.quantile(dR_dlnm1s,0.95,axis=1), alpha=0.14,color='gray',zorder=0)
+    """
     DCO = mfunc.read_data(loc = data_dir +str(COMPASfilename))
 
     #Loop over TNGs
@@ -901,9 +962,9 @@ def compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, fit_par
 
             #Reading Rate data 
             with h5.File(data_dir + tngpath ,'r') as File:
-                redshifts = File[rate_keys_data[i]]['redshifts'][()]
-                DCO_mask = File[rate_keys_data[i]]['DCOmask'][()] # Mask from DCO to merging systems  
-                intrinsic_rate_density = File[rate_keys_data[i]]['merger_rate'][()]
+                redshifts = File[list(File.keys())[0]]['redshifts'][()]
+                DCO_mask = File[list(File.keys())[0]]['DCOmask'][()] # Mask from DCO to merging systems  
+                intrinsic_rate_density = File[list(File.keys())[0]]['merger_rate'][()]
 
             CEcount = 'CE_Event_Counter'
             #first bring it to the same shape as the rate table
@@ -951,9 +1012,9 @@ def compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, fit_par
 
             #Reading Rate data 
             with h5.File(data_dir + tngpath ,'r') as File:
-                redshifts = File[rate_keys[i]]['redshifts'][()]
-                DCO_mask = File[rate_keys[i]]['DCOmask'][()] # Mask from DCO to merging systems  
-                intrinsic_rate_density = File[rate_keys[i]]['merger_rate'][()]
+                redshifts = File[list(File.keys())[0]]['redshifts'][()]
+                DCO_mask = File[list(File.keys())[0]]['DCOmask'][()] # Mask from DCO to merging systems  
+                intrinsic_rate_density = File[list(File.keys())[0]]['merger_rate'][()]
 
             CEcount = 'CE_Event_Counter'
             #first bring it to the same shape as the rate table
@@ -989,7 +1050,7 @@ def compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, fit_par
 
             x_KDE = np.arange(0.1,50.,0.1)
             KDEy_vals =  kernel(x_KDE)*sum(hist) #re-normalize the KDE
-            ax[a1, a2].plot(x_KDE, KDEy_vals, color=model_colors[nplot], lw= 2, ls='--')
+            ax[a1, a2].plot(x_KDE, KDEy_vals, color=model_colors[nplot], lw= 3, ls='--')
     
             nplot += 1
 
@@ -1029,7 +1090,7 @@ def compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, fit_par
     y1 = [1]
     y2 = [1]
     plt.plot(x, y1, c='black', ls = '-', lw=6, label='Simulation')
-    plt.plot(x, y2, c='black', ls = '--', lw=2, label='Analytical fit')
+    plt.plot(x, y2, c='black', ls = '--', lw=3, label='Analytical fit')
 
     #ax.set_xlabel(xlabel, fontsize = 30)
     #ax.set_ylabel(ylabel, fontsize = 30)
@@ -1072,28 +1133,6 @@ def residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_va
     xlabel = r'$M_{\mathrm{BH, 1}} \ \rm [M_{\odot}]$'
     ylabel = r'$\frac{d\mathcal{R}}{dM_{\mathrm{BH, 1} }} \ \mathrm{[Gpc^{-3}yr^{-1}M^{-1}_{\odot}]}$ percent error'
 
-    """
-    # GWTC-3 Powerlaw + Peak Mass distribution
-    color_plpeak = 'grey'#'#1f78b4'
-    input_fname = data_dir+'o3only_mass_c_iid_mag_iid_tilt_powerlaw_redshift_mass_data.h5'
-    mass_1 = np.linspace(2, 100, 1000)
-    mass_ratio = np.linspace(0.1, 1, 500)
-    with h5.File(input_fname, "r") as f:
-        mass_ppd = f["ppd"]
-        mass_lines = f["lines"]
-        mass_1_ppd = np.trapz(mass_ppd, mass_ratio, axis=0)
-        mass_1_lower = np.percentile(mass_lines["mass_1"], 5, axis=0)
-        mass_1_upper = np.percentile(mass_lines["mass_1"], 95, axis=0)
-    # plot the max posterior and the 95th percentile
-    for i in range(3):
-        for j in range(2):
-            if i==j==0:
-                ax[i, j].plot(mass_1, mass_1_ppd, lw=1.8, color=color_plpeak, zorder=1, label="GWTC-3")
-            else:
-                ax[i, j].plot(mass_1, mass_1_ppd, lw=1.8, color=color_plpeak, zorder=1)
-            ax[i, j].fill_between(mass_1, mass_1_lower, mass_1_upper, alpha=0.14,color=color_plpeak,zorder=0)
-    """
-
     DCO = mfunc.read_data(loc = data_dir +str(COMPASfilename))
 
     #Loop over TNGs
@@ -1118,9 +1157,9 @@ def residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_va
 
             #Reading Rate data 
             with h5.File(data_dir + tngpath ,'r') as File:
-                redshifts = File[rate_keys_data[i]]['redshifts'][()]
-                DCO_mask = File[rate_keys_data[i]]['DCOmask'][()] # Mask from DCO to merging systems  
-                intrinsic_rate_density = File[rate_keys_data[i]]['merger_rate'][()]
+                redshifts = File[list(File.keys())[0]]['redshifts'][()]
+                DCO_mask = File[list(File.keys())[0]]['DCOmask'][()] # Mask from DCO to merging systems  
+                intrinsic_rate_density = File[list(File.keys())[0]]['merger_rate'][()]
 
             CEcount = 'CE_Event_Counter'
             #first bring it to the same shape as the rate table
@@ -1166,9 +1205,9 @@ def residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_va
 
             #Reading Rate data 
             with h5.File(data_dir + tngpath ,'r') as File:
-                redshifts = File[rate_keys[i]]['redshifts'][()]
-                DCO_mask = File[rate_keys[i]]['DCOmask'][()] # Mask from DCO to merging systems  
-                intrinsic_rate_density = File[rate_keys[i]]['merger_rate'][()]
+                redshifts = File[list(File.keys())[0]]['redshifts'][()]
+                DCO_mask = File[list(File.keys())[0]]['DCOmask'][()] # Mask from DCO to merging systems  
+                intrinsic_rate_density = File[list(File.keys())[0]]['merger_rate'][()]
 
             CEcount = 'CE_Event_Counter'
             #first bring it to the same shape as the rate table
@@ -1247,6 +1286,362 @@ def residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_va
     if showplot==True:
         plt.show()
 
+def plot_BBH_mass_Z_z(tngpath, COMPASpath, fit_param_vals, tng, data_rates=None, only_stable = True, only_CE = True, channel_string='all', z_merger=0.2, 
+                      max_redshift=14, redshift_step=0.05, z_first_SF=14, z_form = [0, 0.2, 1, 2, 4, 6, 8, 10], Z_zams = [1, 0.1, 0.01, 0.001, 0.0001], showplot=True):
+    
+    #get rate keys
+    for i in fit_param_vals:
+        rate_key = 'Rates_mu0%s_muz%s_alpha%s_sigma0%s_sigmaz%s_a%s_b%s_c%s_d%s_zBinned'%(np.round(i[0], 3), np.round(i[1], 3), np.round(i[4], 3), np.round(i[2], 3), np.round(i[3], 3), np.round(i[5],3), np.round(i[6], 3), np.round(i[7], 3), np.round(i[8],3))
+
+    fig, ax = plt.subplots(figsize = (12, 8))
+    bins = np.arange(0.,55,2.5)
+    x_lim=(0.,50)
+    y_lim = (1e-2,40)
+    xlabel = r'$M_{\mathrm{BH, 1}} \ \rm [M_{\odot}]$'
+    ylabel = r'$\frac{d\mathcal{R}}{dM_{\mathrm{BH, 1} }} \ \mathrm{[Gpc^{-3}yr^{-1}M^{-1}_{\odot}]}$'
+
+    DCO = mfunc.read_data(loc = data_dir +str(COMPASfilename))
+    ####################################################
+    #Reading Rate data 
+    with h5.File(data_dir + '/' + tngpath ,'r') as File:
+        redshifts = File[list(File.keys())[0]]['redshifts'][()]
+        DCO_mask = File[list(File.keys())[0]]['DCOmask'][()] # Mask from DCO to merging systems  
+        intrinsic_rate_density = File[list(File.keys())[0]]['merger_rate'][()]
+        seeds = File[list(File.keys())[0]]['SEED'][()]
+        #print(list(File[list(File.keys())[0]].keys()))
+
+    CEcount = 'CE_Event_Counter'
+    #first bring it to the same shape as the rate table
+    merging_BBH    = DCO[DCO_mask]
+    #apply the additional mask based on your prefs
+    if np.logical_and(only_stable, only_CE):
+        print("Both only_stable and only_CE, I assume you just want both")
+        channel_bool = np.full(len(merging_BBH), True)
+    elif only_stable:
+        channel_bool = merging_BBH[CEcount] == 0
+    elif only_CE:
+        channel_bool = merging_BBH[CEcount] > 0
+    else:
+        raise ValueError("Both only_stable =%s and only_CE=%s, set at least one to true"%(only_stable,only_CE))
+    # we exclude CHE systems
+    not_CHE  = merging_BBH['Stellar_Type@ZAMS(1)'] != 16
+    BBH_bool = np.logical_and(merging_BBH['Stellar_Type(1)'] == 14, merging_BBH['Stellar_Type(2)'] == 14)
+
+    merging_BBH         = merging_BBH[BBH_bool * not_CHE  * channel_bool]
+    Red_intr_rate_dens  = intrinsic_rate_density[BBH_bool* not_CHE * channel_bool, :]
+    merging_BBH_seeds =  seeds[BBH_bool * not_CHE  * channel_bool]
+
+    #read in formation redshift and metallicity for all binaries
+    with h5.File(data_dir + '/' + COMPASpath ,'r') as File:
+            metallicities_compas = File['BSE_Double_Compact_Objects']['Metallicity@ZAMS(1)'][()] #same metallicity for both stars
+            COMPAS_delay_times = File['BSE_Double_Compact_Objects']['Coalescence_Time'][()]#Myr
+            time = File['BSE_Double_Compact_Objects']['Time'][()] #Myr
+            seeds_compas = File['BSE_Double_Compact_Objects']['SEED'][()]
+
+    #filter formation redshift and metallicity by the seeds we want
+    mask_merging_DCOs = np.isin(seeds_compas, merging_BBH_seeds)
+    seeds_DCOs = seeds_compas[mask_merging_DCOs]
+
+    metallicities_compas = metallicities_compas[mask_merging_DCOs]
+    COMPAS_delay_times = COMPAS_delay_times[mask_merging_DCOs]
+    time = time[mask_merging_DCOs]
+    n_binaries = len(metallicities_compas)
+
+    #binned_metals, e = np.histogram(metallicities_compas, bins=Z_zams) #bin the metallicities into the Z at ZAMS bins
+
+    #from fastcosmicintegration, need to calculate merger rate and redshift
+    redshifts = np.arange(0, max_redshift + redshift_step, redshift_step)
+    n_redshifts = len(redshifts)
+    times = cosmo.age(redshifts).to(u.Myr).value
+    times_to_redshifts = interp1d(times, redshifts)
+    age_first_sfr = cosmo.age(z_first_SF).to(u.Myr).value
+
+    z_of_formation = np.zeros(shape=(n_binaries, n_redshifts))
+    for i in range(n_binaries):
+        time_of_formation = times - COMPAS_delay_times[i]
+        first_too_early_index = np.digitize(age_first_sfr, time_of_formation)
+        first_too_early_index = first_too_early_index + 1 if first_too_early_index == n_redshifts else first_too_early_index   
+        if first_too_early_index > 0:
+            z_of_formation[i, :first_too_early_index - 1] = times_to_redshifts(time_of_formation[:first_too_early_index - 1])
+    z_of_formation = np.array(z_of_formation)
+
+    formation_redshifts = np.array([max(i) for i in z_of_formation])
+
+    for i, redshift_form in enumerate(z_form):
+        if i < len(z_form)-1:
+
+            print("Plotting formation redshift %s <= z < %s"%(redshift_form, z_form[i+1]))
+
+            #filter by formation redshift bin
+            z_mask_low = (formation_redshifts >= redshift_form)
+            z_mask_high = (formation_redshifts < z_form[i+1])
+            if z_form[i+1] <= z_merger:
+                print("Can't have binaries with z_formation <= z_merger, skipping redshift bin")
+                continue
+            z_mask = ((z_mask_low==True) & (z_mask_high==True))
+            z_seeds = seeds_DCOs[z_mask]
+            metallicities_compas_masked = metallicities_compas[z_mask]
+
+            z_seeds_mask = np.isin(merging_BBH_seeds, z_seeds)
+            z_seeds_DCOs = merging_BBH_seeds[z_seeds_mask]
+
+            if len(z_seeds_DCOs) > 0:
+
+                counter=0
+                for j, metalbin in enumerate(Z_zams):
+                    if j < len(Z_zams)-1:
+
+                        #for each metallicity, plot mass distribution
+                        #to do this, filter data by metallicity at ZAMS
+                        print("Plotting metallicity bin %s <= Z < %s"%(metalbin, Z_zams[j+1]))
+
+                        #create mask for Z bin
+                        Z_mask_low = (metallicities_compas_masked >= metalbin)
+                        Z_mask_high = (metallicities_compas_masked < Z_zams[j+1])
+                        Z_mask = ((Z_mask_low==True) & (Z_mask_high==True))
+                        Z_seeds = z_seeds[Z_mask]
+
+                        Z_seeds_mask = np.isin(seeds_DCOs, Z_seeds)
+                        #Z_seeds_DCOs = merging_BBH_seeds[Z_seeds_mask]
+                        merging_BBH_masked = merging_BBH[Z_seeds_mask]
+                        Red_intr_rate_dens_masked = Red_intr_rate_dens[Z_seeds_mask]
+
+                        #Calculate average rate density per z-bin at the merger redshift
+                        x_vals  = merging_BBH_masked['M_moreMassive']
+                        i_redshift = np.where(redshifts == z_merger)[0][0] # Rate at redshift of merger
+                        Weights = Red_intr_rate_dens_masked[:, i_redshift]#crude_rate_density[:,0]
+                        Weights[Weights < 0] = 0
+                        if np.sum(Weights) == 0:
+                            print("No binaries merging at z=%s in metallicity bin %s <= Z < %s"%(z_merger, metalbin, Z_zams[j+1]))
+                            continue
+
+                        # Get the Hist    
+                        hist, bin_edge = np.histogram(x_vals, weights = Weights, bins=bins)
+
+                        # And the KDE
+                        try: kernel = stats.gaussian_kde(x_vals, bw_method='scott', weights=Weights)
+                        except ValueError: continue
+    
+                        x_KDE = np.arange(0.1,50.,0.1)
+                        KDEy_vals =  kernel(x_KDE)*sum(hist) #re-normalize the KDE
+                        if counter == 0:
+                            ax.plot(x_KDE, KDEy_vals, label = r'%s $\leq z_{form} <$ %s'%(redshift_form, z_form[i+1]), color = data_colors[i], lw= 3, ls = linestyles2[j])
+                        else:
+                            ax.plot(x_KDE, KDEy_vals, color = data_colors[i], lw= 3, ls = linestyles2[j])
+                        counter+=1
+        
+            else:
+                print("No binaries in redshift bin %s <= z < %s"%(redshift_form, z_form[i+i]))
+                continue
+
+    #########################################
+    # plot values
+    ax.set_xlim(x_lim)
+    ax.set_ylim(y_lim)
+    ax.tick_params(axis='both', which='major', labelsize=15)
+    ax.xaxis.set_minor_locator(ticker.MultipleLocator(1))
+    ax.tick_params(length=10, width=2, which='major')
+    ax.tick_params(length=5, width=1, which='minor')
+
+    x = [-0.0001]
+    y1 = [0.0001]
+    plt.plot(x, y1, c='black', ls = '-', lw=3, label=r'$%s \leq Z < %s$'%(Z_zams[0], Z_zams[1]))
+    if len(Z_zams) >= 3:
+        plt.plot(x, y1, c='black', ls = '--', lw=3, label=r'$%s \leq Z < %s$'%(Z_zams[1], Z_zams[2]))
+        if len(Z_zams) >= 4:
+            plt.plot(x, y1, c='black', ls = ':', lw=3, label=r'$%s \leq Z < %s$'%(Z_zams[2], Z_zams[3]))
+    
+    # Channel
+    if tng==50:
+        plt.text(0.12, 0.92, 'TNG%s'%labels[0], ha = 'center', transform=ax.transAxes, size = 25)
+    elif tng==100:
+        plt.text(0.12, 0.92, 'TNG%s'%labels[1], ha = 'center', transform=ax.transAxes, size = 25)
+    elif tng==300:
+        plt.text(0.12, 0.92, 'TNG%s'%labels[2], ha = 'center', transform=ax.transAxes, size = 25)
+    
+    ax.set_xlabel(xlabel, fontsize = 25)
+    ax.set_ylabel(ylabel, fontsize = 25)
+    ax.set_yscale('log')
+    fig.legend(bbox_to_anchor=(0.9, 0.88), fontsize=18, frameon=False)
+    if data_rates==True:
+        if channel_string=='all':
+            ax.set_title('all channels, z = %s, simulation'%z_merger, fontsize = 25)
+        else:
+            ax.set_title('%s channel, z = %s, simulation'%(channel_string, z_merger), fontsize = 25)
+        fig.savefig('figures/massdist_TNG%s_%s_%s_Z_z_data.pdf'%(tng, channel_string, z_merger), format="pdf", bbox_inches='tight', dpi=300)
+    else:
+        if channel_string=='all':
+            ax.set_title('all channels, z = %s, analytical fit'%z_merger, fontsize = 25)
+        else:
+            ax.set_title('%s channel, z = %s, analytical fit'%(channel_string, z_merger), fontsize = 25)
+        fig.savefig('figures/massdist_TNG%s_%s_%s_Z_z.pdf'%(tng, channel_string, z_merger), format="pdf", bbox_inches='tight', dpi=300)
+
+    if showplot==True:
+        plt.show()
+
+
+def plot_BBH_rate_Z_z(tngpath, COMPASpath, tng, z_merger=None, xlim=[], ylim=[], max_redshift=14, redshift_step=0.05, z_first_SF=14, showplot=True,
+                      plotredshift=True):
+    
+    cmap = sns.color_palette('rocket', as_cmap=True)
+    fig = plt.figure(layout='constrained',figsize=[12,8])
+    ax = fig.add_subplot()
+    ax_histx = ax.inset_axes([0, 1.02, 1, 0.25], sharex=ax)
+    ax_histy = ax.inset_axes([1.02, 0, 0.2, 1], sharey=ax)
+
+    ax_histx.tick_params(axis="x", labelbottom=False)
+    ax_histy.tick_params(axis="y", labelleft=False)
+
+    DCO = mfunc.read_data(loc = data_dir +str(COMPASfilename))
+    ####################################################
+    #Reading Rate data 
+    with h5.File(data_dir + '/' + tngpath ,'r') as File:
+        redshifts = File[list(File.keys())[0]]['redshifts'][()]
+        DCO_mask = File[list(File.keys())[0]]['DCOmask'][()] # Mask from DCO to merging systems  
+        merger_rate = File[list(File.keys())[0]]['merger_rate'][()]
+        seeds = File[list(File.keys())[0]]['SEED'][()]
+
+    #print(redshifts)
+    #print(merger_rate[0])
+   # plt.hist(redshifts, weights=merger_rate[0], bins=redshifts)
+    #plt.plot(redshifts, merger_rate[0])
+    #plt.show()
+
+    #first bring it to the same shape as the rate table
+    merging_BBH    = DCO[DCO_mask]
+    #not_CHE  = merging_BBH['Stellar_Type@ZAMS(1)'] != 16
+    BBH_bool = np.logical_and(merging_BBH['Stellar_Type(1)'] == 14, merging_BBH['Stellar_Type(2)'] == 14)
+
+    merging_BBH         = merging_BBH[BBH_bool]
+    Red_intr_rate_dens  = merger_rate[BBH_bool, :]
+    merging_BBH_seeds =  seeds[BBH_bool]
+
+    #read in formation redshift and metallicity for all binaries
+    with h5.File(data_dir + '/' + COMPASpath ,'r') as File:
+            metallicities_compas = File['BSE_Double_Compact_Objects']['Metallicity@ZAMS(1)'][()] #same metallicity for both stars
+            COMPAS_delay_times = File['BSE_Double_Compact_Objects']['Coalescence_Time'][()]#Myr
+            time = File['BSE_Double_Compact_Objects']['Time'][()] #Myr
+            seeds_compas = File['BSE_Double_Compact_Objects']['SEED'][()]
+
+    #filter formation redshift and metallicity by the seeds we want
+    mask_merging_DCOs = np.isin(seeds_compas, merging_BBH_seeds)
+    seeds_DCOs = seeds_compas[mask_merging_DCOs]
+
+    metallicities_compas = metallicities_compas[mask_merging_DCOs]
+    COMPAS_delay_times = COMPAS_delay_times[mask_merging_DCOs]
+    time = time[mask_merging_DCOs]
+    n_binaries = len(metallicities_compas)
+
+    #plt.hist2d(redshifts, metallicities_compas, weights=merger_rate, bins=[len(redshifts), len(metallicities_compas)], cmap=cmap) 
+    log_metals = np.log10(metallicities_compas)
+    metal_bins = np.logspace(min(log_metals), max(log_metals), 60)
+    center_metalbins  = (metal_bins[:-1] + metal_bins[1:])/2.
+
+    """
+    if z_merger is not None:
+        #from fastcosmicintegration, need to calculate merger rate and redshift
+        redshifts = np.arange(0, max_redshift + redshift_step, redshift_step)
+        n_redshifts = len(redshifts)
+        times = cosmo.age(redshifts).to(u.Myr).value
+        times_to_redshifts = interp1d(times, redshifts)
+        age_first_sfr = cosmo.age(z_first_SF).to(u.Myr).value
+
+        z_of_formation = np.zeros(shape=(n_binaries, n_redshifts))
+        for i in range(n_binaries):
+            time_of_formation = times - COMPAS_delay_times[i]
+            first_too_early_index = np.digitize(age_first_sfr, time_of_formation)
+            first_too_early_index = first_too_early_index + 1 if first_too_early_index == n_redshifts else first_too_early_index   
+            if first_too_early_index > 0:
+                z_of_formation[i, :first_too_early_index - 1] = times_to_redshifts(time_of_formation[:first_too_early_index - 1])
+        z_of_formation = np.array(z_of_formation)
+        formation_redshifts = np.array([max(i) for i in z_of_formation])
+
+        if plotredshift == True:
+            xvals = formation_redshifts
+        else:
+            xvals = cosmo.age(formation_redshifts).to(u.Gyr).value
+
+        print(min(np.sum(Red_intr_rate_dens, axis=1)), max(np.sum(Red_intr_rate_dens, axis=1)))
+        rate = plt.scatter(xvals, metallicities_compas, c=np.sum(Red_intr_rate_dens, axis=1), cmap=cmap)
+
+    """
+    
+    Zzbinned_merger_rates = []
+    for i, metalbin in enumerate(metal_bins):
+        if i < len(metal_bins)-1:
+            #filter by formation redshift bin
+            Z_mask_low = (metallicities_compas >= metalbin)
+            Z_mask_high = (metallicities_compas < metal_bins[i+1])
+            Z_mask = ((Z_mask_low==True) & (Z_mask_high==True))
+            metallicities_masked = metallicities_compas[Z_mask]
+
+            #get binaries that are in this metallicity bin
+            Z_seeds = seeds_DCOs[Z_mask]
+            Z_seeds_mask = np.isin(merging_BBH_seeds, Z_seeds)
+            Z_seeds_DCOs = seeds_DCOs[Z_seeds_mask]
+
+            merger_rate_masked = merger_rate[Z_seeds_mask]
+            sum_merger_rates = np.sum(merger_rate_masked, axis=0)
+            Zzbinned_merger_rates.append(sum_merger_rates)
+
+            #plt.plot(redshifts, np.sum(merger_rate_masked, axis=0))
+            #plt.yscale('log')
+    #plt.show()
+    Zzbinned_merger_rates = np.array(Zzbinned_merger_rates)
+    print(redshifts.shape, center_metalbins.shape, Zzbinned_merger_rates.shape)
+    rate = plt.contourf(redshifts, center_metalbins/Zsun, Zzbinned_merger_rates, levels=15, cmap=cmap)
+    ax_histx.plot(redshifts, np.sum(Zzbinned_merger_rates, axis=0))
+    ax_histy.plot(np.sum(Zzbinned_merger_rates, axis=1), center_metalbins/Zsun)
+    #ax_histx.set_yscale('log')
+    #ax_histx.set_ylim(10**-3, 10**3)
+
+    #########################################
+    # plot values
+    ax.set_yscale('log')
+    #if plotredshift == True:
+    ax.set_xlabel('Redshift', y=0.04, fontsize=30)
+    #else:
+    #    ax.set_xlabel('Lookbacktime (Gyr)', y=0.04, fontsize=30)
+    ax.set_ylabel(r'$Z/Z_{\rm{\odot}}$', x=0.03, fontsize=30)
+    ax.tick_params(axis='both', which='major', labelsize=20)
+    ax.xaxis.set_minor_locator(ticker.MultipleLocator(1))
+    ax.tick_params(length=10, width=2, which='major')
+    ax.tick_params(length=5, width=1, which='minor')
+
+    #Set limits for horizontal (lookback time or redshift) and vertical (metallicity) axes
+    if len(xlim) > 0:
+        ax.set_xlim(xlim[0], xlim[1]) #not always want to set xlimits, so empty if not using any
+    else:
+        ax.set_xlim(min(redshifts), max(redshifts))
+    if len(ylim) > 0:
+        ax.set_ylim(ylim[0], ylim[1]) #defaults for TNG data are Z=10**-2 to Z=10**1
+
+    #Set up the colorbar
+    fig.subplots_adjust(right=0.81)
+    #cbar_ax = fig.add_axes([0.83, 0.15, 0.03, 0.7])
+    cbar_ax = fig.add_axes([1.01, 0.1, 0.03, 0.7])
+    cbar = fig.colorbar(rate, cax=cbar_ax, format=ticker.FormatStrFormatter('%.3f'))
+    cbar.ax.tick_params(labelsize=20)
+    cbar.set_label(r'Merger rate $[\rm \frac{\mathrm{d}N}{\mathrm{d}Gpc^3 \mathrm{d}yr}]$', rotation=270, fontsize=30, labelpad=40);
+    
+    # Channel
+    if tng==50:
+        plt.text(0.12, 0.08, 'TNG%s'%labels[0], color='white', ha = 'center', transform=ax.transAxes, size = 25)
+    elif tng==100:
+        plt.text(0.12, 0.08, 'TNG%s'%labels[1], color='white', ha = 'center', transform=ax.transAxes, size = 25)
+    elif tng==300:
+        plt.text(0.12, 0.08, 'TNG%s'%labels[2], color='white', ha = 'center', transform=ax.transAxes, size = 25)
+    
+    fig.legend(bbox_to_anchor=(0.9, 0.88), fontsize=18, frameon=False)
+    if z_merger is not None:
+        ax.set_title('z = %s, simulation'%z_merger, fontsize = 25)
+        fig.savefig('figures/BBHrates_TNG%s_%s_Z_z.png'%(tng, z_merger), bbox_inches='tight', dpi=300)
+    else:
+        fig.savefig('figures/BBHrates_TNG%s_Z_z.png'%(tng),bbox_inches='tight', dpi=300)
+
+    if showplot==True:
+        plt.show()
+
         
 
 if __name__ == "__main__":
@@ -1256,22 +1651,22 @@ if __name__ == "__main__":
     data_dir    =  str(paths.data) +'/'
     save_loc = str(paths.figures) + '/'
     COMPASfilename = 'COMPAS_Output_wWeights.h5'
+    Zsun = 0.014 #Solar metallicity
 
     filenames = ['SFRMetallicityFromGasWithMetalsTNG50-1.hdf5', 'SFRMetallicityFromGasWithMetalsTNG100-1.hdf5', 'SFRMetallicityFromGasWithMetalsTNG300-1.hdf5',
                  'SFRMetallicityFromGasTNG100-2.hdf5', 'SFRMetallicityFromGasTNG50-2.hdf5', 'SFRMetallicityFromGasTNG50-3.hdf5'] 
-    fit_param_files = ['test_best_fit_parameters_TNG50-1.txt', 'test_best_fit_parameters_TNG100-1.txt', 'test_best_fit_parameters_TNG300-1.txt']
-    rates = ['Rate_info_TNG50-1.h5', 'Rate_info_TNG100-1.h5', 'Rate_info_TNG300-1.h5']
-    model_rates = ['Rate_info_TNG50-1.h5', 'Rate_info_TNG100-1.h5', 'Rate_info_TNG300-1.h5']
+    fit_param_files = ['test_best_fit_parameters_TNG50-1_TEST.txt', 'test_best_fit_parameters_TNG100-1_TEST.txt', 'test_best_fit_parameters_TNG300-1_TEST.txt']
+    fit_param_files_data = ['test_best_fit_parameters_TNG50-1.txt', 'test_best_fit_parameters_TNG100-1.txt', 'test_best_fit_parameters_TNG300-1.txt']
+    rates = ['TEST_Rate_info_TNG50-1.h5', 'TEST_Rate_info_TNG100-1.h5', 'TEST_Rate_info_TNG300-1.h5']
+    model_rates = ['TEST_Rate_info_TNG50-1.h5', 'TEST_Rate_info_TNG100-1.h5', 'TEST_Rate_info_TNG300-1.h5']
     data_rates = ['data_Rate_info_TNG50-1.h5', 'data_Rate_info_TNG100-1.h5', 'data_Rate_info_TNG300-1.h5']
 
     #Plot setup
     labels = ['50-1', '100-1', '300-1']
     linestyles = ['-', '-', '-', '-', '-', '-']
+    linestyles2 = ['-', '--', ':', '-.']
     lineweights = [4, 4, 4, 4, 4, 4]
 
-    #data_colors = [plt.cm.GnBu(0.8), plt.cm.PuRd(0.6), plt.cm.YlGn(0.4)]
-    #model_colors = ['midnightblue', plt.cm.PuRd(0.9), plt.cm.YlGn(0.8)]
-    #line_colors = [plt.cm.GnBu(0.99), plt.cm.PuRd(0.7), plt.cm.YlGn(0.5)]
     line_styles = ['solid', 'dashed', 'dotted']
     tmin = 0.0
     tmax = 13.7
@@ -1282,6 +1677,7 @@ if __name__ == "__main__":
     cmap_gray = matplotlib.colors.LinearSegmentedColormap.from_list("gray_cmap", ['#D3D2D2', '#787878', '#222222'])
     data_colors = ["#0067A6", '#C01874', '#98CB4F', '#D3D2D2']
     model_colors = ['#0C0034', '#4B0012', '#005B2F', '#787878']
+    colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown', 'tab:pink']
 
     #Read in SFRD model parameters for each TNG
     fit_param_vals = read_best_fits(fit_param_files)
@@ -1290,20 +1686,19 @@ if __name__ == "__main__":
     #plot_BBH_merger_rate(data_dir, rates, fit_param_vals, plot_zoomed=False,  plot_logscale=True, showplot=True)
 
     #Compare model and data merger and formation rates
-    compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, plot_merger_rates=False, plot_logscale=True, showplot=True)
-    compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, plot_merger_rates=True, plot_logscale=True, showplot=True)
+    #compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, plot_merger_rates=False, plot_logscale=True, showplot=False, showLVK=False)
+    #compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, plot_merger_rates=True, plot_logscale=True, showplot=False, showLVK=True)
 
-    residuals_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, ylim = [1e-1, 1e5], plot_merger_rates=False, showplot=True)
-    residuals_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, ylim = [1e-1, 1e5], plot_merger_rates=True, showplot=True)
+    #residuals_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, ylim = [1e-1, 1e5], plot_merger_rates=False, showplot=True)
+    #residuals_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, ylim = [1e-1, 1e5], plot_merger_rates=True, showplot=True)
 
     #Plot primary mass distribution for all TNGs in one plot
     #plot_BBH_mass_dist(rates, fit_param_vals, only_stable = True, only_CE = True, channel_string='all', z = z_of_massdist, showplot=True, show_reference_masses=False)
     #plot_BBH_mass_dist(rates, fit_param_vals, only_stable = True, only_CE = False, channel_string='stable', z = z_of_massdist, showplot=True, show_reference_masses=False)
     #plot_BBH_mass_dist(rates, fit_param_vals, only_stable = False, only_CE = True, channel_string='CE', z = z_of_massdist, showplot=True, show_reference_masses=False)
 
-    plot_BBH_mass_dist_over_z_allTNGs(data_rates, fit_param_vals, tngs=[50, 100, 300], z = [8, 7, 6, 5, 4, 3, 2, 1, 0.5, 0.2], showplot=True)
-
-    #plot_BBH_mass_dist_over_z([data_rates[0]], [fit_param_vals[0]], tng=50, only_stable = True, only_CE = True, channel_string='all', z = [8, 7, 6, 5, 4, 3, 2, 1, 0.5, 0.2], showplot=False)
+    #plot_BBH_mass_dist_over_z_allTNGs(data_rates, fit_param_vals, tngs=[50, 100, 300], z = [8, 7, 6, 5, 4, 3, 2, 1, 0.5, 0.2], showplot=False)
+    #plot_BBH_mass_dist_over_z([data_rates[0]], [fit_param_vals[0]], tng=50, only_stable = True, only_CE = True, channel_string='all', z = [8, 7, 6, 5, 4, 3, 2, 1, 0.5, 0.2], showplot=True)
     #plot_BBH_mass_dist_over_z([data_rates[0]], [fit_param_vals[0]], tng=50, only_stable = True, only_CE = False, channel_string='stable', z = [8, 7, 6, 5, 4, 3, 2, 1, 0.5, 0.2], showplot=False)
     #plot_BBH_mass_dist_over_z([data_rates[0]], [fit_param_vals[0]], tng=50, only_stable = False, only_CE = True, channel_string='CE', z = [8, 7, 6, 5, 4, 3, 2, 1, 0.5, 0.2], showplot=False)
 
@@ -1314,6 +1709,22 @@ if __name__ == "__main__":
     #    compare_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_vals, only_stable = True, only_CE = False, channel_string='stable', z = z, showplot=False)
     #    compare_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_vals, only_stable = False, only_CE = True, channel_string='CE', z = z, showplot=False)
 
-    compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, fit_param_vals, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True)
-    residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_vals, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True)
+    #compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, fit_param_vals, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=False)
+    #residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_vals, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True)
     
+    """
+    plot_BBH_mass_Z_z(model_rates[0], COMPASfilename, [fit_param_vals[0]], tng=300, data_rates=False, only_stable = True, only_CE = True, channel_string='all',  
+                      z_merger=0.2, z_form = [4, 8, 12, 14], Z_zams = [0.0001, 0.001, 0.01, 0.1], showplot=True)
+    plot_BBH_mass_Z_z(model_rates[0], COMPASfilename, [fit_param_vals[0]], tng=50, data_rates=False, only_stable = True, only_CE = False, channel_string='stable',  
+                      z_merger=0.2, z_form = [4, 8, 12, 14], Z_zams = [0.0001, 0.001, 0.01, 0.1], showplot=True)
+    plot_BBH_mass_Z_z(model_rates[0], COMPASfilename, [fit_param_vals[0]], tng=50, data_rates=False, only_stable = False, only_CE = True, channel_string='CE',  
+                      z_merger=0.2, z_form = [4, 8, 12, 14], Z_zams = [0.0001, 0.001, 0.01, 0.1], showplot=True)
+    plot_BBH_mass_Z_z(data_rates[0], COMPASfilename, [fit_param_vals[0]], tng=50, data_rates=True, only_stable = True, only_CE = True, channel_string='all',  
+                      z_merger=0.2, z_form = [4, 8, 12, 14], Z_zams = [0.0001, 0.001, 0.01, 0.1], showplot=True)
+    plot_BBH_mass_Z_z(data_rates[0], COMPASfilename, [fit_param_vals[0]], tng=50, data_rates=True, only_stable = True, only_CE = False, channel_string='stable',  
+                      z_merger=0.2, z_form = [4, 8, 12, 14], Z_zams = [0.0001, 0.001, 0.01, 0.1], showplot=True)
+    plot_BBH_mass_Z_z(data_rates[0], COMPASfilename, [fit_param_vals[0]], tng=50, data_rates=True, only_stable = False, only_CE = True, channel_string='CE',  
+                      z_merger=0.2, z_form = [4, 8, 12, 14], Z_zams = [0.0001, 0.001, 0.01, 0.1], showplot=True)
+    """
+
+    plot_BBH_rate_Z_z(model_rates[0], COMPASfilename, tng=50, xlim=[], ylim=[], max_redshift=14, redshift_step=0.05, z_first_SF=14, showplot=True, plotredshift=True)
