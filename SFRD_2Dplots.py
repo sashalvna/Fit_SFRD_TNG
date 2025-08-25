@@ -289,13 +289,9 @@ def SFRD_2Dplot_sidepanels(metals, Redshifts, Lookbacktimes, SFRD, step_fit_logZ
         if len(model) > 0:
             ax.text(0.02, 0.02, "TNG%s-%s, analytical fit"%(tng, ver), transform=ax.transAxes, fontsize=20, color='white')
 
-        print('hi', step_fit_logZ)
-        print('hiii', xvals[1]-xvals[0])
-
-        ax_histx.plot(xvals, np.sum(SFRD, axis=0)*step_fit_logZ)
-        ax_histy.plot(np.sum(SFRD, axis=1)*(xvals[1]-xvals[0]), metals/Zsun)
-        #ax_histx.set_ylim(0, 6)
-        #ax_histy.set_xlim(0, 4)
+        ax_histx.plot(xvals, np.sum(SFRD, axis=0)*step_fit_logZ, color='darkorange', lw=3, label='simulation')
+        #ax_histy.plot(np.sum(SFRD, axis=1)*(Redshifts[1]-Redshifts[0]), metals/Zsun, color='darkorange', lw=3)
+        ax_histy.plot(np.sum(SFRD, axis=1), metals/Zsun, color='darkorange', lw=3)
 
     if plottype=='percenterr':
         SFRD[SFRD < 1e-7] = 1e-7
@@ -314,18 +310,11 @@ def SFRD_2Dplot_sidepanels(metals, Redshifts, Lookbacktimes, SFRD, step_fit_logZ
         ax_histy.set_xlim(-500, 2000)
     
     if len(model) > 0:
-        #Model contours
-        if tng==50:
-            clevels = [1e-5, 1e-3, 0.005, 0.01, 0.02, 0.03, 0.04, 0.045, 0.05] 
-        elif tng==100:
-            clevels = [1e-5, 1e-3, 0.005, 0.01, 0.015, 0.02, 0.025, 0.03, 0.033] 
-        elif tng==300:
-            clevels = [1e-5, 1e-3, 0.005, 0.01, 0.015,0.02, 0.024] 
         if plottype=='data':
             modelplot = ax.contour(xvals, metals/Zsun, model.T, levels=levels, colors='white')
-            ax_histx.plot(xvals, np.sum(model.T, axis=0)*step_fit_logZ)
-            ax_histy.plot(np.sum(model.T, axis=1)*(xvals[1]-xvals[0]), metals/Zsun)
-            #ax.clabel(modelplot, fontsize=11, inline=True)
+            ax_histx.plot(xvals, np.sum(model.T, axis=0)*step_fit_logZ, color='indigo', label='analytical fit')
+            #ax_histy.plot(np.sum(model.T, axis=1)*(Redshifts[1]-Redshifts[0]), metals/Zsun, color='indigo')
+            ax_histy.plot(np.sum(model.T, axis=1), metals/Zsun, color='indigo')
         elif plottype=='percenterr':
             modelplot = ax.contour(xvals, metals/Zsun, model.T, levels=levels, colors='black', linestyles='dashed')
 
@@ -363,6 +352,22 @@ def SFRD_2Dplot_sidepanels(metals, Redshifts, Lookbacktimes, SFRD, step_fit_logZ
     ax.tick_params(length=10, width=2, which='major')
     ax.tick_params(length=5, width=1, which='minor')
 
+    #sideplot formatting
+    ax_histx.legend(fontsize=20)
+    ax_histx.tick_params(axis='y', which='major', labelsize=15)
+    #ax_histx.yaxis.set_minor_locator(ticker.MultipleLocator(0.01))
+    ax_histx.tick_params(length=7, width=2, which='major')
+    ax_histx.tick_params(length=4, width=1, which='minor')
+    ax_histx.set_ylabel(r'$\mathcal{S}(z)$', fontsize=20)
+    #ax_histx.set_yscale('log')
+
+    ax_histy.tick_params(axis='x', which='major', labelsize=15)
+    ax_histy.xaxis.set_minor_locator(ticker.MultipleLocator(1))
+    ax_histy.tick_params(length=7, width=2, which='major')
+    ax_histy.tick_params(length=4, width=1, which='minor')
+    ax_histy.set_xlabel(r'$\mathcal{S}(Z_{\rm{i}})$', fontsize=20)
+    #ax_histy.set_xscale('log')
+
     #Set limits for horizontal (lookback time or redshift) and vertical (metallicity) axes
     if len(xlim) > 0:
         ax.set_xlim(xlim[0], xlim[1]) #not always want to set xlimits, so empty if not using any
@@ -381,17 +386,17 @@ def SFRD_2Dplot_sidepanels(metals, Redshifts, Lookbacktimes, SFRD, step_fit_logZ
     if plottype=='data':
         if plotredshift==False:
             if plotregions==False:
-                cbar.set_label(r'$\mathcal{S}(Z_{\rm{i}},z)$ TNG%s-%s data'%(tng, ver), rotation=270, fontsize=30, labelpad=35);
+                cbar.set_label(r'$\mathcal{S}(Z_{\rm{i}},z)$ TNG%s-%s'%(tng, ver), rotation=270, fontsize=30, labelpad=35);
                 fig.savefig('figures/SFRD_Z_z_TNG%s_%s_sidepanels.png'%(tng, ver), bbox_inches='tight', dpi=300)
             else:
-                cbar.set_label(r'$\mathcal{S}(Z_{\rm{i}},z)$ TNG%s-%s data'%(tng, ver), rotation=270, fontsize=30, labelpad=35);
+                cbar.set_label(r'$\mathcal{S}(Z_{\rm{i}},z)$ TNG%s-%s'%(tng, ver), rotation=270, fontsize=30, labelpad=35);
                 fig.savefig('figures/SFRD_Z_z_TNG%s_%s_sidepanels_regions.png'%(tng, ver), bbox_inches='tight', dpi=300)
         else:
             if plotregions==False:
-                cbar.set_label(r'$\mathcal{S}(Z_{\rm{i}},z)$ TNG%s data'%tng, rotation=270, fontsize=30, labelpad=35);
+                cbar.set_label(r'$\mathcal{S}(Z_{\rm{i}},z)$ TNG%s-%s'%(tng, ver), rotation=270, fontsize=30, labelpad=35);
                 fig.savefig('figures/SFRD_Z_z_TNG%s_redshift_sidepanels.png'%tng, bbox_inches='tight', dpi=300)
             else:
-                cbar.set_label(r'$\mathcal{S}(Z_{\rm{i}},z)$ TNG%s data'%tng, rotation=270, fontsize=30, labelpad=35);
+                cbar.set_label(r'$\mathcal{S}(Z_{\rm{i}},z)$ TNG%s-%s'%(tng, ver), rotation=270, fontsize=30, labelpad=35);
                 fig.savefig('figures/SFRD_Z_z_TNG%s_redshift_sidepanels_regions.png'%tng, bbox_inches='tight', dpi=300)
     elif plottype=='percenterr':
         if plotredshift==False:
@@ -447,11 +452,6 @@ if __name__ == "__main__":
         step_fit_logZ_TNG.append(step_fit_logZ_new)
         param_filenames.append(fit_filename)
 
-        print(max(np.sum(Sim_SFRD, axis=1)))
-        print(max(np.sum(Sim_SFRD, axis=0)), max(np.sum(Sim_SFRD, axis=1)))
-        print(max(np.sum(SFRDnew, axis=1)), max(np.sum(SFRDnew, axis=0)))
-        print(max(np.sum(SFRDnew, axis=1)*step_fit_logZ_new), max(np.sum(SFRDnew, axis=0)*0.05))
-
     #Read in best fit SFRD parameters
     bestfits = read_best_fits(param_filenames)
 
@@ -467,6 +467,6 @@ if __name__ == "__main__":
 
 
     #SFRDplot_2D(metalsTNG, LookbacktimesTNG, SFRDsTNG, tngs, vers, ylim=[10**-4, 50], nlevels=17, model=models, plottype='percenterr', plotregions=True)
-    SFRD_2Dplot_sidepanels(metalsTNG[0], redshiftsTNG[0], LookbacktimesTNG[0], SFRDsTNG[0], step_fit_logZ_TNG[0], tngs[0], vers[0], xlim=[14, 0], ylim=[10**-4, 50], nlevels=17, model=models[0], plottype='data', plotredshift=False, plotregions=False)
+    SFRD_2Dplot_sidepanels(metalsTNG[0], redshiftsTNG[0], LookbacktimesTNG[0], SFRDsTNG[0], step_fit_logZ_TNG[0], tngs[0], vers[0], ylim=[10**-2, 20], nlevels=10, model=models[0], plottype='data', plotredshift=False, plotregions=False)
 
     

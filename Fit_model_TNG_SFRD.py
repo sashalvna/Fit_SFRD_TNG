@@ -159,7 +159,7 @@ if __name__ == "__main__":
     tng= 100
     ver = 2
     Cosmol_sim_location = paths.data / str("SFRMetallicityFromGasTNG%s-%s.hdf5"%(tng,ver))
-    fit_filename = 'test_best_fit_parameters_TNG%s-%s_TEST.txt'%(tng,ver)
+    fit_filename = 'test_best_fit_parameters_TNG%s-%s_TEST2.txt'%(tng,ver)
     if tng==50:
         rbox=35
     elif tng==100:

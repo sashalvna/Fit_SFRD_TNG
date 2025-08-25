@@ -1480,8 +1480,7 @@ def plot_BBH_mass_Z_z(tngpath, COMPASpath, fit_param_vals, tng, data_rates=None,
         plt.show()
 
 
-def plot_BBH_rate_Z_z(tngpath, COMPASpath, tng, z_merger=None, xlim=[], ylim=[], max_redshift=14, redshift_step=0.05, z_first_SF=14, showplot=True,
-                      plotredshift=True):
+def plot_BBH_rate_Z_z(tngpath, COMPASpath, tng, z_formation=False, xlim=[], ylim=[], nlevels=15, plotredshift=True, showplot=True):
     
     cmap = sns.color_palette('rocket', as_cmap=True)
     fig = plt.figure(layout='constrained',figsize=[12,8])
@@ -1499,52 +1498,49 @@ def plot_BBH_rate_Z_z(tngpath, COMPASpath, tng, z_merger=None, xlim=[], ylim=[],
         redshifts = File[list(File.keys())[0]]['redshifts'][()]
         DCO_mask = File[list(File.keys())[0]]['DCOmask'][()] # Mask from DCO to merging systems  
         merger_rate = File[list(File.keys())[0]]['merger_rate'][()]
+        formation_rate = File[list(File.keys())[0]]['formation_rate'][()]
         seeds = File[list(File.keys())[0]]['SEED'][()]
-
-    #print(redshifts)
-    #print(merger_rate[0])
-   # plt.hist(redshifts, weights=merger_rate[0], bins=redshifts)
-    #plt.plot(redshifts, merger_rate[0])
-    #plt.show()
 
     #first bring it to the same shape as the rate table
     merging_BBH    = DCO[DCO_mask]
-    #not_CHE  = merging_BBH['Stellar_Type@ZAMS(1)'] != 16
     BBH_bool = np.logical_and(merging_BBH['Stellar_Type(1)'] == 14, merging_BBH['Stellar_Type(2)'] == 14)
-
     merging_BBH         = merging_BBH[BBH_bool]
-    Red_intr_rate_dens  = merger_rate[BBH_bool, :]
+    merger_rate_dens  = merger_rate[BBH_bool, :]
+    formation_rate_dens  = formation_rate[BBH_bool, :]
     merging_BBH_seeds =  seeds[BBH_bool]
 
     #read in formation redshift and metallicity for all binaries
     with h5.File(data_dir + '/' + COMPASpath ,'r') as File:
             metallicities_compas = File['BSE_Double_Compact_Objects']['Metallicity@ZAMS(1)'][()] #same metallicity for both stars
-            COMPAS_delay_times = File['BSE_Double_Compact_Objects']['Coalescence_Time'][()]#Myr
-            time = File['BSE_Double_Compact_Objects']['Time'][()] #Myr
             seeds_compas = File['BSE_Double_Compact_Objects']['SEED'][()]
 
     #filter formation redshift and metallicity by the seeds we want
     mask_merging_DCOs = np.isin(seeds_compas, merging_BBH_seeds)
     seeds_DCOs = seeds_compas[mask_merging_DCOs]
-
     metallicities_compas = metallicities_compas[mask_merging_DCOs]
-    COMPAS_delay_times = COMPAS_delay_times[mask_merging_DCOs]
-    time = time[mask_merging_DCOs]
-    n_binaries = len(metallicities_compas)
-
-    #plt.hist2d(redshifts, metallicities_compas, weights=merger_rate, bins=[len(redshifts), len(metallicities_compas)], cmap=cmap) 
     log_metals = np.log10(metallicities_compas)
     metal_bins = np.logspace(min(log_metals), max(log_metals), 60)
     center_metalbins  = (metal_bins[:-1] + metal_bins[1:])/2.
 
-    """
-    if z_merger is not None:
+    if plotredshift == True:
+        xvals = redshifts
+    else:
+        xvals = [cosmo.lookback_time(z).value for z in redshifts]
+
+    if z_formation==True:
+        rates = formation_rate_dens
+    else:
+        rates = merger_rate_dens
+
+        """
         #from fastcosmicintegration, need to calculate merger rate and redshift
-        redshifts = np.arange(0, max_redshift + redshift_step, redshift_step)
-        n_redshifts = len(redshifts)
-        times = cosmo.age(redshifts).to(u.Myr).value
-        times_to_redshifts = interp1d(times, redshifts)
-        age_first_sfr = cosmo.age(z_first_SF).to(u.Myr).value
+        #redshifts_new = np.arange(0, max_redshift + redshift_step, redshift_step)
+        #n_redshifts = len(redshifts_new)
+        #COMPAS_delay_times = COMPAS_delay_times[mask_merging_DCOs]
+        #time = time[mask_merging_DCOs]
+        #times = cosmo.age(redshifts_new).to(u.Myr).value
+        #times_to_redshifts = interp1d(times, redshifts_new)
+        #age_first_sfr = cosmo.age(z_first_SF).to(u.Myr).value
 
         z_of_formation = np.zeros(shape=(n_binaries, n_redshifts))
         for i in range(n_binaries):
@@ -1554,54 +1550,71 @@ def plot_BBH_rate_Z_z(tngpath, COMPASpath, tng, z_merger=None, xlim=[], ylim=[],
             if first_too_early_index > 0:
                 z_of_formation[i, :first_too_early_index - 1] = times_to_redshifts(time_of_formation[:first_too_early_index - 1])
         z_of_formation = np.array(z_of_formation)
+        #print(z_of_formation.shape)
+        #plt.plot(redshifts_new, np.sum(z_of_formation, axis=0))
+        #plt.show()
         formation_redshifts = np.array([max(i) for i in z_of_formation])
+        """
 
-        if plotredshift == True:
-            xvals = formation_redshifts
-        else:
-            xvals = cosmo.age(formation_redshifts).to(u.Gyr).value
-
-        print(min(np.sum(Red_intr_rate_dens, axis=1)), max(np.sum(Red_intr_rate_dens, axis=1)))
-        rate = plt.scatter(xvals, metallicities_compas, c=np.sum(Red_intr_rate_dens, axis=1), cmap=cmap)
-
-    """
-    
-    Zzbinned_merger_rates = []
+    Zzbinned_rates = []
     for i, metalbin in enumerate(metal_bins):
         if i < len(metal_bins)-1:
             #filter by formation redshift bin
             Z_mask_low = (metallicities_compas >= metalbin)
             Z_mask_high = (metallicities_compas < metal_bins[i+1])
             Z_mask = ((Z_mask_low==True) & (Z_mask_high==True))
-            metallicities_masked = metallicities_compas[Z_mask]
 
             #get binaries that are in this metallicity bin
             Z_seeds = seeds_DCOs[Z_mask]
             Z_seeds_mask = np.isin(merging_BBH_seeds, Z_seeds)
-            Z_seeds_DCOs = seeds_DCOs[Z_seeds_mask]
 
-            merger_rate_masked = merger_rate[Z_seeds_mask]
-            sum_merger_rates = np.sum(merger_rate_masked, axis=0)
-            Zzbinned_merger_rates.append(sum_merger_rates)
+            rate_masked = rates[Z_seeds_mask]
 
-            #plt.plot(redshifts, np.sum(merger_rate_masked, axis=0))
-            #plt.yscale('log')
-    #plt.show()
-    Zzbinned_merger_rates = np.array(Zzbinned_merger_rates)
-    print(redshifts.shape, center_metalbins.shape, Zzbinned_merger_rates.shape)
-    rate = plt.contourf(redshifts, center_metalbins/Zsun, Zzbinned_merger_rates, levels=15, cmap=cmap)
-    ax_histx.plot(redshifts, np.sum(Zzbinned_merger_rates, axis=0))
-    ax_histy.plot(np.sum(Zzbinned_merger_rates, axis=1), center_metalbins/Zsun)
+            """
+            if z_formation==True:
+
+                redshift_bins = np.linspace(min(redshifts), max(redshifts), len(redshifts)+1)
+                formation_redshifts = []
+                #use np where to find which redshift the binary most likely formed at
+                for j in range(len(rate_masked)):
+                    formation_redshifts.append(redshifts[np.where(rate_masked[j]==max(rate_masked[j]))][0])
+                    #formation_redshifts.append(redshifts[np.where(rate_masked[j]>1e-7)])
+                #print(formation_redshifts)
+                #formation_redshifts = np.array(formation_redshifts)
+
+                #where is formation rate non negligible
+                #print(formation_redshifts.shape,np.sum(merger_rate_dens[Z_seeds_mask], axis=1).shape)
+
+                #bin binaries by those redshifts
+                hist, bin_edges = np.histogram(formation_redshifts, bins=redshift_bins, weights=np.sum(merger_rate_dens[Z_seeds_mask], axis=1))
+                #plt.hist(formation_redshifts, bins=redshift_bins, weights=np.sum(merger_rate_dens[Z_seeds_mask], axis=1))
+                #plt.show()
+                Zzbinned_rates.append(hist)
+                #print(hist)
+                #sum up the merger rate in that bin, append that into Zzbinned_rates (one number per Z,z bin)
+
+            #print(redshifts[np.where(rate_masked==max(rate_masked))[0]])
+            """
+            
+            #if z_formation==False:
+            sum_rates = np.sum(rate_masked, axis=0)
+            Zzbinned_rates.append(sum_rates)
+            
+    Zzbinned_rates = np.array(Zzbinned_rates)
+
+    rate = plt.contourf(xvals, center_metalbins/Zsun, Zzbinned_rates, levels=nlevels, cmap=cmap)
+    ax_histx.plot(xvals, np.sum(Zzbinned_rates, axis=0))
+    ax_histy.plot(np.sum(Zzbinned_rates, axis=1), center_metalbins/Zsun)
     #ax_histx.set_yscale('log')
     #ax_histx.set_ylim(10**-3, 10**3)
 
     #########################################
     # plot values
     ax.set_yscale('log')
-    #if plotredshift == True:
-    ax.set_xlabel('Redshift', y=0.04, fontsize=30)
-    #else:
-    #    ax.set_xlabel('Lookbacktime (Gyr)', y=0.04, fontsize=30)
+    if plotredshift == True:
+        ax.set_xlabel('Redshift', y=0.04, fontsize=30)
+    else:
+        ax.set_xlabel('Lookbacktime (Gyr)', y=0.04, fontsize=30)
     ax.set_ylabel(r'$Z/Z_{\rm{\odot}}$', x=0.03, fontsize=30)
     ax.tick_params(axis='both', which='major', labelsize=20)
     ax.xaxis.set_minor_locator(ticker.MultipleLocator(1))
@@ -1612,9 +1625,9 @@ def plot_BBH_rate_Z_z(tngpath, COMPASpath, tng, z_merger=None, xlim=[], ylim=[],
     if len(xlim) > 0:
         ax.set_xlim(xlim[0], xlim[1]) #not always want to set xlimits, so empty if not using any
     else:
-        ax.set_xlim(min(redshifts), max(redshifts))
+        ax.set_xlim(min(xvals), max(xvals))
     if len(ylim) > 0:
-        ax.set_ylim(ylim[0], ylim[1]) #defaults for TNG data are Z=10**-2 to Z=10**1
+        ax.set_ylim(ylim[0], ylim[1]) 
 
     #Set up the colorbar
     fig.subplots_adjust(right=0.81)
@@ -1622,23 +1635,30 @@ def plot_BBH_rate_Z_z(tngpath, COMPASpath, tng, z_merger=None, xlim=[], ylim=[],
     cbar_ax = fig.add_axes([1.01, 0.1, 0.03, 0.7])
     cbar = fig.colorbar(rate, cax=cbar_ax, format=ticker.FormatStrFormatter('%.3f'))
     cbar.ax.tick_params(labelsize=20)
-    cbar.set_label(r'Merger rate $[\rm \frac{\mathrm{d}N}{\mathrm{d}Gpc^3 \mathrm{d}yr}]$', rotation=270, fontsize=30, labelpad=40);
+    if z_formation==True:
+        cbar.set_label(r'Formation rate $[\rm \frac{\mathrm{d}N}{\mathrm{d}Gpc^3 \mathrm{d}yr}]$', rotation=270, fontsize=30, labelpad=40);
+    else:
+        cbar.set_label(r'Merger rate $[\rm \frac{\mathrm{d}N}{\mathrm{d}Gpc^3 \mathrm{d}yr}]$', rotation=270, fontsize=30, labelpad=40);
     
     # Channel
     if tng==50:
-        plt.text(0.12, 0.08, 'TNG%s'%labels[0], color='white', ha = 'center', transform=ax.transAxes, size = 25)
+        plt.text(0.12, 0.06, 'TNG%s'%labels[0], color='white', ha = 'center', transform=ax.transAxes, size = 25)
     elif tng==100:
-        plt.text(0.12, 0.08, 'TNG%s'%labels[1], color='white', ha = 'center', transform=ax.transAxes, size = 25)
+        plt.text(0.12, 0.06, 'TNG%s'%labels[1], color='white', ha = 'center', transform=ax.transAxes, size = 25)
     elif tng==300:
-        plt.text(0.12, 0.08, 'TNG%s'%labels[2], color='white', ha = 'center', transform=ax.transAxes, size = 25)
+        plt.text(0.12, 0.06, 'TNG%s'%labels[2], color='white', ha = 'center', transform=ax.transAxes, size = 25)
     
     fig.legend(bbox_to_anchor=(0.9, 0.88), fontsize=18, frameon=False)
-    if z_merger is not None:
-        ax.set_title('z = %s, simulation'%z_merger, fontsize = 25)
-        fig.savefig('figures/BBHrates_TNG%s_%s_Z_z.png'%(tng, z_merger), bbox_inches='tight', dpi=300)
+    if z_formation==True:
+        if plotredshift==True:
+            fig.savefig('figures/BBHrate_redshift_TNG%s_Z_zform.png'%(tng), bbox_inches='tight', dpi=300)
+        else:
+            fig.savefig('figures/BBHrates_lookbackt_TNG%s_Z_zform.png'%(tng), bbox_inches='tight', dpi=300)
     else:
-        fig.savefig('figures/BBHrates_TNG%s_Z_z.png'%(tng),bbox_inches='tight', dpi=300)
-
+        if plotredshift==True:
+            fig.savefig('figures/BBHrates_redshift_TNG%s_Z_z.png'%(tng),bbox_inches='tight', dpi=300)
+        else:
+            fig.savefig('figures/BBHrates_lookbackt_TNG%s_Z_z.png'%(tng),bbox_inches='tight', dpi=300)
     if showplot==True:
         plt.show()
 
@@ -1727,4 +1747,4 @@ if __name__ == "__main__":
                       z_merger=0.2, z_form = [4, 8, 12, 14], Z_zams = [0.0001, 0.001, 0.01, 0.1], showplot=True)
     """
 
-    plot_BBH_rate_Z_z(model_rates[0], COMPASfilename, tng=50, xlim=[], ylim=[], max_redshift=14, redshift_step=0.05, z_first_SF=14, showplot=True, plotredshift=True)
+    plot_BBH_rate_Z_z(model_rates[0], COMPASfilename, tng=50, xlim=[], ylim=[], nlevels=20, z_formation=False, plotredshift=True, showplot=True)

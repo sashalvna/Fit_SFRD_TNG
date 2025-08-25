@@ -95,7 +95,6 @@ def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], plo
             xvals = Sim_Lookbacktimes
 
         plt.plot(xvals, np.sum(Sim_SFRD, axis=1), lw=8, c=data_colors[n], label=r'TNG%s-%s'%(tng, vers[n]))
-        print(max(np.sum(Sim_SFRD, axis=1)))
 
         #Plot the TNG model
         if plotmodel==True:
@@ -200,15 +199,20 @@ def compare_Zdist(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], p
             rbox=205
 
         #Plot the TNG data
-        Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ, Sim_Metals, MetalBins  = readTNGdata(loc = path+'SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=True, metals=True)
+        Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=False, metals=False)
         plt.plot(Sim_center_Zbin/Zsun, np.sum(Sim_SFRD, axis=0), lw=8, c=data_colors[n], label=r'TNG%s-%s'%(tng, vers[n]))
+
+        #Plot interpolated TNG data
+        #SFRDnew, redshift_new, Lookbacktimes_new, metals_new, step_fit_logZ_new = interpolate_TNGdata(Sim_Redshifts, Sim_Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng, vers[n], redshiftlimandstep=[0, 14.1, 0.05], saveplot=False)
+        #plt.plot(metals_new/Zsun, np.sum(SFRDnew, axis=1), lw=3, c=fit_colors[n], label=r'interpolated')
 
         #Plot the TNG model
         if plotmodel==True:
+            sfr = Z_SFRD.Madau_Dickinson2014(Sim_Redshifts, a=fit_params[n][5], b=fit_params[n][6], c=fit_params[n][7], d=fit_params[n][8]).value # Msun year-1 Mpc-3 
             dPdlogZ, metallicities, step_logZ, p_draw_metallicity = Z_SFRD.skew_metallicity_distribution(Sim_Redshifts, metals = Sim_center_Zbin, min_logZ_COMPAS = np.log(1e-4), max_logZ_COMPAS = np.log(0.03),
-                        mu_0=fit_params[n][0], mu_z=fit_params[n][1], omega_0=fit_params[n][2], omega_z=fit_params[n][3], alpha =-fit_params[n][4],
-                        step_logZ =step_fit_logZ)
-            plt.plot(Sim_center_Zbin/Zsun, np.sum(dPdlogZ, axis=0), lw=3, c=fit_colors[n], ls='--')
+                        mu_0=fit_params[n][0], mu_z=fit_params[n][1], omega_0=fit_params[n][2], omega_z=fit_params[n][3], alpha =-fit_params[n][4])
+            model = sfr[:,np.newaxis] * dPdlogZ
+            plt.plot(Sim_center_Zbin/Zsun, np.sum(model, axis=0), lw=3, c=fit_colors[n], ls='--') 
 
     x = [-0.0001]
     y1 = [0.0001]
@@ -500,9 +504,9 @@ if __name__ == "__main__":
 
     #compare_params(tngs, vers)
     #compare_SFR(path, tngs, vers, plotmodel=True, plotredshift=True, xlim=[0, 14], ylim=[10**-3, 10**-0.8], plotlogscale=True)
-    compare_SFR(path, tngs, vers, plotmodel=True, plotredshift=False, xlim=[0, 14], ylim=[10**-3, 10**-0.8], plotlogscale=True)
+    compare_SFR(path, tngs, vers, plotmodel=True, plotredshift=True, xlim=[0, 14], ylim=[10**-3, 10**-0.8], plotlogscale=True)
 
-    #compare_Zdist(path, tngs, vers, xlim=[1e-4, 30], plotmodel=True, plotlogscale=True)
+    compare_Zdist(path, tngs, vers, xlim=[1e-4, 20], ylim=[10**-3, 4], plotmodel=True, plotlogscale=True)
 
     #SFR_residuals(path, tngs, vers, plotredshift=True, xlim=[0, 14], ylim=[1e-2, 1e3], plotlogscale=True, show_MD17=False)
     #SFR_residuals(path, tngs, vers, plotredshift=False, xlim=[0, 14], ylim=[1e-2, 1e3], plotlogscale=True, show_MD17=False)
