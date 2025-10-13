@@ -67,8 +67,6 @@ def interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng
 
     #log_tofit_Sim_metals = np.log10(tofit_Sim_metals)
     log_tofit_Sim_metals = np.log10(tofit_Sim_metals)
-    print("min max metals", min(tofit_Sim_metals), max(tofit_Sim_metals))
-    print("log min max metals", min(log_tofit_Sim_metals), max(log_tofit_Sim_metals))
     metals_new           = np.logspace(min(log_tofit_Sim_metals), max(log_tofit_Sim_metals), 500) #base=np.e
 
     SFRDnew = f_interp(Lookbacktimes_new,metals_new)

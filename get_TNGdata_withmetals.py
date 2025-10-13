@@ -106,7 +106,7 @@ def getSFRMetallicityFromGas(TNGpath, TNG, lvl, snap, nfiles, jupyterlab=True, n
             sfrs += data
             metals += metaldata
 
-    else: #if running on your local machine (or cluster) and having to download files, be more caregul to make sure files actually exist
+    else: #if running on your local machine (or cluster) and having to download files, be more careful to make sure files actually exist
         fname =  TNGpath + "/%03d/snap_%03d.%s.hdf5"%(snap, snap, "%d")
         get_TNGsnapcols(TNGpath, TNG, lvl, snap, nfiles)
         

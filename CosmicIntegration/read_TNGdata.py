@@ -43,14 +43,14 @@ def readTNGdata(filename):
   
     return Sim_SFRD, Lookbacktimes, Redshifts, Sim_center_Zbin, step_fit_logZ, Metals
 
-def interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, Metals, minZ_popSynth=1e-6, redshiftlimandstep=[0, 10.1, 0.05], nmetals=500):
+def interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, Metaldist, minZ_popSynth=1e-6, redshiftlimandstep=[0, 10.1, 0.05], nmetals=500):
 
     # Adjust what metallicities to include 
     tofit_Sim_metals = Sim_center_Zbin[np.where(Sim_center_Zbin > minZ_popSynth)[0]]   
 
     # Reverse the time axis of the SFRD and lookback time for the fit
     tofit_Sim_SFRD      = Sim_SFRD[:,np.where(Sim_center_Zbin > minZ_popSynth)[0]][::-1]
-    tofit_Sim_Metaldist = Metals[:,np.where(Sim_center_Zbin > minZ_popSynth)[0]][::-1]
+    tofit_Sim_Metaldist = Metaldist[:,np.where(Sim_center_Zbin > minZ_popSynth)[0]][::-1]
     tofit_Sim_lookbackt = Lookbacktimes[::-1]
 
     # Interpolate the simulation data
@@ -58,16 +58,17 @@ def interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, Met
     f_interp_metals = interpolate.interp2d(tofit_Sim_lookbackt, tofit_Sim_metals, tofit_Sim_Metaldist.T, kind='cubic')
 
     # Retrieve values at higher res regular intervals
-    redshift_new         = np.arange(redshiftlimandstep[0], redshiftlimandstep[1], redshiftlimandstep[2])
-    Lookbacktimes_new    = [cosmology.lookback_time(z).value for z in redshift_new]
+    Redshift_new         = np.arange(redshiftlimandstep[0], redshiftlimandstep[1], redshiftlimandstep[2])
+    Lookbacktimes_new    = [cosmology.lookback_time(z).value for z in Redshift_new]
 
-    log_tofit_Sim_metals = np.log10(tofit_Sim_metals)
+    # Get new metallicity bins
+    log_tofit_Sim_metals = np.log10(tofit_Sim_metals) 
     metals_new           = np.logspace(min(log_tofit_Sim_metals), max(log_tofit_Sim_metals), nmetals)
-
-    SFRDnew = f_interp(Lookbacktimes_new,metals_new)
-    SFRDnew[SFRDnew < 0] = 0
-
-    Metalsnew = f_interp_metals(Lookbacktimes_new,metals_new)
     step_fit_logZ_new = np.diff(np.log(metals_new))[0]
 
-    return SFRDnew, redshift_new, Lookbacktimes_new, metals_new, Metalsnew, step_fit_logZ_new
+    # Interpolate SFRD and metallicity distribution
+    SFRDnew = f_interp(Lookbacktimes_new,metals_new)
+    SFRDnew[SFRDnew < 0] = 0
+    Metaldist_new = f_interp_metals(Lookbacktimes_new, metals_new) #same bins as SFRDnew
+    
+    return SFRDnew, Redshift_new, Lookbacktimes_new, metals_new, Metaldist_new, step_fit_logZ_new

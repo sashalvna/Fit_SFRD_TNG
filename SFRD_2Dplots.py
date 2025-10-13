@@ -79,7 +79,6 @@ def SFRDplot_2D(metals, Lookbacktimes, SFRD, tngs=[], ver=[], model=None, xlim=[
             percenterr = (model[n].T-SFRD[n])/SFRD[n]
             levels = np.linspace(-2, 2, nlevels)
             data = ax.contourf(Lookbacktimes[n], metals[n]/Zsun, percenterr, levels=levels, cmap=cmap)
-            print(max(Lookbacktimes[n]))
             ax.text(0.02, 0.02, "TNG%s-%s, analytical fit"%(tng, ver[n]), transform=ax.transAxes, fontsize=20, color='black')
 
         if model:
@@ -98,7 +97,7 @@ def SFRDplot_2D(metals, Lookbacktimes, SFRD, tngs=[], ver=[], model=None, xlim=[
 
         #Set yscale, TNG version label on each plot, and axis labels
         ax.set_yscale('log')
-        fig.supxlabel('Lookback time (Gyr)', y=0.04, fontsize=30)
+        fig.supxlabel('Lookback time [Gyr]', y=0.04, fontsize=30)
         fig.supylabel(r'$Z/Z_{\rm{\odot}}$', x=0.03, fontsize=30)
         ax.tick_params(axis='both', which='major', labelsize=20)
         ax.xaxis.set_minor_locator(ticker.MultipleLocator(1))
@@ -155,40 +154,7 @@ def SFRDplot_2D(metals, Lookbacktimes, SFRD, tngs=[], ver=[], model=None, xlim=[
 
         if len(ylim) > 0:
             ax.set_ylim(ylim[0], ylim[1]) #defaults for TNG data are Z=10**-1 to Z=10**1
-            
-        if plotregions==True:
 
-            #lowz_bin = [cosmo.lookback_time(4).value, cosmo.lookback_time(8).value]
-            #midz_bin = [cosmo.lookback_time(10).value, cosmo.lookback_time(12).value]
-            #highz_bin = [cosmo.lookback_time(12).value, cosmo.lookback_time(14).value]
-            lowz_bin = [4, 8]
-            midz_bin = [10, 12]
-            highz_bin = [12, 14]
-            zbins = np.array([lowz_bin, midz_bin, highz_bin])
-            zbins_lookbackt = cosmo.lookback_time(zbins).value
-
-            lowZ_bin = [0.0001, 0.001]
-            midZ_bin = [0.001, 0.01]
-            highZ_bin = [0.01, 0.1]
-            Zbins = np.array([lowZ_bin, midZ_bin, highZ_bin])
-            Zbins_Zsun = Zbins/Zsun
-
-            Zzbin_colors = ['darkgreen', 'mediumseagreen', 'lightgreen',
-                            'darkorange', 'orange', 'gold',
-                            'purple', 'mediumvioletred', 'pink']
-            counter = 0
-
-            for zbin in zbins_lookbackt:
-                for Zbin in Zbins_Zsun:
-                    rect = matplotlib.patches.Rectangle((zbin[0], Zbin[0]), zbin[1]-zbin[0], Zbin[1]-Zbin[0], linewidth=2, edgecolor=Zzbin_colors[counter], facecolor='none')
-                    ax.add_patch(rect)
-                    counter+=1
-
-            #for limits in plotregions:
-            #    rect = matplotlib.patches.Rectangle((limits[0], limits[1]), limits[2], limits[3], linewidth=1, edgecolor='gray', facecolor='none')
-            #    ax.add_patch(rect)
-
-    
     #Set up the colorbar
     fig.subplots_adjust(right=0.81)
     cbar_ax = fig.add_axes([0.83, 0.15, 0.03, 0.7])
@@ -222,36 +188,6 @@ def SFRDplot_2D(metals, Lookbacktimes, SFRD, tngs=[], ver=[], model=None, xlim=[
     if showplot==True:
         plt.show()
 
-def SFRDmodels_2D(metals, Lookbacktimes, SFRD, tngs=[], ver=[], model=[], xlim=[], ylim=[10**-1, 10**1], levels = [], showplot=True):
-
-    fig, ax = plt.subplots(1, 1, figsize=(12, 8))
-
-    #Model contours
-    if tng==50:
-        clevels = [1e-3, 0.005, 0.01, 0.02, 0.03, 0.04, 0.045, 0.05] 
-    elif tng==100:
-        clevels = [1e-3, 0.005, 0.01, 0.015, 0.02, 0.025, 0.03, 0.033] 
-    elif tng==300:
-        clevels = [1e-3, 0.005, 0.01, 0.015,0.02, 0.024] 
-    
-    for n, tng in enumerate(tngs):
-        modelplot = ax.contour(Lookbacktimes[n], metals[n]/Zsun, model[n].T, levels=clevels, colors='white')
-        ax.clabel(modelplot, fontsize=12, inline=True)
-    
-        #Set yscale, TNG version label on each plot, and axis labels
-        ax.set_yscale('log')
-        fig.supxlabel('Lookback time', y=0.05, fontsize=20)
-        fig.supylabel(r'$\mathrm{Metallicity}, \ Z/Z_{\rm{\odot}}$', x=0.07, fontsize=20)
-
-    #Set redshift ticks; make sure they don't overlap
-    ax2 = ax.twiny()
-    if n==1:
-        redshift_tick_list = [0,0.1, 0.25, 0.5, 0.75, 1.0,1.5, 2, 3, 6, 10]
-    elif len(tngs) == 1:
-        redshift_tick_list = [0,0.1, 0.25, 0.5, 0.75, 1.0,1.5, 2, 3, 6, 10]
-    else:
-        redshift_tick_list = [0,0.1, 0.25, 0.5, 0.75, 1.0,1.5, 2, 3, 6]
-
 
 def SFRD_2Dplot_sidepanels(metals, Redshifts, Lookbacktimes, SFRD, step_fit_logZ, tng=[], ver=[], model=None, xlim=[], ylim=[10**-1, 10**1], levels = [], 
                            nlevels=20, plottype='data', plotredshift=True, plotregions=False, showplot=True):
@@ -264,15 +200,16 @@ def SFRD_2Dplot_sidepanels(metals, Redshifts, Lookbacktimes, SFRD, step_fit_logZ
         if len(levels) > 0:
             levels = np.linspace(levels[0], levels[1], nlevels)
         else:
-            levels = np.linspace(np.amin(SFRD), np.amax(SFRD), nlevels)
+            if plottype=='data':
+                levels = np.logspace(-6, -1, nlevels)
         cmap = sns.color_palette('rocket', as_cmap=True)
     if plottype == 'percenterr':
         cmap = matplotlib.colors.LinearSegmentedColormap.from_list('', ['tab:red', 'white', 'tab:blue'])
 
     fig = plt.figure(layout='constrained',figsize=[14,10])
     ax = fig.add_subplot()
-    ax_histx = ax.inset_axes([0, 1.02, 1, 0.25], sharex=ax)
-    ax_histy = ax.inset_axes([1.02, 0, 0.2, 1], sharey=ax)
+    ax_histx = ax.inset_axes([0, 1.0, 1, 0.25], sharex=ax)
+    ax_histy = ax.inset_axes([1.0, 0, 0.2, 1], sharey=ax)
 
     ax_histx.tick_params(axis="x", labelbottom=False)
     ax_histy.tick_params(axis="y", labelleft=False)
@@ -285,44 +222,70 @@ def SFRD_2Dplot_sidepanels(metals, Redshifts, Lookbacktimes, SFRD, step_fit_logZ
     #Plot data and is model is given plot model
     if plottype=='data':
 
-        data = ax.contourf(xvals, metals/Zsun, SFRD, levels=levels, cmap=cmap)
-        if len(model) > 0:
-            ax.text(0.02, 0.02, "TNG%s-%s, analytical fit"%(tng, ver), transform=ax.transAxes, fontsize=20, color='white')
+        #metals_mask_low = (metals >= 10**-1)
+        #metals_mask_high = (metals <= 1)
+        #metals_mask = ((metals_mask_low==True) & (metals_mask_high==True))
+        #SFRD[~metals_mask] = 0
+        #print(len(SFRD[metals_mask]))
 
-        ax_histx.plot(xvals, np.sum(SFRD, axis=0)*step_fit_logZ, color='darkorange', lw=3, label='simulation')
-        #ax_histy.plot(np.sum(SFRD, axis=1)*(Redshifts[1]-Redshifts[0]), metals/Zsun, color='darkorange', lw=3)
+        SFRD[SFRD <= 0] = 1e-7 #make sure there are no zeroes since plotting in log scale
+
+        data = ax.contourf(xvals, metals/Zsun, SFRD, levels=levels, norm=matplotlib.colors.LogNorm(vmin=1e-6, vmax=1e-1), cmap=cmap, extend='min')
+        for c in data.collections: #fixes some rendering issues (tiny gaps between the contours when saving as a pdf)
+            c.set_edgecolor('face') 
+            c.set_linewidth(0.1)   
+
+        ax_histx.plot(xvals, np.sum(SFRD, axis=0)*step_fit_logZ, color='darkorange', lw=3, label='TNG simulation')
         ax_histy.plot(np.sum(SFRD, axis=1), metals/Zsun, color='darkorange', lw=3)
+        ax_histx.set_ylabel(r'$\mathcal{S}(z)$', fontsize=20)
+        ax_histy.set_xlabel(r'$\mathcal{S}(Z_{\rm{i}})$', fontsize=20)
+
+        peak_location_top = np.where(np.sum(SFRD, axis=0)*step_fit_logZ == max(np.sum(SFRD, axis=0)*step_fit_logZ))[0][0]
+        peak_location_side = np.where(np.sum(SFRD, axis=1) == max(np.sum(SFRD, axis=1)))[0][0]
+        ax_histx.axvline(x=xvals[peak_location_top], color='darkorange', linewidth=2, zorder=0)
+        ax_histy.axhline(y=metals[peak_location_side]/Zsun, color='darkorange', linewidth=2, zorder=0)
 
     if plottype=='percenterr':
+
         SFRD[SFRD < 1e-7] = 1e-7
         model.T[model.T < 1e-7] = 1e-7
         percenterr = (SFRD-model.T)/model.T
-        levels = np.linspace(-2, 2, nlevels)
+        levels = np.linspace(-1, 1, nlevels)
+        metals_mask_low = (metals/Zsun >= ylim[0])
+        metals_mask_high = (metals/Zsun <= ylim[1])
+        metals_mask = ((metals_mask_low==True) & (metals_mask_high==True))
+        percenterr[~metals_mask] = 0
         data = ax.contourf(xvals, metals/Zsun, percenterr, levels=levels, cmap=cmap)
-        ax.text(0.02, 0.02, "TNG%s-%s, analytical fit"%(tng, ver), transform=ax.transAxes, fontsize=20, color='black')
+        ax.text(0.02, 0.02, "TNG%s-%s, analytical fit"%(tng, ver), transform=ax.transAxes, fontsize=30, color='black')
 
         ax_histx.plot(xvals, np.zeros(len(xvals)), color='lightgray')
         ax_histy.plot(np.zeros(len(np.sum(percenterr, axis=1))), np.sum(percenterr, axis=1), color='lightgray')
-        ax_histx.plot(xvals, np.sum(percenterr, axis=0))
-        ax_histy.plot(np.sum(percenterr, axis=1), metals/Zsun)
+        ax_histx.plot(xvals, np.mean(percenterr, axis=0), color='black', label='mean percent error')
+        ax_histy.plot(np.mean(percenterr, axis=1), metals/Zsun, color='black')
 
-        ax_histx.set_ylim(-4000, 4000)
-        ax_histy.set_xlim(-500, 2000)
-    
     if len(model) > 0:
         if plottype=='data':
-            modelplot = ax.contour(xvals, metals/Zsun, model.T, levels=levels, colors='white')
-            ax_histx.plot(xvals, np.sum(model.T, axis=0)*step_fit_logZ, color='indigo', label='analytical fit')
-            #ax_histy.plot(np.sum(model.T, axis=1)*(Redshifts[1]-Redshifts[0]), metals/Zsun, color='indigo')
-            ax_histy.plot(np.sum(model.T, axis=1), metals/Zsun, color='indigo')
+            ax.contour(xvals, metals/Zsun, model.T, levels=levels, colors='black', linewidths=1, linestyles='dashed')
+            ax_histx.plot(xvals, np.sum(model.T, axis=0)*step_fit_logZ, color='black', label='analytical fit', ls='--')
+            ax_histy.plot(np.sum(model.T, axis=1), metals/Zsun, color='black', ls='--')
+
+            peak_location_top = np.where(np.sum(model.T, axis=0)*step_fit_logZ == max(np.sum(model.T, axis=0)*step_fit_logZ))[0][0]
+            peak_location_side = np.where(np.sum(model.T, axis=1) == max(np.sum(model.T, axis=1)))[0][0]
+            ax_histx.axvline(x=xvals[peak_location_top], color='black', linestyle='dashed', linewidth=2, zorder=0)
+            ax_histy.axhline(y=metals[peak_location_side]/Zsun, color='black', linestyle='dashed', linewidth=2, zorder=0)
+
         elif plottype=='percenterr':
-            modelplot = ax.contour(xvals, metals/Zsun, model.T, levels=levels, colors='black', linestyles='dashed')
+            ax.contour(xvals, metals/Zsun, model.T, levels=levels, colors='black', linestyles='dashed')
 
     if plotregions==True:
-        lowz_bin = [4, 8]
-        midz_bin = [10, 12]
-        highz_bin = [12, 14]
-        zbins = np.array([lowz_bin, midz_bin, highz_bin])
+        z_bin1 = [0.2, 0.5]
+        z_bin2 = [0.5, 1]
+        z_bin3 = [1, 2]
+        z_bin4 = [2, 6]
+        z_bin5 = [6, 10]
+        zbins = np.array([z_bin1, z_bin2, z_bin3, z_bin4, z_bin5])
+        if plotredshift==False:
+            zbins = cosmo.lookback_time(zbins).value
 
         lowZ_bin = [0.0001, 0.001]
         midZ_bin = [0.001, 0.01]
@@ -330,88 +293,113 @@ def SFRD_2Dplot_sidepanels(metals, Redshifts, Lookbacktimes, SFRD, step_fit_logZ
         Zbins = np.array([lowZ_bin, midZ_bin, highZ_bin])
         Zbins_Zsun = Zbins/Zsun
 
-        Zzbin_colors = ['darkgreen', 'mediumseagreen', 'lightgreen',
-                        'darkorange', 'orange', 'gold',
-                        'purple', 'mediumvioletred', 'pink']
-        counter = 0
+        #Zzbin_colors = ["#0067A6", '#79B41C', "#D7EC20", "#F958FF",  "#FFE8F5"]
+        colormap = sns.color_palette('viridis_r', as_cmap=True)
+        zbin_colors = colormap(np.linspace(0.1, 0.8, len(zbins)))
+        Zbin_linestyles = ['dotted', 'dashed', 'solid']
 
-        for zbin in zbins:
-            for Zbin in Zbins_Zsun:
-                rect = matplotlib.patches.Rectangle((zbin[0], Zbin[0]), zbin[1]-zbin[0], Zbin[1]-Zbin[0], linewidth=2, edgecolor=Zzbin_colors[counter], facecolor='none')
+        for i, zbin in enumerate(zbins):
+            for j, Zbin in enumerate(Zbins_Zsun):
+                rect = matplotlib.patches.Rectangle((zbin[0], Zbin[0]), zbin[1]-zbin[0], Zbin[1]-Zbin[0], linewidth=2, edgecolor=zbin_colors[i], linestyle=Zbin_linestyles[j], facecolor='none', zorder=3)
                 ax.add_patch(rect)
-                counter+=1
 
     ax.set_yscale('log')
     if plotredshift == True:
-        ax.set_xlabel('Redshift', y=0.04, fontsize=30)
+        ax.set_xlabel('Redshift', y=0.04, fontsize=35)
     else:
-        ax.set_xlabel('Lookbacktime (Gyr)', y=0.04, fontsize=30)
-    ax.set_ylabel(r'$Z/Z_{\rm{\odot}}$', x=0.03, fontsize=30)
-    ax.tick_params(axis='both', which='major', labelsize=20)
+        ax.set_xlabel('Lookbacktime [Gyr]', y=0.04, fontsize=35)
+    ax.text(0.02, 0.02, "TNG%s-%s"%(tng, ver), transform=ax.transAxes, fontsize=35, color='white')
+    ax.set_ylabel(r'$Z/Z_{\rm{\odot}}$', x=0.03, fontsize=35)
+    ax.tick_params(axis='both', which='major', labelsize=23)
     ax.xaxis.set_minor_locator(ticker.MultipleLocator(1))
-    ax.tick_params(length=10, width=2, which='major')
-    ax.tick_params(length=5, width=1, which='minor')
+    ax.tick_params(length=15, width=3, which='major')
+    ax.tick_params(length=10, width=2, which='minor')
 
     #sideplot formatting
-    ax_histx.legend(fontsize=20)
-    ax_histx.tick_params(axis='y', which='major', labelsize=15)
+    ax_histx.legend(fontsize=20, loc='upper left')
+    ax_histx.tick_params(axis='y', which='major', labelsize=20)
+    ax_histx.tick_params(axis='x', which='both', direction='in')
     #ax_histx.yaxis.set_minor_locator(ticker.MultipleLocator(0.01))
-    ax_histx.tick_params(length=7, width=2, which='major')
-    ax_histx.tick_params(length=4, width=1, which='minor')
-    ax_histx.set_ylabel(r'$\mathcal{S}(z)$', fontsize=20)
-    #ax_histx.set_yscale('log')
+    ax_histx.tick_params(length=10, width=2, which='major')
+    ax_histx.tick_params(length=5, width=1, which='minor')
+    if tng == 50:
+        ax_histx.set_ylim(0, 0.15)
+    elif tng == 100:
+        ax_histx.set_ylim(0, 0.1)
+    elif tng == 300:
+        ax_histx.set_ylim(0, 0.08)
+    ax_histx.set_ylabel(r'$\mathcal{S}(z)$', fontsize=25)
+    fig.canvas.draw()
+    labels = ax_histx.get_yticklabels()
+    labels[0] = ''
+    ax_histx.set_yticklabels(labels)
 
-    ax_histy.tick_params(axis='x', which='major', labelsize=15)
+    ax_histy.tick_params(axis='x', which='major', labelsize=20)
+    ax_histy.tick_params(axis='y', which='both', direction='in')
     ax_histy.xaxis.set_minor_locator(ticker.MultipleLocator(1))
-    ax_histy.tick_params(length=7, width=2, which='major')
-    ax_histy.tick_params(length=4, width=1, which='minor')
-    ax_histy.set_xlabel(r'$\mathcal{S}(Z_{\rm{i}})$', fontsize=20)
-    #ax_histy.set_xscale('log')
+    ax_histy.tick_params(length=10, width=2, which='major')
+    ax_histy.tick_params(length=5, width=1, which='minor')
+    if tng == 50:
+        ax_histy.set_xlim(0, 4)
+    elif tng == 100:
+        ax_histy.set_xlim(0, 3)
+    elif tng==300:
+        ax_histy.set_xlim(0, 2)
+    ax_histy.set_xlabel(r'$\mathcal{S}(Z)$', fontsize=25)
+
+    ax2 = ax_histx.twiny()
+    redshift_tick_list = [0, 0.2, 0.5, 1.0, 2, 4, 6, 10]
+    ax2.set_xlabel('Redshift $z$', fontsize = 30, labelpad=10)
+    ax2.set_xticks([cosmo.lookback_time(z).value for z in redshift_tick_list])
+    ax2.set_xticklabels(['${:g}$'.format(z) for z in redshift_tick_list])
+    ax2.tick_params(axis='both', which='major', labelsize=20)
+    ax2.tick_params(length=10, width=2, which='major')
 
     #Set limits for horizontal (lookback time or redshift) and vertical (metallicity) axes
     if len(xlim) > 0:
         ax.set_xlim(xlim[0], xlim[1]) #not always want to set xlimits, so empty if not using any
+        ax2.set_xlim(xlim[0], xlim[1]) #in lookback time
     else:
         ax.set_xlim(min(xvals), max(xvals))
+        ax2.set_xlim(min(xvals), max(xvals))
     if len(ylim) > 0:
         ax.set_ylim(ylim[0], ylim[1]) #defaults for TNG data are Z=10**-2 to Z=10**1
 
     #Set up the colorbar
-    fig.subplots_adjust(right=0.81)
     cbar_ax = fig.add_axes([1.01, 0.1, 0.03, 0.7])
-    cbar = fig.colorbar(data, cax=cbar_ax, format=ticker.FormatStrFormatter('%.3f'))
-    cbar.ax.tick_params(labelsize=20)
+    cbar = fig.colorbar(data, cax=cbar_ax, ticks=[1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1])
+    cbar.ax.tick_params(labelsize=25)
 
     #Set the colorbar labels and save the plot
     if plottype=='data':
         if plotredshift==False:
             if plotregions==False:
-                cbar.set_label(r'$\mathcal{S}(Z_{\rm{i}},z)$ TNG%s-%s'%(tng, ver), rotation=270, fontsize=30, labelpad=35);
-                fig.savefig('figures/SFRD_Z_z_TNG%s_%s_sidepanels.png'%(tng, ver), bbox_inches='tight', dpi=300)
+                cbar.set_label(r'$\mathcal{S}(Z, z) \ [\rm M_{\odot} \ yr^{-1} \ Mpc^{-3}]$', rotation=270, fontsize=35, labelpad=40);
+                fig.savefig('figures/SFRD_Z_z_TNG%s_%s_sidepanels.pdf'%(tng, ver), bbox_inches='tight', dpi=300)
             else:
-                cbar.set_label(r'$\mathcal{S}(Z_{\rm{i}},z)$ TNG%s-%s'%(tng, ver), rotation=270, fontsize=30, labelpad=35);
-                fig.savefig('figures/SFRD_Z_z_TNG%s_%s_sidepanels_regions.png'%(tng, ver), bbox_inches='tight', dpi=300)
+                cbar.set_label(r'$\mathcal{S}(Z, z) \ [\rm M_{\odot} \ yr^{-1} \ Mpc^{-3}]$', rotation=270, fontsize=35, labelpad=40);
+                fig.savefig('figures/SFRD_Z_z_TNG%s_%s_sidepanels_regions.pdf'%(tng, ver), bbox_inches='tight', dpi=300)
         else:
             if plotregions==False:
-                cbar.set_label(r'$\mathcal{S}(Z_{\rm{i}},z)$ TNG%s-%s'%(tng, ver), rotation=270, fontsize=30, labelpad=35);
+                cbar.set_label(r'$\mathcal{S}(Z, z) \ [\rm M_{\odot} \ yr^{-1} \ Mpc^{-3}]$', rotation=270, fontsize=35, labelpad=40);
                 fig.savefig('figures/SFRD_Z_z_TNG%s_redshift_sidepanels.png'%tng, bbox_inches='tight', dpi=300)
             else:
-                cbar.set_label(r'$\mathcal{S}(Z_{\rm{i}},z)$ TNG%s-%s'%(tng, ver), rotation=270, fontsize=30, labelpad=35);
-                fig.savefig('figures/SFRD_Z_z_TNG%s_redshift_sidepanels_regions.png'%tng, bbox_inches='tight', dpi=300)
+                cbar.set_label(r'$\mathcal{S}(Z, z) \ [\rm M_{\odot} \ yr^{-1} \ Mpc^{-3}]$', rotation=270, fontsize=35, labelpad=40);
+                fig.savefig('figures/SFRD_Z_z_TNG%s_redshift_sidepanels_regions.pdf'%tng, bbox_inches='tight', dpi=300)
     elif plottype=='percenterr':
         if plotredshift==False:
             if plotregions==False:
-                cbar.set_label(r'$\mathcal{S}(Z_{\rm{i}},z)$ $\frac{\mathcal{S}(Z_{\rm{i}},z)-1}{x}$, TNG%s-%s'%(tng, ver), rotation=270, fontsize=30, labelpad=45);
+                cbar.set_label(r'$\frac{\mathcal{S}(Z_{\rm{i}},z)_\mathrm{sim} - \mathcal{S}(Z_{\rm{i}},z)_\mathrm{model}}{\mathcal{S}(Z_{\rm{i}},z)_\mathrm{model}}$, TNG%s-%s simulation'%(tng, ver), rotation=270, fontsize=30, labelpad=50);
                 fig.savefig('figures/SFRD_Z_z_TNG%s_%s_percenterr_sidepanels.png'%(tng, ver), bbox_inches='tight')
             else:
-                cbar.set_label(r'$\mathcal{S}(Z_{\rm{i}},z)$ $\frac{\mathcal{S}(Z_{\rm{i}},z)-1}{x}$, TNG%s-%s'%(tng, ver), rotation=270, fontsize=30, labelpad=45);
+                cbar.set_label(r'$\frac{\mathcal{S}(Z_{\rm{i}},z)_\mathrm{sim} - \mathcal{S}(Z_{\rm{i}},z)_\mathrm{model}}{\mathcal{S}(Z_{\rm{i}},z)_\mathrm{model}}$, TNG%s-%s simulation'%(tng, ver), rotation=270, fontsize=30, labelpad=50);
                 fig.savefig('figures/SFRD_Z_z_TNG%s_%s_percenterr_sidepanels_regions.png'%(tng, ver), bbox_inches='tight')
         else:
             if plotregions==False:
-                cbar.set_label(r'$\frac{\mathcal{S}(Z_{\rm{i}},z)_\mathrm{sim} - \mathcal{S}(Z_{\rm{i}},z)_\mathrm{model}}{\mathcal{S}(Z_{\rm{i}},z)_\mathrm{model}}$, TNG%s'%tng, rotation=270, fontsize=30, labelpad=45);
+                cbar.set_label(r'$\frac{\mathcal{S}(Z_{\rm{i}},z)_\mathrm{sim} - \mathcal{S}(Z_{\rm{i}},z)_\mathrm{model}}{\mathcal{S}(Z_{\rm{i}},z)_\mathrm{model}}$, TNG%s'%tng, rotation=270, fontsize=30, labelpad=50);
                 fig.savefig('figures/SFRD_Z_z_TNG%s_percenterr_redshift_sidepanels.png'%tng, bbox_inches='tight', dpi=300)
             else:
-                cbar.set_label(r'$\frac{\mathcal{S}(Z_{\rm{i}},z)_\mathrm{sim} - \mathcal{S}(Z_{\rm{i}},z)_\mathrm{model}}{\mathcal{S}(Z_{\rm{i}},z)_\mathrm{model}}$, TNG%s'%tng, rotation=270, fontsize=30, labelpad=45);
+                cbar.set_label(r'$\frac{\mathcal{S}(Z_{\rm{i}},z)_\mathrm{sim} - \mathcal{S}(Z_{\rm{i}},z)_\mathrm{model}}{\mathcal{S}(Z_{\rm{i}},z)_\mathrm{model}}$, TNG%s'%tng, rotation=270, fontsize=30, labelpad=50);
                 fig.savefig('figures/SFRD_Z_z_TNG%s_percenterr_redshift_sidepanels_regions.png'%tng, bbox_inches='tight', dpi=300)
     
     if showplot==True:
@@ -467,6 +455,7 @@ if __name__ == "__main__":
 
 
     #SFRDplot_2D(metalsTNG, LookbacktimesTNG, SFRDsTNG, tngs, vers, ylim=[10**-4, 50], nlevels=17, model=models, plottype='percenterr', plotregions=True)
-    SFRD_2Dplot_sidepanels(metalsTNG[0], redshiftsTNG[0], LookbacktimesTNG[0], SFRDsTNG[0], step_fit_logZ_TNG[0], tngs[0], vers[0], ylim=[10**-2, 20], nlevels=10, model=models[0], plottype='data', plotredshift=False, plotregions=False)
+    SFRD_2Dplot_sidepanels(metalsTNG[1], redshiftsTNG[1], LookbacktimesTNG[1], SFRDsTNG[1], step_fit_logZ_TNG[1], tngs[1], vers[1], nlevels=30, model=models[1], ylim=[1e-4, 10], plottype='data', plotredshift=False, plotregions=True)
 
     
+
