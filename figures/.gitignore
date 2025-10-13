@@ -6,3 +6,5 @@
 
 # Ignore all png files
 *.png
+
+.DS_Store

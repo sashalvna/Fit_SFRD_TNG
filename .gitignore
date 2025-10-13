@@ -4,6 +4,7 @@
 # Ignore all hdf5 files
 *.hdf5
 *.h5
+*.hdf
 
 # Ignore all pdf files
 *.pdf
@@ -15,3 +16,6 @@
 
 *.png
 *.csp
+
+.ipynb_checkpoints
+.DS_Store
