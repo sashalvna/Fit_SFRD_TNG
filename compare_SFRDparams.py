@@ -71,7 +71,7 @@ def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], err
     #Get model fit parameters 
     fit_param_files = []
     for n, tng in enumerate(tngs):
-        fit_param_files.append('test_best_fit_parameters_TNG%s-%s_TEST.txt'%(tng, vers[n]))
+        fit_param_files.append('test_best_fit_parameters_TNG%s-%s.txt'%(tng, vers[n]))
     fit_params = read_best_fits(fit_param_files)
     
     fig = plt.figure(layout='constrained',figsize=[13, 10])
@@ -203,7 +203,7 @@ def compare_Zdist(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], e
     #Get model fit parameters 
     fit_param_files = []
     for n, tng in enumerate(tngs):
-        fit_param_files.append('test_best_fit_parameters_TNG%s-%s_TEST.txt'%(tng, vers[n]))
+        fit_param_files.append('test_best_fit_parameters_TNG%s-%s.txt'%(tng, vers[n]))
     fit_params = read_best_fits(fit_param_files)
     
     fig = plt.figure(layout='constrained',figsize=[13, 10])

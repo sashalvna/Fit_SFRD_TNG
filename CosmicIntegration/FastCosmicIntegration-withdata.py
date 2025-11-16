@@ -476,7 +476,9 @@ def find_detection_rate(path, filename="COMPAS_Output.h5", dco_type="BBH", weigh
         Sim_SFRD, Lookbacktimes, Redshifts, Sim_center_Zbin, step_fit_logZ, Metals = readTNGdata(data_fname)
 
         # interpolate metallicity data
-        SFRDnew, redshift_new, Lookbacktimes_new, metals_new, Metals_dist, step_fit_logZ_new = interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, Metals, redshiftlimandstep=[0, max_redshift+redshift_step, redshift_step])
+        SFRDnew, redshift_new, Lookbacktimes_new, metals_new, Metals_dist, step_fit_logZ_new = interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, 
+                                                                                                                   Sim_center_Zbin, Metals, 
+                                                                                                                   redshiftlimandstep=[0, max_redshift+redshift_step, redshift_step])
         
         # calculate the redshifts array and its equivalents
         redshifts, n_redshifts_detection, times, time_first_SF, distances, shell_volumes = calculate_redshift_related_params(max_redshift, max_redshift_detection, redshift_step, z_first_SF)

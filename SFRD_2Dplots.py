@@ -289,7 +289,7 @@ def SFRD_2Dplot_sidepanels(metals, Redshifts, Lookbacktimes, SFRD, step_fit_logZ
 
         lowZ_bin = [0.0001, 0.001]
         midZ_bin = [0.001, 0.01]
-        highZ_bin = [0.01, 0.1]
+        highZ_bin = [0.01, 0.03]
         Zbins = np.array([lowZ_bin, midZ_bin, highZ_bin])
         Zbins_Zsun = Zbins/Zsun
 
@@ -405,6 +405,133 @@ def SFRD_2Dplot_sidepanels(metals, Redshifts, Lookbacktimes, SFRD, step_fit_logZ
     if showplot==True:
         plt.show()
 
+def dPdlogZ_plot(metals, Redshifts, Lookbacktimes, sfrd, step_fit_logZ, tng=[], ver=[], xlim=[], ylim=[10**-1, 10**1], levels = [], 
+                           dPdlogZ_model=[], nlevels=20, plottype='data', plotredshift=True, showplot=True):
+
+    """
+    plottype (str): type of BBH 2D plot, options: 'data', 'percenterr'
+    """
+
+    if plottype == 'data':
+        if len(levels) > 0:
+            levels = np.linspace(levels[0], levels[1], nlevels)
+        else:
+            if plottype=='data':
+                levels = np.logspace(6, 10, nlevels)
+        cmap = sns.color_palette('rocket', as_cmap=True)
+    if plottype == 'percenterr':
+        cmap = matplotlib.colors.LinearSegmentedColormap.from_list('', ['tab:red', 'white', 'tab:blue'])
+
+    fig = plt.figure(layout='constrained',figsize=[14,10])
+    ax = fig.add_subplot()
+    ax_histx = ax.inset_axes([0, 1.0, 1, 0.25], sharex=ax)
+    ax_histy = ax.inset_axes([1.0, 0, 0.2, 1], sharey=ax)
+
+    ax_histx.tick_params(axis="x", labelbottom=False)
+    ax_histy.tick_params(axis="y", labelleft=False)
+
+    if plotredshift == True:
+        xvals = Redshifts
+    else:
+        xvals = Lookbacktimes
+
+    #Plot data and is model is given plot model
+    #SFRD[SFRD <= 0] = 1e-7 #make sure there are no zeroes since plotting in log scale
+
+    # data = ax.contourf(xvals, metals/Zsun, SFRD, levels=levels, norm=matplotlib.colors.LogNorm(vmin=1e-6, vmax=1e-1), cmap=cmap, extend='min')
+    # for c in data.collections: #fixes some rendering issues (tiny gaps between the contours when saving as a pdf)
+    #     c.set_edgecolor('face') 
+    #     c.set_linewidth(0.1)   
+
+    print(sfrd)
+
+    data = ax.contourf(xvals, metals, (dPdlogZ_model*(1/metals) * sfrd[:,np.newaxis].value).T, norm=matplotlib.colors.LogNorm(vmin=1e6, vmax=1e10), levels=levels, cmap=cmap, extend='min')
+
+    # ax_histx.plot(xvals, np.sum((dPdlogZ_model*(1/metals)), axis=1)*step_fit_logZ, color='darkorange', lw=3, label='TNG simulation')
+    # ax_histy.plot(np.sum((dPdlogZ_model*(1/metals)).T, axis=1), metals/Zsun, color='darkorange', lw=3)
+    # ax_histx.set_ylabel(r'$\mathcal{S}(z)$', fontsize=20)
+    # ax_histy.set_xlabel(r'$\mathcal{S}(Z_{\rm{i}})$', fontsize=20)
+
+    #peak_location_top = np.where(np.sum((dPdlogZ_model*(1/metals)), axis=0)*step_fit_logZ == max(np.sum((dPdlogZ_model*(1/metals)), axis=1)*step_fit_logZ))[0]
+    #peak_location_side = np.where(np.sum((dPdlogZ_model*(1/metals)), axis=0) == max(np.sum((dPdlogZ_model*(1/metals)), axis=1)))[0]
+    #ax_histx.axvline(x=xvals[peak_location_top], color='darkorange', linewidth=2, zorder=0)
+    #ax_histy.axhline(y=metals[peak_location_side], color='darkorange', linewidth=2, zorder=0)
+
+    ax.set_yscale('log')
+    if plotredshift == True:
+        ax.set_xlabel('Redshift', y=0.04, fontsize=35)
+    else:
+        ax.set_xlabel('Lookbacktime [Gyr]', y=0.04, fontsize=35)
+    ax.text(0.02, 0.02, "TNG%s-%s"%(tng, ver), transform=ax.transAxes, fontsize=35, color='white')
+    ax.set_ylabel(r'$Z$', x=0.03, fontsize=35)
+    ax.tick_params(axis='both', which='major', labelsize=23)
+    ax.xaxis.set_minor_locator(ticker.MultipleLocator(1))
+    ax.tick_params(length=15, width=3, which='major')
+    ax.tick_params(length=10, width=2, which='minor')
+
+    #sideplot formatting
+#     ax_histx.legend(fontsize=20, loc='upper left')
+#     ax_histx.tick_params(axis='y', which='major', labelsize=20)
+#     ax_histx.tick_params(axis='x', which='both', direction='in')
+#     #ax_histx.yaxis.set_minor_locator(ticker.MultipleLocator(1))
+#     ax_histx.tick_params(length=10, width=2, which='major')
+#     ax_histx.tick_params(length=5, width=1, which='minor')
+#     # if tng == 50:
+#     #     ax_histx.set_ylim(0, 0.15)
+#     # elif tng == 100:
+#     #     ax_histx.set_ylim(0, 0.1)
+#     # elif tng == 300:
+#     #     ax_histx.set_ylim(0, 0.08)
+#     # ax_histx.set_ylabel(r'$\mathcal{S}(z)$', fontsize=25)
+#     fig.canvas.draw()
+#     labels = ax_histx.get_yticklabels()
+#     labels[0] = ''
+#    # ax_histx.set_yticklabels(labels)
+
+#     ax_histy.tick_params(axis='x', which='major', labelsize=20)
+#     ax_histy.tick_params(axis='y', which='both', direction='in')
+#     #ax_histy.xaxis.set_minor_locator(ticker.MultipleLocator(1))
+#     ax_histy.tick_params(length=10, width=2, which='major')
+#     ax_histy.tick_params(length=5, width=1, which='minor')
+    # if tng == 50:
+    #     ax_histy.set_xlim(0, 4)
+    # elif tng == 100:
+    #     ax_histy.set_xlim(0, 3)
+    # elif tng==300:
+    #     ax_histy.set_xlim(0, 2)
+    # ax_histy.set_xlabel(r'$\mathcal{S}(Z)$', fontsize=25)
+
+    ax2 = ax_histx.twiny()
+    redshift_tick_list = [0, 0.2, 0.5, 1.0, 2, 4, 6, 10]
+    ax2.set_xlabel('Redshift $z$', fontsize = 30, labelpad=10)
+    ax2.set_xticks([cosmo.lookback_time(z).value for z in redshift_tick_list])
+    ax2.set_xticklabels(['${:g}$'.format(z) for z in redshift_tick_list])
+    ax2.tick_params(axis='both', which='major', labelsize=20)
+    ax2.tick_params(length=10, width=2, which='major')
+
+    #Set limits for horizontal (lookback time or redshift) and vertical (metallicity) axes
+    if len(xlim) > 0:
+        ax.set_xlim(xlim[0], xlim[1]) #not always want to set xlimits, so empty if not using any
+        ax2.set_xlim(xlim[0], xlim[1]) #in lookback time
+    else:
+        ax.set_xlim(min(xvals), max(xvals))
+        ax2.set_xlim(min(xvals), max(xvals))
+    if len(ylim) > 0:
+        ax.set_ylim(ylim[0], ylim[1]) #defaults for TNG data are Z=10**-2 to Z=10**1
+
+    #Set up the colorbar
+    cbar_ax = fig.add_axes([1.01, 0.1, 0.03, 0.7])
+    #cbar = fig.colorbar(data, cax=cbar_ax, ticks=[1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 10, 100, 1000])
+    cbar = fig.colorbar(data, cax=cbar_ax, ticks=[1e6, 1e7, 1e8, 1e9, 1e10])
+    cbar.ax.tick_params(labelsize=25)
+
+    #Set the colorbar labels and save the plot
+    cbar.set_label(r'$\mathrm{SFRD}$', rotation=270, fontsize=35, labelpad=40);
+    fig.savefig('figures/sfrd_TNG%s_%s.pdf'%(tng, ver), bbox_inches='tight', dpi=300)
+          
+    if showplot==True:
+        plt.show()
+
 
 if __name__ == "__main__":
     #Change file names to match TNG version <- turn these into arguments
@@ -424,7 +551,7 @@ if __name__ == "__main__":
         Cosmol_sim_location = paths.data / str("SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5"%(tng,vers[n]))
         if vers[n] == 2:
             Cosmol_sim_location = paths.data / str("SFRMetallicityFromGasTNG%s-%s.hdf5"%(tng,vers[n]))
-        fit_filename = 'test_best_fit_parameters_TNG%s-%s_TEST.txt'%(tng,vers[n])
+        fit_filename = 'test_best_fit_parameters_TNG%s-%s.txt'%(tng,vers[n])
         if tng==50:
             rbox=35
         elif tng==100:
@@ -444,18 +571,24 @@ if __name__ == "__main__":
     bestfits = read_best_fits(param_filenames)
 
     #Calculate the model
+    import astropy.units as u 
     models = []
+    dPdlogZs = []
+    sfrs = []
     for n, fit_params in enumerate(bestfits):
-        sfr = Z_SFRD.Madau_Dickinson2014(redshiftsTNG[n], a=fit_params[5], b=fit_params[6], c=fit_params[7], d=fit_params[8]).value # Msun year-1 Mpc-3 
+        sfr = Z_SFRD.Madau_Dickinson2014(redshiftsTNG[n], a=fit_params[5], b=fit_params[6], c=fit_params[7], d=fit_params[8]) # Msun year-1 Mpc-3 
         dPdlogZ, metallicities, step_logZ, p_draw_metallicity = \
                     Z_SFRD.skew_metallicity_distribution(redshiftsTNG[n] , mu_0 = fit_params[0], mu_z = fit_params[1],
                                                   omega_0= fit_params[2] , omega_z=fit_params[3] , alpha = fit_params[4], 
                                                   metals=metalsTNG[n])
-        models.append(sfr[:,np.newaxis] * dPdlogZ)
+        models.append(sfr[:,np.newaxis].value * dPdlogZ)
+        dPdlogZs.append(dPdlogZ)
+        sfrs.append(sfr.to(u.Msun/u.yr/u.Gpc**3))
 
 
     #SFRDplot_2D(metalsTNG, LookbacktimesTNG, SFRDsTNG, tngs, vers, ylim=[10**-4, 50], nlevels=17, model=models, plottype='percenterr', plotregions=True)
     SFRD_2Dplot_sidepanels(metalsTNG[1], redshiftsTNG[1], LookbacktimesTNG[1], SFRDsTNG[1], step_fit_logZ_TNG[1], tngs[1], vers[1], nlevels=30, model=models[1], ylim=[1e-4, 10], plottype='data', plotredshift=False, plotregions=True)
+    #dPdlogZ_plot(metalsTNG[1], redshiftsTNG[1], LookbacktimesTNG[1], sfrs[1], step_fit_logZ_TNG[1], tngs[1], vers[1], nlevels=30, dPdlogZ_model=dPdlogZs[1], ylim=[4e-5, 1], plotredshift=True)
 
     
 

@@ -157,7 +157,7 @@ if __name__ == "__main__":
     tng= 100
     ver = 2
     Cosmol_sim_location = paths.data / str("SFRMetallicityFromGasTNG%s-%s.hdf5"%(tng,ver))
-    fit_filename = 'test_best_fit_parameters_TNG%s-%s_TEST2.txt'%(tng,ver)
+    fit_filename = 'test_best_fit_parameters_TNG%s-%s.txt'%(tng,ver)
     if tng==50:
         rbox=35
     elif tng==100:
@@ -174,7 +174,9 @@ if __name__ == "__main__":
 
     #Read the TNG data and interpolate it
     Sim_SFRD, Lookbacktimes, Redshifts, Sim_center_Zbin, step_fit_logZ, Metals, MetalBins = readTNGdata(loc = Cosmol_sim_location, rbox=rbox)
-    SFRDnew, redshift_new, Lookbacktimes_new, metals_new, step_fit_logZ_new = interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, saveplot=True, tng=tng, ver=ver, redshiftlimandstep=[0, 14.1, 0.05])
+    SFRDnew, redshift_new, Lookbacktimes_new, metals_new, step_fit_logZ_new = interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, 
+                                                                                                  Sim_center_Zbin, saveplot=True, tng=tng, ver=ver, 
+                                                                                                  redshiftlimandstep=[0, 14.1, 0.05])
     
     #Fit the model to the data
     x0     = np.array([-0.15, 0.026, 1.1, 0.1, -3.3, 0.01, 2.6, 3.2, 6.2]) #best guess

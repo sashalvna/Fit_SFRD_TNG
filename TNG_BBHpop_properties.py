@@ -145,8 +145,8 @@ def compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, error_yl
     ax.set_ylim(1e-3, 5e2)
     ax.set_xlabel('Redshift $z$', fontsize=35)
     if plot_merger_rates == True:
-        ax.set_ylabel(r'$\mathcal{R}(z) \ [\rm Gpc^{-3} \ yr^{-1}]$', fontsize=35)
-        ax_x.set_ylabel(r'$\mathcal{R}(z)_\mathrm{fit}/\mathcal{R}(z)_\mathrm{sim}$', fontsize=20)
+        ax.set_ylabel(r'$\frac{d\mathcal{R}}{dz} \ [\rm Gpc^{-3} \ yr^{-1}]$', fontsize=35)
+        ax_x.set_ylabel(r'$\frac{d\mathcal{R}}{dz}_\mathrm{fit}/\frac{d\mathcal{R}}{dz}_\mathrm{sim}$', fontsize=20)
         #fig.legend(bbox_to_anchor=(0.9, 0.88), fontsize=25, loc="upper right", frameon=False)
         fig.legend(bbox_to_anchor=(0.15, 0.1), fontsize=25, loc="lower left", frameon=False)
     else:
@@ -1025,7 +1025,7 @@ def compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, only_st
     for i in data_rates:
         TNGpaths_data.append('/'+i)
     
-    fig, ax = plt.subplots(3, 2, sharex=True, sharey=True, figsize = (14, 16))
+    fig, ax = plt.subplots(2, 3, sharex=True, sharey=True, figsize = (20, 12))
     fig.subplots_adjust(wspace=0, hspace=0)
 
     bins = np.arange(0.,55,2.5)
@@ -1046,8 +1046,8 @@ def compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, only_st
         mass_1_lower = np.percentile(bptp_m1_pdfs, 5, axis=0)
         mass_1_upper = np.percentile(bptp_m1_pdfs, 95, axis=0)
     # plot the max posterior and the 95th percentile
-    for i in range(3):
-        for j in range(2):
+    for i in range(2):
+        for j in range(3):
             if i==j==0:
                 ax[i, j].plot(bptp_m1, np.median(bptp_m1_pdfs, axis=0), lw=1.8, color=color_plpeak, zorder=1, label="GWTC-4")
             else:
@@ -1074,16 +1074,16 @@ def compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, only_st
     for m, redshift in enumerate(z):
         print("Plotting redshift z = ", redshift)
 
-        if m%2==0: 
-            a2=0
-        else:
-            a2=1
-        if m < 2:
-            a1 = 0
-        elif (m >= 2) and (m < 4):
-            a1 = 1
-        else:
-            a1 = 2
+        if m < 3: 
+            a1=0
+        if m >= 3:
+            a1=1
+        if m in [0, 3]:
+            a2 = 0
+        elif m in [1, 4]:
+            a2 = 1
+        elif m in [2, 5]:
+            a2 = 2
 
         plot_lines = []
         nplot=0
@@ -1197,18 +1197,18 @@ def compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, only_st
         if a1==2 and a2!=2:
             ax[a1, a2].set_xticklabels(['0', '10', '20', '30', '40', ''])
 
-        ax[a1, a2].text(30, 10, '$z_\mathrm{merger}=%s$'%(redshift), ha = 'left', size = 25)
+        ax[a1, a2].text(25, 10, '$z_\mathrm{merger}=%s$'%(redshift), ha = 'left', size = 25)
         
     #########################################
 
-    fig.supxlabel(xlabel, y=0.04, fontsize = 30)
-    fig.supylabel(ylabel, x=0.01, fontsize = 30)
+    fig.supxlabel(xlabel, y=0.01, fontsize = 30)
+    fig.supylabel(ylabel, x=0.05, fontsize = 30)
     if channel_string=='all':
-        fig.suptitle('all channels', fontsize=30)
+        fig.suptitle('all channels', fontsize=30, y=1.03)
     elif channel_string=='stable':
-        fig.suptitle('stable channel', fontsize=30)
+        fig.suptitle('stable channel', fontsize=30, y=1.03)
     else:
-        fig.suptitle('CE channel', fontsize=30)
+        fig.suptitle('CE channel', fontsize=30, y=1.03)
 
     #legend
     x = [-0.0001]
@@ -1231,7 +1231,7 @@ def compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, only_st
     #else:
     #    plt.text(0.03, 0.88, '$\mathrm{%s \ channel}$\nz=%s'%(channel_string, z), ha = 'left', transform=ax.transAxes, size = 25)
 
-    fig.legend(bbox_to_anchor=(0.86, 0.96), fontsize=25, ncol = 3)
+    fig.legend(bbox_to_anchor=(0.75, 1), fontsize=25, ncol = 3)
     fig.savefig('figures/massdist_modelvsdata.pdf', format="pdf", bbox_inches='tight', dpi=300)
 
     if showplot==True:
@@ -1249,7 +1249,7 @@ def residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, only_stable 
     for i in data_rates:
         TNGpaths_data.append('/'+i)
 
-    fig, ax = plt.subplots(3, 2, sharex=True, sharey=True, figsize = (14, 16))
+    fig, ax = plt.subplots(2, 3, sharex=True, sharey=True, figsize = (20, 12))
     fig.subplots_adjust(wspace=0, hspace=0)
 
     bins = np.arange(0.,55,2.5)
@@ -1265,15 +1265,15 @@ def residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, only_stable 
         print("Plotting redshift z = ", redshift)
 
         if m%2==0: 
-            a2=0
+            a1=0
         else:
-            a2=1
+            a1=1
         if m < 2:
-            a1 = 0
+            a2 = 0
         elif (m >= 2) and (m < 4):
-            a1 = 1
+            a2 = 1
         else:
-            a1 = 2
+            a2 = 2
 
         nplot=0
     
@@ -1388,14 +1388,14 @@ def residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, only_stable 
         
     #########################################
 
-    fig.supxlabel(xlabel, y=0.04, fontsize = 30)
-    fig.supylabel(ylabel, x=0.01, fontsize = 30)
+    fig.supxlabel(xlabel, y=0.01, fontsize = 30)
+    fig.supylabel(ylabel, x=0.05, fontsize = 30)
     if channel_string=='all':
-        fig.suptitle('all channels', fontsize=30, y=0.96)
+        fig.suptitle('all channels', fontsize=30, y=1)
     elif channel_string=='stable':
-        fig.suptitle('stable channel', fontsize=30, y=0.96)
+        fig.suptitle('stable channel', fontsize=30, y=1)
     else:
-        fig.suptitle('CE channel', fontsize=30, y=0.96)
+        fig.suptitle('CE channel', fontsize=30, y=1.02)
 
     #legend
     x = [-0.0001]
@@ -1406,212 +1406,283 @@ def residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, only_stable 
     plt.plot(x, y2, c=data_colors[1], ls = '-', lw=4, label=r'TNG100-1')
     plt.plot(x, y3, c=data_colors[2], ls = '-', lw=4, label=r'TNG300-1')
 
-    fig.legend(bbox_to_anchor=(0.82, 0.94), fontsize=25, ncol = 3)
+    fig.legend(bbox_to_anchor=(0.73, 0.96), fontsize=25, ncol = 3)
     fig.savefig('figures/massdist_modelvsdata_res.pdf', format="pdf", bbox_inches='tight', dpi=300)
 
     if showplot==True:
         plt.show()
 
-def plot_BBH_mass_Z_z(tngpath, COMPASpath, tng, data_rates=None, only_stable = True, only_CE = True, channel_string='all', z_merger=0.2, max_redshift=14, 
-                      redshift_step=0.05, z_first_SF=14, z_form = [0, 1, 2, 6, 10, 14], Z_zams = [0.1, 0.01, 0.001, 0.0001], showplot=True, plot_total_dist=True):
+def plot_BBH_mass_Z_z(COMPASpath, tng, data_rates=None, model_rates=None, only_stable = True, only_CE = True, channel_string='all', z_merger=0.2, max_redshift=14, 
+                      redshift_step=0.05, z_first_SF=14, z_form = [0, 1, 2, 6, 10, 14], Z_zams = [0.1, 0.01, 0.001, 0.0001], showplot=True, plot_total_dist=True,
+                      fractionalerror=False):
     
-    fig, ax = plt.subplots(figsize = (12, 8))
     bins = np.arange(0.,55,2.5)
     x_lim=(0.,50)
-    y_lim = (1e-4, 1e2)
+    y_lim = (1e-4, 1e2) 
     xlabel = r'$M_{\mathrm{BH, 1}} \ \rm [M_{\odot}]$'
     ylabel = r'$\frac{d\mathcal{R}}{dM_{\mathrm{BH, 1} }} \ \mathrm{[Gpc^{-3}yr^{-1}M^{-1}_{\odot}]}$'
-
     colors = colormap(np.linspace(0.1, 0.8, len(z_form)-1))
-
     DCO = mfunc.read_data(loc = data_dir +str(COMPASfilename))
-    ####################################################
-    #Reading Rate data 
-    with h5.File(data_dir + '/' + tngpath ,'r') as File:
-        redshifts = File[list(File.keys())[0]]['redshifts'][()]
-        DCO_mask = File[list(File.keys())[0]]['DCOmask'][()] # Mask from DCO to merging systems  
-        intrinsic_rate_density = File[list(File.keys())[0]]['merger_rate'][()]
-        seeds = File[list(File.keys())[0]]['SEED'][()]
-        #print(list(File[list(File.keys())[0]].keys()))
 
-    CEcount = 'CE_Event_Counter'
-    #first bring it to the same shape as the rate table
-    merging_BBH    = DCO[DCO_mask]
-    #apply the additional mask based on your prefs
-    if np.logical_and(only_stable, only_CE):
-        print("Both only_stable and only_CE, I assume you just want both")
-        channel_bool = np.full(len(merging_BBH), True)
-    elif only_stable:
-        channel_bool = merging_BBH[CEcount] == 0
-    elif only_CE:
-        channel_bool = merging_BBH[CEcount] > 0
+    rates = []
+    if fractionalerror==True:
+        ylabel = r'$\frac{d\mathcal{R}}{dM_{\mathrm{BH, 1} }}_\mathrm{fit}/\frac{d\mathcal{R}}{dM_{\mathrm{BH, 1} }}_\mathrm{sim}$'
+        fig, ax = plt.subplots(figsize = (12, 8))
+        rates = [data_rates, model_rates]
+        y_lim = (1e-3, 1e3)
+    elif (data_rates!= None) and (model_rates != None):
+        rates = [data_rates, model_rates]
+        fig, ax = plt.subplots(figsize = (20, 8), sharey=True)
+        fig.subplots_adjust(wspace=0, hspace=0)
+        fig.suptitle('all channels, $z_\mathrm{merger}$ = %s'%z_merger, fontsize = 30)
     else:
-        raise ValueError("Both only_stable =%s and only_CE=%s, set at least one to true"%(only_stable,only_CE))
-    # we exclude CHE systems
-    not_CHE  = merging_BBH['Stellar_Type@ZAMS(1)'] != 16
-    BBH_bool = np.logical_and(merging_BBH['Stellar_Type(1)'] == 14, merging_BBH['Stellar_Type(2)'] == 14)
-    merging_BBH         = merging_BBH[BBH_bool * not_CHE  * channel_bool]
-    Red_intr_rate_dens  = intrinsic_rate_density[BBH_bool* not_CHE * channel_bool, :]
-    merging_BBH_seeds =  seeds[BBH_bool * not_CHE  * channel_bool]
-
-    if plot_total_dist==True:
-        #Calculate average rate density per z-bin
-        x_vals              = merging_BBH['M_moreMassive']
-        i_redshift = np.where(redshifts == z_merger)[0][0] # Rate at redshift 0.2
-        Weights             = Red_intr_rate_dens[:, i_redshift]#crude_rate_density[:,0]
-        Weights[Weights < 0] = 0
-    
-        # Get the Hist    
-        hist, bin_edge = np.histogram(x_vals, weights = Weights, bins=bins)
-
-        # And the KDE
-        kernel = stats.gaussian_kde(x_vals, bw_method='scott', weights=Weights)
-
-        x_KDE = np.arange(0.1,50.,0.1)
-        KDEy_vals =  kernel(x_KDE)*sum(hist) #re-normalize the KDE
-        #ax.plot(x_KDE, KDEy_vals, color='black', lw=2, ls = '-', zorder=0, label='total')
-        ax.fill_between(x_KDE, x_KDE*0, KDEy_vals, alpha=0.1,color='gray',zorder=0)
-
-    #read in formation redshift and metallicity for all binaries
-    with h5.File(data_dir + '/' + COMPASpath ,'r') as File:
-            metallicities_compas = File['BSE_Double_Compact_Objects']['Metallicity@ZAMS(1)'][()] #same metallicity for both stars
-            COMPAS_delay_times = File['BSE_Double_Compact_Objects']['Coalescence_Time'][()]#Myr
-            time = File['BSE_Double_Compact_Objects']['Time'][()] #Myr
-            seeds_compas = File['BSE_Double_Compact_Objects']['SEED'][()]
-
-    #filter formation redshift and metallicity by the seeds we want
-    mask_merging_DCOs = np.isin(seeds_compas, merging_BBH_seeds)
-    seeds_DCOs = seeds_compas[mask_merging_DCOs]
-
-    metallicities_compas = metallicities_compas[mask_merging_DCOs]
-    COMPAS_delay_times = COMPAS_delay_times[mask_merging_DCOs]
-    time = time[mask_merging_DCOs]
-
-    #from fastcosmicintegration, need to calculate merger rate and redshift
-    redshifts = np.arange(0, max_redshift + redshift_step, redshift_step)
-    times = cosmo.age(redshifts).to(u.Myr).value
-    times_to_redshifts = interp1d(times, redshifts)
-    age_first_sfr = cosmo.age(z_first_SF).to(u.Myr).value
-
-    age_merger = cosmo.age(z_merger).to(u.Myr).value
-    age_of_formation = age_merger - COMPAS_delay_times
-    age_of_formation_mask = (age_of_formation >= age_first_sfr) #remove binaries that cannot merge at z=0.2 (too long delay time)
-    age_of_formation_masked = age_of_formation[age_of_formation_mask]
-    z_of_formation = times_to_redshifts(age_of_formation_masked)
-
-    #remove all binaries that cannot merge at z=0.2
-    seeds_DCOs = seeds_DCOs[age_of_formation_mask]
-    metallicities_compas = metallicities_compas[age_of_formation_mask]
-    merging_BBH_seeds = merging_BBH_seeds[age_of_formation_mask]
-    merging_BBH = merging_BBH[age_of_formation_mask]
-    Red_intr_rate_dens = Red_intr_rate_dens[age_of_formation_mask]
-
-    for i, redshift_form in enumerate(z_form):
-        if i < len(z_form)-1:
-
-            print("Plotting formation redshift %s <= z < %s"%(redshift_form, z_form[i+1]))
-
-            #filter by formation redshift bin
-            z_mask_low = (z_of_formation >= redshift_form)
-            z_mask_high = (z_of_formation < z_form[i+1])
-            if z_form[i+1] <= z_merger:
-                print("Can't have binaries with z_formation <= z_merger, skipping redshift bin")
-                continue
-            z_mask = ((z_mask_low==True) & (z_mask_high==True))
-            z_seeds = seeds_DCOs[z_mask]
-            metallicities_compas_masked = metallicities_compas[z_mask]
-
-            z_seeds_mask = np.isin(merging_BBH_seeds, z_seeds)
-            z_seeds_DCOs = merging_BBH_seeds[z_seeds_mask]    
-
-            if len(z_seeds_DCOs) > 0:
-
-                counter=0
-                for j, metalbin in enumerate(Z_zams):
-                    if j < len(Z_zams)-1:
-                        #for each metallicity, plot mass distribution
-                        #to do this, filter data by metallicity at ZAMS
-                        print("Plotting metallicity bin %s <= Z < %s"%(metalbin, Z_zams[j+1]))
-
-                        #create mask for Z bin
-                        Z_mask_low = (metallicities_compas_masked <= metalbin)
-                        Z_mask_high = (metallicities_compas_masked > Z_zams[j+1])
-                        Z_mask = ((Z_mask_low==True) & (Z_mask_high==True))
-                        Z_seeds = z_seeds[Z_mask]
-
-                        Z_seeds_mask = np.isin(seeds_DCOs, Z_seeds)
-                        merging_BBH_masked = merging_BBH[Z_seeds_mask]
-                        Red_intr_rate_dens_masked = Red_intr_rate_dens[Z_seeds_mask]
-
-                        #Calculate average rate density per z-bin at the merger redshift
-                        x_vals  = merging_BBH_masked['M_moreMassive']
-                        i_redshift = np.where(redshifts == z_merger)[0][0] # Rate at redshift of merger
-                        Weights = Red_intr_rate_dens_masked[:, i_redshift]#crude_rate_density[:,0]
-                        Weights[Weights < 0] = 0
-                        if np.sum(Weights) == 0:
-                            print("No binaries merging at z=%s in metallicity bin %s <= Z < %s"%(z_merger, Z_zams[j+1], metalbin))
-                            continue
-
-                        # Get the Hist    
-                        hist, bin_edge = np.histogram(x_vals, weights = Weights, bins=bins)
-
-                        # And the KDE
-                        try: kernel = stats.gaussian_kde(x_vals, bw_method='scott', weights=Weights)
-                        except ValueError: continue
-    
-                        x_KDE = np.arange(0.1,50.,0.1)
-                        KDEy_vals =  kernel(x_KDE)*sum(hist) #re-normalize the KDE
-                        if counter == 0:
-                            ax.plot(x_KDE, KDEy_vals, label = r'%s $\leq z_{form} <$ %s'%(redshift_form, z_form[i+1]), color = colors[i], lw= 3, ls = linestyles2[j])
-                        else:
-                            ax.plot(x_KDE, KDEy_vals, color = colors[i], lw= 3, ls = linestyles2[j])
-                        counter+=1
-
-            else:
-                print("No binaries in redshift bin %s <= z < %s"%(redshift_form, z_form[i+1]))
-                continue
-
-    #########################################
-    # plot values
-    ax.set_xlim(x_lim)
-    ax.set_ylim(y_lim)
-    ax.tick_params(axis='both', which='major', labelsize=25)
-    ax.tick_params(length=15, width=3, which='major')
-    ax.tick_params(length=10, width=2, which='minor')
-    ax.xaxis.set_minor_locator(ticker.MultipleLocator(5))
-
-    x = [-0.0001]
-    y1 = [0.0001]
-    plt.plot(x, y1, c='black', ls = '-', lw=3, label=r'$%s \leq Z < %s$'%(Z_zams[1], Z_zams[0]))
-    if len(Z_zams) >= 3:
-        plt.plot(x, y1, c='black', ls = '--', lw=3, label=r'$%s \leq Z < %s$'%(Z_zams[2], Z_zams[1],))
-        if len(Z_zams) >= 4:
-            plt.plot(x, y1, c='black', ls = ':', lw=3, label=r'$%s \leq Z < %s$'%(Z_zams[3], Z_zams[2]))
-    
-    # Channel
-    if tng==50:
-        plt.text(0.12, 0.92, 'TNG%s'%labels[0], ha = 'center', transform=ax.transAxes, size = 30)
-    elif tng==100:
-        plt.text(0.12, 0.92, 'TNG%s'%labels[1], ha = 'center', transform=ax.transAxes, size = 30)
-    elif tng==300:
-        plt.text(0.12, 0.92, 'TNG%s'%labels[2], ha = 'center', transform=ax.transAxes, size = 30)
-    
-    ax.set_xlabel(xlabel, fontsize = 30)
-    ax.set_ylabel(ylabel, fontsize = 30)
-    ax.set_yscale('log')
-    fig.legend(bbox_to_anchor=(0.91, 0.88), fontsize=18, frameon=False)
-    if data_rates==True:
-        if channel_string=='all':
+        fig, ax = plt.subplots(figsize = (12, 8))
+        if data_rates is not None:
+            rates = [data_rates]
             ax.set_title('all channels, $z_\mathrm{merger}$ = %s, TNG simulation'%z_merger, fontsize = 30)
         else:
-            ax.set_title('%s channel, $z_\mathrm{merger}$ = %s, TNG simulation'%(channel_string, z_merger), fontsize = 30)
-        fig.savefig('figures/massdist_TNG%s_%s_%s_Z_z_data.pdf'%(tng, channel_string, z_merger), format="pdf", bbox_inches='tight', dpi=300)
-    else:
-        if channel_string=='all':
+            rates = [model_rates]
             ax.set_title('all channels, $z_\mathrm{merger}$ = %s, analytical fit'%z_merger, fontsize = 30)
+
+    n=0
+    if fractionalerror==True:
+        dists = []
+    for filename in rates:
+
+        #set up subplots
+        if fractionalerror==True:
+            ax = plt.subplot(1, 1, 1)
+        elif len(rates) == 1: 
+            ax = plt.subplot(1, 1, 1)
+        elif len(rates) == 2:
+            ax = plt.subplot(1, 2, n + 1)
+
+        #Reading Rate data 
+        with h5.File(data_dir + '/' + filename ,'r') as File:
+            redshifts = File[list(File.keys())[0]]['redshifts'][()]
+            DCO_mask = File[list(File.keys())[0]]['DCOmask'][()] # Mask from DCO to merging systems  
+            intrinsic_rate_density = File[list(File.keys())[0]]['merger_rate'][()]
+            seeds = File[list(File.keys())[0]]['SEED'][()]
+            #print(list(File[list(File.keys())[0]].keys()))
+
+        CEcount = 'CE_Event_Counter'
+        #first bring it to the same shape as the rate table
+        merging_BBH    = DCO[DCO_mask]
+        #apply the additional mask based on your prefs
+        if np.logical_and(only_stable, only_CE):
+            print("Both only_stable and only_CE, I assume you just want both")
+            channel_bool = np.full(len(merging_BBH), True)
+        elif only_stable:
+            channel_bool = merging_BBH[CEcount] == 0
+        elif only_CE:
+            channel_bool = merging_BBH[CEcount] > 0
         else:
-            ax.set_title('%s channel, $z_\mathrm{merger}$ = %s, analytical fit'%(channel_string, z_merger), fontsize = 30)
-        fig.savefig('figures/massdist_TNG%s_%s_%s_Z_z.pdf'%(tng, channel_string, z_merger), format="pdf", bbox_inches='tight', dpi=300)
+            raise ValueError("Both only_stable =%s and only_CE=%s, set at least one to true"%(only_stable,only_CE))
+        # we exclude CHE systems
+        not_CHE  = merging_BBH['Stellar_Type@ZAMS(1)'] != 16
+        BBH_bool = np.logical_and(merging_BBH['Stellar_Type(1)'] == 14, merging_BBH['Stellar_Type(2)'] == 14)
+        merging_BBH         = merging_BBH[BBH_bool * not_CHE  * channel_bool]
+        Red_intr_rate_dens  = intrinsic_rate_density[BBH_bool* not_CHE * channel_bool, :]
+        merging_BBH_seeds =  seeds[BBH_bool * not_CHE  * channel_bool]
+
+        if plot_total_dist==True:
+            #Calculate average rate density per z-bin
+            x_vals              = merging_BBH['M_moreMassive']
+            i_redshift = np.where(redshifts == z_merger)[0][0] # Rate at redshift 0.2
+            Weights             = Red_intr_rate_dens[:, i_redshift]#crude_rate_density[:,0]
+            Weights[Weights < 0] = 0
+    
+            # Get the Hist    
+            hist, bin_edge = np.histogram(x_vals, weights = Weights, bins=bins)
+
+            # And the KDE
+            kernel = stats.gaussian_kde(x_vals, bw_method='scott', weights=Weights)
+
+            x_KDE = np.arange(0.1,50.,0.1)
+            KDEy_vals =  kernel(x_KDE)*sum(hist) #re-normalize the KDE
+            #ax.plot(x_KDE, KDEy_vals, color='black', lw=2, ls = '-', zorder=0, label='total')
+            ax.fill_between(x_KDE, x_KDE*0, KDEy_vals, alpha=0.1,color='gray',zorder=0)
+
+        #read in formation redshift and metallicity for all binaries
+        with h5.File(data_dir + '/' + COMPASpath ,'r') as File:
+                metallicities_compas = File['BSE_Double_Compact_Objects']['Metallicity@ZAMS(1)'][()] #same metallicity for both stars
+                COMPAS_delay_times = File['BSE_Double_Compact_Objects']['Coalescence_Time'][()]#Myr
+                time = File['BSE_Double_Compact_Objects']['Time'][()] #Myr
+                seeds_compas = File['BSE_Double_Compact_Objects']['SEED'][()]
+
+        #filter formation redshift and metallicity by the seeds we want
+        mask_merging_DCOs = np.isin(seeds_compas, merging_BBH_seeds)
+        seeds_DCOs = seeds_compas[mask_merging_DCOs]
+
+        metallicities_compas = metallicities_compas[mask_merging_DCOs]
+        COMPAS_delay_times = COMPAS_delay_times[mask_merging_DCOs]
+        time = time[mask_merging_DCOs]
+
+        #from fastcosmicintegration, need to calculate merger rate and redshift
+        redshifts = np.arange(0, max_redshift + redshift_step, redshift_step)
+        times = cosmo.age(redshifts).to(u.Myr).value
+        times_to_redshifts = interp1d(times, redshifts)
+        age_first_sfr = cosmo.age(z_first_SF).to(u.Myr).value
+
+        age_merger = cosmo.age(z_merger).to(u.Myr).value
+        age_of_formation = age_merger - COMPAS_delay_times
+        age_of_formation_mask = (age_of_formation >= age_first_sfr) #remove binaries that cannot merge at z=0.2 (too long delay time)
+        age_of_formation_masked = age_of_formation[age_of_formation_mask]
+        z_of_formation = times_to_redshifts(age_of_formation_masked)
+
+        #remove all binaries that cannot merge at z=0.2
+        seeds_DCOs = seeds_DCOs[age_of_formation_mask]
+        metallicities_compas = metallicities_compas[age_of_formation_mask]
+        merging_BBH_seeds = merging_BBH_seeds[age_of_formation_mask]
+        merging_BBH = merging_BBH[age_of_formation_mask]
+        Red_intr_rate_dens = Red_intr_rate_dens[age_of_formation_mask]
+
+        for i, redshift_form in enumerate(z_form):
+            if i < len(z_form)-1:
+
+                print("Plotting formation redshift %s <= z < %s"%(redshift_form, z_form[i+1]))
+
+                #filter by formation redshift bin
+                z_mask_low = (z_of_formation >= redshift_form)
+                z_mask_high = (z_of_formation < z_form[i+1])
+                if z_form[i+1] <= z_merger:
+                    print("Can't have binaries with z_formation <= z_merger, skipping redshift bin")
+                    continue
+                z_mask = ((z_mask_low==True) & (z_mask_high==True))
+                z_seeds = seeds_DCOs[z_mask]
+                metallicities_compas_masked = metallicities_compas[z_mask]
+
+                z_seeds_mask = np.isin(merging_BBH_seeds, z_seeds)
+                z_seeds_DCOs = merging_BBH_seeds[z_seeds_mask]    
+
+                if len(z_seeds_DCOs) > 0:
+                    
+                    counter=0
+                    if fractionalerror==True:
+                        data_dists = []
+                    for j, metalbin in enumerate(Z_zams):
+                        if j < len(Z_zams)-1:
+                            #for each metallicity, plot mass distribution
+                            #to do this, filter data by metallicity at ZAMS
+                            print("Plotting metallicity bin %s <= Z < %s"%(metalbin, Z_zams[j+1]))
+
+                            #create mask for Z bin
+                            Z_mask_low = (metallicities_compas_masked <= metalbin)
+                            Z_mask_high = (metallicities_compas_masked > Z_zams[j+1])
+                            Z_mask = ((Z_mask_low==True) & (Z_mask_high==True))
+                            Z_seeds = z_seeds[Z_mask]
+
+                            Z_seeds_mask = np.isin(seeds_DCOs, Z_seeds)
+                            merging_BBH_masked = merging_BBH[Z_seeds_mask]
+                            Red_intr_rate_dens_masked = Red_intr_rate_dens[Z_seeds_mask]
+
+                            #Calculate average rate density per z-bin at the merger redshift
+                            x_vals  = merging_BBH_masked['M_moreMassive']
+                            i_redshift = np.where(redshifts == z_merger)[0][0] # Rate at redshift of merger
+                            Weights = Red_intr_rate_dens_masked[:, i_redshift]#crude_rate_density[:,0]
+                            Weights[Weights < 0] = 0
+                            if np.sum(Weights) == 0:
+                                print("No binaries merging at z=%s in metallicity bin %s <= Z < %s"%(z_merger, Z_zams[j+1], metalbin))
+                                continue
+
+                            # Get the Hist    
+                            hist, bin_edge = np.histogram(x_vals, weights = Weights, bins=bins)
+
+                            # And the KDE
+                            try: kernel = stats.gaussian_kde(x_vals, bw_method='scott', weights=Weights)
+                            except ValueError: continue
+    
+                            x_KDE = np.arange(0.1,50.,0.1)
+                            KDEy_vals =  kernel(x_KDE)*sum(hist) #re-normalize the KDE
+                            if fractionalerror==False:
+                                if (counter == 0) and (n==0):
+                                    ax.plot(x_KDE, KDEy_vals, label = r'%s $\leq z_{form} <$ %s'%(redshift_form, z_form[i+1]), color = colors[i], lw= 3, ls = linestyles2[j])
+                                else:
+                                    ax.plot(x_KDE, KDEy_vals, color = colors[i], lw= 3, ls = linestyles2[j])
+                            else:
+                                if n==0:
+                                    data_dists.append(KDEy_vals)
+                                else:
+                                    if (counter == 0):
+                                        ax.plot(x_KDE, KDEy_vals/dists[i][j], label = r'%s $\leq z_{form} <$ %s'%(redshift_form, z_form[i+1]), color = colors[i], lw= 3, ls = linestyles2[j])
+                                    else:
+                                        ax.plot(x_KDE, KDEy_vals/dists[i][j], color = colors[i], lw= 3, ls = linestyles2[j])
+                            counter+=1
+                    
+                    if fractionalerror==True:
+                        dists.append(data_dists)      
+
+                else:
+                    print("No binaries in redshift bin %s <= z < %s"%(redshift_form, z_form[i+1]))
+                    continue
+
+        #########################################
+        # plot values
+        ax.set_xlim(x_lim)
+        ax.set_ylim(y_lim)
+        ax.tick_params(axis='both', which='major', labelsize=25)
+        ax.tick_params(length=15, width=3, which='major')
+        ax.tick_params(length=10, width=2, which='minor')
+        ax.xaxis.set_minor_locator(ticker.MultipleLocator(5))
+        if fractionalerror==True:
+            ax.axhline(y=1, linewidth=1, color='gray', zorder=0)
+
+        if n==0:
+            x = [-0.0001]
+            y1 = [0.0001]
+            ax.plot(x, y1, c='black', ls = '-', lw=3, label=r'$%s \leq Z < %s$'%(Z_zams[1], Z_zams[0]))
+            if len(Z_zams) >= 3:
+                ax.plot(x, y1, c='black', ls = '--', lw=3, label=r'$%s \leq Z < %s$'%(Z_zams[2], Z_zams[1],))
+                if len(Z_zams) >= 4:
+                    ax.plot(x, y1, c='black', ls = ':', lw=3, label=r'$%s \leq Z < %s$'%(Z_zams[3], Z_zams[2]))
+    
+            # Channel
+            if tng==50:
+                ax.text(0.13, 0.92, 'TNG%s'%labels[0], ha = 'center', transform=ax.transAxes, size = 30)
+            elif tng==100:
+                ax.text(0.13, 0.92, 'TNG%s'%labels[1], ha = 'center', transform=ax.transAxes, size = 30)
+            elif tng==300:
+                ax.text(0.13, 0.92, 'TNG%s'%labels[2], ha = 'center', transform=ax.transAxes, size = 30)
+
+            xticklabels = ax.get_xticklabels()
+            xticklabels[-1] = ''
+            ax.set_xticklabels(xticklabels)
+        
+        if (fractionalerror==False) and (len(rates)==2):
+            if n==0:
+                ax.set_title('TNG simulation', fontsize = 30)
+            if n==1:
+                ax.set_title('Analytical fit', fontsize = 30)
+                ax.tick_params(axis='both',  which='both', labelleft=False)
+    
+        ax.set_xlabel(xlabel, fontsize = 30)
+        if n == 0:
+            ax.set_ylabel(ylabel, fontsize = 30)
+        ax.set_yscale('log')
+
+        n+=1 
+    
+    if len(rates) == 1:
+        fig.legend(bbox_to_anchor=(0.91, 0.88), fontsize=18, frameon=False)
+        if data_rates is not None:
+            if channel_string=='all':
+                ax.set_title('all channels, $z_\mathrm{merger}$ = %s, TNG simulation'%z_merger, fontsize = 30)
+            else:
+                ax.set_title('%s channel, $z_\mathrm{merger}$ = %s, TNG simulation'%(channel_string, z_merger), fontsize = 30)
+            fig.savefig('figures/massdist_TNG%s_%s_%s_Z_z_data.pdf'%(tng, channel_string, z_merger), format="pdf", bbox_inches='tight', dpi=300)
+        else:
+            if channel_string=='all':
+                ax.set_title('all channels, $z_\mathrm{merger}$ = %s, analytical fit'%z_merger, fontsize = 30)
+            else:
+                ax.set_title('%s channel, $z_\mathrm{merger}$ = %s, analytical fit'%(channel_string, z_merger), fontsize = 30)
+            fig.savefig('figures/massdist_TNG%s_%s_%s_Z_z.pdf'%(tng, channel_string, z_merger), format="pdf", bbox_inches='tight', dpi=300)
+    elif fractionalerror==True:
+        fig.legend(bbox_to_anchor=(0.62, 0.32), fontsize=18, frameon=False, ncol=2)
+        ax.set_title('all channels, $z_\mathrm{merger}$ = %s'%z_merger, fontsize = 30)
+        fig.savefig('figures/massdist_TNG%s_%s_%s_Z_z_fractionalerr.pdf'%(tng, channel_string, z_merger), format="pdf", bbox_inches='tight', dpi=300)
+    else:
+        fig.legend(bbox_to_anchor=(0.91, 0.88), fontsize=18, frameon=False)
+        fig.savefig('figures/massdist_TNG%s_%s_%s_Z_z_both.pdf'%(tng, channel_string, z_merger), format="pdf", bbox_inches='tight', dpi=300)
 
     if showplot==True:
         plt.show()
@@ -1816,10 +1887,10 @@ if __name__ == "__main__":
 
     filenames = ['SFRMetallicityFromGasWithMetalsTNG50-1.hdf5', 'SFRMetallicityFromGasWithMetalsTNG100-1.hdf5', 'SFRMetallicityFromGasWithMetalsTNG300-1.hdf5',
                  'SFRMetallicityFromGasTNG100-2.hdf5', 'SFRMetallicityFromGasTNG50-2.hdf5', 'SFRMetallicityFromGasTNG50-3.hdf5'] 
-    fit_param_files = ['test_best_fit_parameters_TNG50-1_TEST.txt', 'test_best_fit_parameters_TNG100-1_TEST.txt', 'test_best_fit_parameters_TNG300-1_TEST.txt']
+    fit_param_files = ['test_best_fit_parameters_TNG50-1.txt', 'test_best_fit_parameters_TNG100-1.txt', 'test_best_fit_parameters_TNG300-1.txt']
     fit_param_files_data = ['test_best_fit_parameters_TNG50-1.txt', 'test_best_fit_parameters_TNG100-1.txt', 'test_best_fit_parameters_TNG300-1.txt']
-    rates = ['TEST_Rate_info_TNG50-1.h5', 'TEST_Rate_info_TNG100-1.h5', 'TEST_Rate_info_TNG300-1.h5']
-    model_rates = ['TEST_Rate_info_TNG50-1.h5', 'TEST_Rate_info_TNG100-1.h5', 'TEST_Rate_info_TNG300-1.h5']
+    #rates = ['Rate_info_TNG50-1.h5', 'Rate_info_TNG100-1.h5', 'Rate_info_TNG300-1.h5']
+    model_rates = ['Rate_info_TNG50-1.h5', 'Rate_info_TNG100-1.h5', 'Rate_info_TNG300-1.h5']
     data_rates = ['data_Rate_info_TNG50-1.h5', 'data_Rate_info_TNG100-1.h5', 'data_Rate_info_TNG300-1.h5']
 
     #Plot setup
@@ -1854,16 +1925,16 @@ if __name__ == "__main__":
     #residuals_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, ylim = [1e-1, 1e5], plot_merger_rates=True, showplot=True)
 
     #plot_BBH_mass_dist_over_z_allTNGs(model_rates, fit_param_vals, tngs=[50, 100, 300], z = [8, 7, 6, 5, 4, 3, 2, 1, 0.5, 0.2], showplot=False)
-    #compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=False)
+    compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True)
     
     #compare_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_vals, only_stable = True, only_CE = True, channel_string='all', z = 0.2, showplot=True)
 
-    residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True)
+    #residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True)
     
     #plot_BBH_mass_dist_formation_channels(data_rates[1], model_rates[1], 100, 1, z = [8, 7, 6, 5, 4, 3, 2, 1, 0.5, 0.2], showplot=True)
 
-    #plot_BBH_mass_Z_z(data_rates[1], COMPASfilename, tng=100, z_form = [0.2, 0.5, 1, 2, 6, 10], Z_zams = [0.1, 0.01, 0.001, 0.0001], 
-    #              data_rates=True, only_stable = True, only_CE = True, channel_string='all',  z_merger=0.2, showplot=True)
+    #plot_BBH_mass_Z_z(COMPASfilename, tng=100, data_rates=data_rates[1], model_rates=model_rates[1], z_form = [0.2, 0.5, 1, 2, 6, 10], Z_zams = [0.03, 0.01, 0.001, 0.0001], 
+    #              only_stable = True, only_CE = True, channel_string='all',  z_merger=0.2, showplot=True, fractionalerror=False, plot_total_dist=True)
     """
     plot_BBH_mass_Z_z(model_rates[0], COMPASfilename, [fit_param_vals[0]], tng=50, data_rates=False, only_stable = True, only_CE = False, channel_string='stable',  
                       z_merger=0.2, z_form = [4, 8, 12, 14], Z_zams = [0.0001, 0.001, 0.01, 0.1], showplot=True)
