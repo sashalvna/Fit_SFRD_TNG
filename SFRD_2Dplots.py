@@ -190,7 +190,7 @@ def SFRDplot_2D(metals, Lookbacktimes, SFRD, tngs=[], ver=[], model=None, xlim=[
 
 
 def SFRD_2Dplot_sidepanels(metals, Redshifts, Lookbacktimes, SFRD, step_fit_logZ, tng=[], ver=[], model=None, xlim=[], ylim=[10**-1, 10**1], levels = [], 
-                           nlevels=20, plottype='data', plotredshift=True, plotregions=False, showplot=True):
+                           nlevels=20, plottype='data', plotredshift=True, plotregions=False, showplot=True, transparent=False):
 
     """
     plottype (str): type of BBH 2D plot, options: 'data', 'percenterr'
@@ -307,7 +307,7 @@ def SFRD_2Dplot_sidepanels(metals, Redshifts, Lookbacktimes, SFRD, step_fit_logZ
     if plotredshift == True:
         ax.set_xlabel('Redshift', y=0.04, fontsize=35)
     else:
-        ax.set_xlabel('Lookbacktime [Gyr]', y=0.04, fontsize=35)
+        ax.set_xlabel('Lookback time [Gyr]', y=0.04, fontsize=35)
     ax.text(0.02, 0.02, "TNG%s-%s"%(tng, ver), transform=ax.transAxes, fontsize=35, color='white')
     ax.set_ylabel(r'$Z/Z_{\rm{\odot}}$', x=0.03, fontsize=35)
     ax.tick_params(axis='both', which='major', labelsize=23)
@@ -375,38 +375,38 @@ def SFRD_2Dplot_sidepanels(metals, Redshifts, Lookbacktimes, SFRD, step_fit_logZ
         if plotredshift==False:
             if plotregions==False:
                 cbar.set_label(r'$\mathcal{S}(Z, z) \ [\rm M_{\odot} \ yr^{-1} \ Mpc^{-3}]$', rotation=270, fontsize=35, labelpad=40);
-                fig.savefig('figures/SFRD_Z_z_TNG%s_%s_sidepanels.pdf'%(tng, ver), bbox_inches='tight', dpi=300)
+                fig.savefig('figures/SFRD_Z_z_TNG%s_%s_sidepanels.pdf'%(tng, ver), bbox_inches='tight', dpi=300, transparent=transparent)
             else:
                 cbar.set_label(r'$\mathcal{S}(Z, z) \ [\rm M_{\odot} \ yr^{-1} \ Mpc^{-3}]$', rotation=270, fontsize=35, labelpad=40);
-                fig.savefig('figures/SFRD_Z_z_TNG%s_%s_sidepanels_regions.pdf'%(tng, ver), bbox_inches='tight', dpi=300)
+                fig.savefig('figures/SFRD_Z_z_TNG%s_%s_sidepanels_regions.pdf'%(tng, ver), bbox_inches='tight', dpi=300, transparent=transparent)
         else:
             if plotregions==False:
                 cbar.set_label(r'$\mathcal{S}(Z, z) \ [\rm M_{\odot} \ yr^{-1} \ Mpc^{-3}]$', rotation=270, fontsize=35, labelpad=40);
-                fig.savefig('figures/SFRD_Z_z_TNG%s_redshift_sidepanels.png'%tng, bbox_inches='tight', dpi=300)
+                fig.savefig('figures/SFRD_Z_z_TNG%s_redshift_sidepanels.png'%tng, bbox_inches='tight', dpi=300, transparent=transparent)
             else:
                 cbar.set_label(r'$\mathcal{S}(Z, z) \ [\rm M_{\odot} \ yr^{-1} \ Mpc^{-3}]$', rotation=270, fontsize=35, labelpad=40);
-                fig.savefig('figures/SFRD_Z_z_TNG%s_redshift_sidepanels_regions.pdf'%tng, bbox_inches='tight', dpi=300)
+                fig.savefig('figures/SFRD_Z_z_TNG%s_redshift_sidepanels_regions.pdf'%tng, bbox_inches='tight', dpi=300, transparent=transparent)
     elif plottype=='percenterr':
         if plotredshift==False:
             if plotregions==False:
                 cbar.set_label(r'$\frac{\mathcal{S}(Z_{\rm{i}},z)_\mathrm{sim} - \mathcal{S}(Z_{\rm{i}},z)_\mathrm{model}}{\mathcal{S}(Z_{\rm{i}},z)_\mathrm{model}}$, TNG%s-%s simulation'%(tng, ver), rotation=270, fontsize=30, labelpad=50);
-                fig.savefig('figures/SFRD_Z_z_TNG%s_%s_percenterr_sidepanels.png'%(tng, ver), bbox_inches='tight')
+                fig.savefig('figures/SFRD_Z_z_TNG%s_%s_percenterr_sidepanels.png'%(tng, ver), bbox_inches='tight', transparent=transparent)
             else:
                 cbar.set_label(r'$\frac{\mathcal{S}(Z_{\rm{i}},z)_\mathrm{sim} - \mathcal{S}(Z_{\rm{i}},z)_\mathrm{model}}{\mathcal{S}(Z_{\rm{i}},z)_\mathrm{model}}$, TNG%s-%s simulation'%(tng, ver), rotation=270, fontsize=30, labelpad=50);
-                fig.savefig('figures/SFRD_Z_z_TNG%s_%s_percenterr_sidepanels_regions.png'%(tng, ver), bbox_inches='tight')
+                fig.savefig('figures/SFRD_Z_z_TNG%s_%s_percenterr_sidepanels_regions.png'%(tng, ver), bbox_inches='tight', transparent=transparent)
         else:
             if plotregions==False:
                 cbar.set_label(r'$\frac{\mathcal{S}(Z_{\rm{i}},z)_\mathrm{sim} - \mathcal{S}(Z_{\rm{i}},z)_\mathrm{model}}{\mathcal{S}(Z_{\rm{i}},z)_\mathrm{model}}$, TNG%s'%tng, rotation=270, fontsize=30, labelpad=50);
-                fig.savefig('figures/SFRD_Z_z_TNG%s_percenterr_redshift_sidepanels.png'%tng, bbox_inches='tight', dpi=300)
+                fig.savefig('figures/SFRD_Z_z_TNG%s_percenterr_redshift_sidepanels.png'%tng, bbox_inches='tight', dpi=300, transparent=transparent)
             else:
                 cbar.set_label(r'$\frac{\mathcal{S}(Z_{\rm{i}},z)_\mathrm{sim} - \mathcal{S}(Z_{\rm{i}},z)_\mathrm{model}}{\mathcal{S}(Z_{\rm{i}},z)_\mathrm{model}}$, TNG%s'%tng, rotation=270, fontsize=30, labelpad=50);
-                fig.savefig('figures/SFRD_Z_z_TNG%s_percenterr_redshift_sidepanels_regions.png'%tng, bbox_inches='tight', dpi=300)
+                fig.savefig('figures/SFRD_Z_z_TNG%s_percenterr_redshift_sidepanels_regions.png'%tng, bbox_inches='tight', dpi=300, transparent=transparent)
     
     if showplot==True:
         plt.show()
 
 def dPdlogZ_plot(metals, Redshifts, Lookbacktimes, sfrd, step_fit_logZ, tng=[], ver=[], xlim=[], ylim=[10**-1, 10**1], levels = [], 
-                           dPdlogZ_model=[], nlevels=20, plottype='data', plotredshift=True, showplot=True):
+                           dPdlogZ_model=[], nlevels=20, plottype='data', plotredshift=True, showplot=True, transparent=False):
 
     """
     plottype (str): type of BBH 2D plot, options: 'data', 'percenterr'
@@ -527,7 +527,7 @@ def dPdlogZ_plot(metals, Redshifts, Lookbacktimes, sfrd, step_fit_logZ, tng=[], 
 
     #Set the colorbar labels and save the plot
     cbar.set_label(r'$\mathrm{SFRD}$', rotation=270, fontsize=35, labelpad=40);
-    fig.savefig('figures/sfrd_TNG%s_%s.pdf'%(tng, ver), bbox_inches='tight', dpi=300)
+    fig.savefig('figures/sfrd_TNG%s_%s.pdf'%(tng, ver), bbox_inches='tight', dpi=300, transparent=transparent)
           
     if showplot==True:
         plt.show()
@@ -535,8 +535,8 @@ def dPdlogZ_plot(metals, Redshifts, Lookbacktimes, sfrd, step_fit_logZ, tng=[], 
 
 if __name__ == "__main__":
     #Change file names to match TNG version <- turn these into arguments
-    tngs=[50, 100, 300, 100] 
-    vers = [1, 1, 1, 2]
+    tngs=[50, 100, 300] 
+    vers = [1, 1, 1]
     Zsun = 0.014 #Solar metallicity
 
     #Read the TNG data and interpolate it
@@ -586,9 +586,11 @@ if __name__ == "__main__":
         sfrs.append(sfr.to(u.Msun/u.yr/u.Gpc**3))
 
 
-    #SFRDplot_2D(metalsTNG, LookbacktimesTNG, SFRDsTNG, tngs, vers, ylim=[10**-4, 50], nlevels=17, model=models, plottype='percenterr', plotregions=True)
-    SFRD_2Dplot_sidepanels(metalsTNG[1], redshiftsTNG[1], LookbacktimesTNG[1], SFRDsTNG[1], step_fit_logZ_TNG[1], tngs[1], vers[1], nlevels=30, model=models[1], ylim=[1e-4, 10], plottype='data', plotredshift=False, plotregions=True)
-    #dPdlogZ_plot(metalsTNG[1], redshiftsTNG[1], LookbacktimesTNG[1], sfrs[1], step_fit_logZ_TNG[1], tngs[1], vers[1], nlevels=30, dPdlogZ_model=dPdlogZs[1], ylim=[4e-5, 1], plotredshift=True)
+    for i in range(len(tngs)):
+        #SFRDplot_2D(metalsTNG, LookbacktimesTNG, SFRDsTNG, tngs, vers, ylim=[10**-4, 50], nlevels=17, model=models, plottype='percenterr', plotregions=True)
+        SFRD_2Dplot_sidepanels(metalsTNG[i], redshiftsTNG[i], LookbacktimesTNG[i], SFRDsTNG[i], step_fit_logZ_TNG[i], tngs[i], vers[i], nlevels=30, model=models[i], ylim=[1e-4, 10], 
+                               plottype='data', plotredshift=False, plotregions=True, transparent=True)
+        #dPdlogZ_plot(metalsTNG[1], redshiftsTNG[1], LookbacktimesTNG[1], sfrs[1], step_fit_logZ_TNG[1], tngs[1], vers[1], nlevels=30, dPdlogZ_model=dPdlogZs[1], ylim=[4e-5, 1], plotredshift=True)
 
     
 

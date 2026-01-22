@@ -66,7 +66,8 @@ def compare_params(tngs=[50, 100, 300], vers=[1, 1, 1], showplot=True):
         plt.show()
 
 
-def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], error_ylim=[], plotmodel=True, plotredshift=True, show_MD17=True, plotlogscale=False, showplot=True):
+def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], error_ylim=[], plotmodel=True, plotredshift=True, show_MD17=True, 
+                plotlogscale=False, showplot=True, transparent=False):
 
     #Get model fit parameters 
     fit_param_files = []
@@ -168,9 +169,9 @@ def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], err
             ax2.set_xlim(min(Sim_Lookbacktimes), max(Sim_Lookbacktimes))
 
         if plotmodel:
-            fig.savefig('figures/SFR_redshift_fit.pdf', format="pdf", bbox_inches='tight', dpi=300)
+            fig.savefig('figures/SFR_redshift_fit.pdf', format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
         else:
-            fig.savefig('figures/SFR_redshift.pdf', format="pdf",  bbox_inches='tight', dpi=300)
+            fig.savefig('figures/SFR_redshift.pdf', format="pdf",  bbox_inches='tight', dpi=300, transparent=transparent)
     else:
         ax.set_xlabel(r"Lookback time (Gyr)", fontsize = 35)
         
@@ -191,14 +192,14 @@ def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], err
             ax2.set_xlim(min(Sim_Lookbacktimes), max(Sim_Lookbacktimes))
 
         if plotmodel:
-            fig.savefig('figures/SFR_lookbackt_fit.pdf',  format="pdf", bbox_inches='tight', dpi=300)
+            fig.savefig('figures/SFR_lookbackt_fit.pdf',  format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
         else:
-            fig.savefig('figures/SFR_lookbackt.pdf',  format="pdf", bbox_inches='tight', dpi=300)
+            fig.savefig('figures/SFR_lookbackt.pdf',  format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
     
     if showplot==True:
         plt.show()
 
-def compare_Zdist(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], error_ylim=[], plotmodel=True, plotlogscale=False, showplot=True):
+def compare_Zdist(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], error_ylim=[], plotmodel=True, plotlogscale=False, showplot=True, transparent=False):
 
     #Get model fit parameters 
     fit_param_files = []
@@ -283,9 +284,9 @@ def compare_Zdist(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], e
         ax.set_xlim(min(Sim_center_Zbin/Zsun), max(Sim_center_Zbin/Zsun))
 
     if plotmodel:
-        fig.savefig('figures/Z_fit_avg_sfr.pdf',  format="pdf", bbox_inches='tight', dpi=300)
+        fig.savefig('figures/Z_fit_avg_sfr.pdf',  format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
     else:
-        fig.savefig('figures/Z_avg_sfr.pdf',  format="pdf", bbox_inches='tight', dpi=300)
+        fig.savefig('figures/Z_avg_sfr.pdf',  format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
     
     if showplot==True:
         plt.show()
@@ -598,8 +599,6 @@ if __name__ == "__main__":
     vers = [1, 1, 1]
     Zsun = 0.014
 
-    print(1e-4/Zsun)
-
     #data_colors = [plt.cm.GnBu(0.8), plt.cm.PuRd(0.6), plt.cm.YlGn(0.4), 'tab:red', 'tab:purple', 'tab:brown']
     #fit_colors = ['midnightblue', plt.cm.PuRd(0.9), plt.cm.YlGn(0.8), 'darkred', 'darkpurple', 'darkbrown']
     #line_colors = [plt.cm.GnBu(0.99), plt.cm.PuRd(0.7), plt.cm.YlGn(0.5), 'tab:red', 'tab:purple', 'tab:brown']
@@ -612,9 +611,9 @@ if __name__ == "__main__":
     line_styles = ['solid', 'dashed', 'dotted']
 
     #compare_params(tngs, vers)
-    compare_SFR(path, tngs, vers, plotmodel=True, plotredshift=True, xlim=[0, 14], ylim=[10**-3, 10**-0.8], error_ylim = [5e-1, 1e1], plotlogscale=True)
+    compare_SFR(path, tngs, vers, plotmodel=True, plotredshift=True, xlim=[0, 14], ylim=[10**-3, 10**-0.8], error_ylim = [5e-1, 1e1], plotlogscale=True, transparent=True)
 
-    compare_Zdist(path, tngs, vers, xlim=[10**-4, 10], ylim=[10**-3, 4], error_ylim=[1e-1, 1e3], plotmodel=True, plotlogscale=True)
+    compare_Zdist(path, tngs, vers, xlim=[10**-4, 10], ylim=[10**-3, 4], error_ylim=[1e-1, 1e3], plotmodel=True, plotlogscale=True, transparent=True)
 
     #SFR_residuals(path, tngs, vers, plotredshift=True, xlim=[0, 14], ylim=[1e-2, 1e3], plotlogscale=True, show_MD17=False)
     #Zdist_residuals(path, tngs, vers, xlim=[10**-4, 10], ylim=[1e-2, 1e3], plotlogscale=True)
