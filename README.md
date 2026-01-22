@@ -16,7 +16,7 @@ To fit the analytical model to a TNG simulation SFRD(Z, z):
 To model BBH merger population using TNG simulation or analytical fit SFRD(Z, z):
 - Run CosmicIntegration/FastCosmicIntegration-withdata.py or CosmicIntegration/FastCosmicIntegration.py
 - If using slurm:
-    - set up init_values.py
+    - Set up init_values.py
     - TNG simulation SFRD(Z, z) (as a 2D array): CallCosmicIntegration_data.py
     - Fitted SFRD(Z, z): CallCosmicIntegration_full.py
 - Returns Rate_info_TNG[version].h5
@@ -25,4 +25,5 @@ To reproduce the figures:
 Fig 1-2: compare_SFRDparams.py compare_SFR (Fig 1), compare_Zdist (Fig 2)
 Fig 3, 10: SFRD_2Dplots.py
 Fig 4-9, 11: TNG_BBHpop_properties.py
+
 
