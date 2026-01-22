@@ -22,9 +22,17 @@ To model BBH merger population using TNG simulation or analytical fit SFRD(Z, z)
 - Returns Rate_info_TNG[version].h5
 
 To reproduce the figures:
-- Fig 1-2: compare_SFRDparams.py compare_SFR (Fig 1), compare_Zdist (Fig 2)
+- Fig 1-2: compare_SFRDparams.py
+    - compare_SFR (Fig 1), compare_Zdist (Fig 2)
 - Fig 3, 10: SFRD_2Dplots.py
+    - SFRD_2Dplot_sidepanels with plotregions=False (Fig 3) and plotregions=True (Fig 10)
 - Fig 4-9, 11: TNG_BBHpop_properties.py
+    - compare_BBH_data_and_model_rates (Fig 4)
+    - plot_BBH_mass_dist_formation_channels (Fig 5)
+    - compare_BBH_data_and_model_mass_dist_over_z with plotdiff=False (Fig 6) and plotdiff=True (Fig 11)
+    - residuals_BBH_data_and_model_mass_dist (Fig 7)
+    - plot_BBH_mass_Z_z with fractionalerror=False (Fig 8) and fractionalerror=True (Fig 9)
+
 
 
 
