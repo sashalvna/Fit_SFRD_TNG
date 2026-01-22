@@ -1,4 +1,4 @@
-Model the binary black hole (BBH) merger population by obtaining the metallicity-dependent cosmic star formation rate density SFRD(Z, z) from an IllustrisTNG (https://www.tng-project.org/) cosmological simulation. The "cosmic integration" step is done using the COMPAS cosmic integration post-processing tool (https://github.com/TeamCOMPAS/COMPAS, following the framework from https://arxiv.org/pdf/1906.08136 and https://arxiv.org/pdf/2209.03385).
+Model the binary black hole (BBH) merger population by obtaining the metallicity-dependent cosmic star formation rate density SFRD(Z, z) from an IllustrisTNG (https://www.tng-project.org/) cosmological simulation. The "cosmic integration" step is done using the COMPAS cosmic integration post-processing tool (https://github.com/TeamCOMPAS/COMPAS).
 The SFRD(Z, z) can be modeled using a 2D array (obtained from a TNG simulation) or an analytical fit to this 2D array. 
 
 Required inputs: 
@@ -25,3 +25,4 @@ To reproduce the figures:
 Fig 1-2: compare_SFRDparams.py compare_SFR (Fig 1), compare_Zdist (Fig 2)
 Fig 3, 10: SFRD_2Dplots.py
 Fig 4-9, 11: TNG_BBHpop_properties.py
+
