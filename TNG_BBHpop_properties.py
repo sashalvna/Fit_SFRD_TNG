@@ -159,12 +159,12 @@ def compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, error_yl
     ax.set_xlabel('Redshift $z$', fontsize=35)
     if plot_merger_rates == True:
         ax.set_ylabel(r'$\frac{d\mathcal{R}}{dz} \ [\rm Gpc^{-3} \ yr^{-1}]$', fontsize=35)
-        ax_x.set_ylabel(r'$\frac{d\mathcal{R}}{dz}_\mathrm{fit}/\frac{d\mathcal{R}}{dz}_\mathrm{sim}$', fontsize=20)
+        ax_x.set_ylabel(r'$\frac{d\mathcal{R}}{dz}_\mathrm{fit}/\frac{d\mathcal{R}}{dz}_\mathrm{sim}$', fontsize=30)
         #fig.legend(bbox_to_anchor=(0.9, 0.88), fontsize=25, loc="upper right", frameon=False)
         fig.legend(bbox_to_anchor=(0.15, 0.1), fontsize=25, loc="lower left", frameon=False)
     else:
         ax.set_ylabel(r'Formation rate $[\rm Gpc^{-3} \ yr^{-1}]$', fontsize=35)
-        ax_x.set_ylabel(r'$\mathcal{R_\mathrmform}}(z)_\mathrm{fit}/\mathcal{R_\mathrmform}}(z)_\mathrm{sim}$', fontsize=25)
+        ax_x.set_ylabel(r'$\mathcal{R_\mathrmform}}(z)_\mathrm{fit}/\mathcal{R_\mathrmform}}(z)_\mathrm{sim}$', fontsize=30)
         fig.legend(bbox_to_anchor=(0.15, 0.1), fontsize=25, loc="lower left", frameon=False)
     ax.tick_params(axis='both', which='major', labelsize=25)
     ax.tick_params(length=15, width=3, which='major')
@@ -574,20 +574,6 @@ def plot_BBH_mass_dist_over_z_allTNGs(rates, fit_param_vals, tngs, z = [0.2, 1, 
             else:
                 ax[i, j].plot(bptp_m1, np.median(bptp_m1_pdfs, axis=0), lw=1.8, color=color_plpeak, zorder=1)
             ax[i, j].fill_between(bptp_m1, mass_1_lower, mass_1_upper, alpha=0.14,color=color_plpeak, zorder=0)
-    """
-    #Callister&Farr 2024 non-parametric fit to LVK
-    input_fname = data_dir + "ar_lnm1_q_summary.hdf"
-    with h5.File(input_fname, "r") as f:
-        m1s = f['posterior/m1s'][()]
-        dR_dlnm1s = f['posterior/dR_dlnm1s'][()]
-    for i in range(3):
-        for j in range(3):
-            if i==j==0:
-                ax[i, j].plot(m1s,np.median(dR_dlnm1s,axis=1),color='gray',lw=1.8, zorder=1, label='GWTC-3')
-            else:
-                ax[i, j].plot(m1s,np.median(dR_dlnm1s,axis=1),color='gray',lw=1.8, zorder=1)
-            ax[i,j].fill_between(m1s, np.quantile(dR_dlnm1s,0.05,axis=1), np.quantile(dR_dlnm1s,0.95,axis=1), alpha=0.14,color='gray',zorder=0)
-    """
 
     DCO = mfunc.read_data(loc = data_dir +str(COMPASfilename))
     channels = ['all', 'stable', 'CE']
@@ -1088,21 +1074,7 @@ def compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, only_st
                 else:
                     ax[i, j].plot(bptp_m1, np.median(bptp_m1_pdfs, axis=0), lw=1.8, color=color_plpeak, zorder=1)
                 ax[i, j].fill_between(bptp_m1, mass_1_lower, mass_1_upper, alpha=0.14,color=color_plpeak, zorder=0)
-    """
 
-    #Callister&Farr 2024 non-parametric fit to LVK
-    input_fname = data_dir + "ar_lnm1_q_summary.hdf"
-    with h5.File(input_fname, "r") as f:
-        m1s = f['posterior/m1s'][()]
-        dR_dlnm1s = f['posterior/dR_dlnm1s'][()]
-    for i in range(3):
-        for j in range(2):
-            if i==j==0:
-                ax[i, j].plot(m1s,np.median(dR_dlnm1s,axis=1),color='gray',lw=1.8, zorder=1, label='GWTC-3')
-            else:
-                ax[i, j].plot(m1s,np.median(dR_dlnm1s,axis=1),color='gray',lw=1.8, zorder=1)
-            ax[i,j].fill_between(m1s, np.quantile(dR_dlnm1s,0.05,axis=1), np.quantile(dR_dlnm1s,0.95,axis=1), alpha=0.14,color='gray',zorder=0)
-    """
     DCO = mfunc.read_data(loc = data_dir +str(COMPASfilename))
 
     #Loop over TNGs
@@ -1323,15 +1295,15 @@ def residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, only_stable 
     for m, redshift in enumerate(z):
         print("Plotting redshift z = ", redshift)
 
-        if m%2==0: 
+        if m < 3: 
             a1=0
-        else:
+        if m >= 3:
             a1=1
-        if m < 2:
+        if m in [0, 3]:
             a2 = 0
-        elif (m >= 2) and (m < 4):
+        elif m in [1, 4]:
             a2 = 1
-        else:
+        elif m in [2, 5]:
             a2 = 2
 
         nplot=0
@@ -1980,33 +1952,19 @@ if __name__ == "__main__":
     fit_param_vals = read_best_fits(fit_param_files)
 
     #Compare model and data merger and formation rates
-    #compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, error_ylim=[1e-2, 1e4], plot_merger_rates=True, plot_logscale=True, showplot=True, showLVK=True, transparent=True)
-
-    #residuals_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, ylim = [1e-1, 1e5], plot_merger_rates=False, showplot=True)
+    compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, error_ylim=[1e-2, 1e4], plot_merger_rates=True, plot_logscale=True, showplot=True, showLVK=True, transparent=True)
     #residuals_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, ylim = [1e-1, 1e5], plot_merger_rates=True, showplot=True)
 
     #plot_BBH_mass_dist_over_z_allTNGs(model_rates, fit_param_vals, tngs=[50, 100, 300], z = [8, 7, 6, 5, 4, 3, 2, 1, 0.5, 0.2], showplot=False)
-    
+
+    plot_BBH_mass_dist_formation_channels(data_rates[1], model_rates[1], 100, 1, z = [8, 7, 6, 5, 4, 3, 2, 1, 0.5, 0.2], showplot=True, transparent=True)
+
+    compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True, transparent=True, plotdiff=False)
     compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True, transparent=True, plotdiff=True)
     #compare_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_vals, only_stable = True, only_CE = True, channel_string='all', z = 0.2, showplot=True, transparent=True)
-
-    #residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True)
+    residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True)
     
-    #plot_BBH_mass_dist_formation_channels(data_rates[1], model_rates[1], 100, 1, z = [8, 7, 6, 5, 4, 3, 2, 1, 0.5, 0.2], showplot=True, transparent=True)
+    plot_BBH_mass_Z_z(COMPASfilename, tng=100, data_rates=data_rates[1], model_rates=model_rates[1], z_form = [0.2, 0.5, 1, 2, 6, 10], Z_zams = [0.03, 0.01, 0.001, 0.0001], 
+                  only_stable = True, only_CE = True, channel_string='all',  z_merger=0.2, showplot=True, fractionalerror=False, plot_total_dist=True, transparent=True)
 
-    #plot_BBH_mass_Z_z(COMPASfilename, tng=100, data_rates=data_rates[1], model_rates=model_rates[1], z_form = [0.2, 0.5, 1, 2, 6, 10], Z_zams = [0.03, 0.01, 0.001, 0.0001], 
-    #              only_stable = True, only_CE = True, channel_string='all',  z_merger=0.2, showplot=True, fractionalerror=False, plot_total_dist=True, transparent=True)
-    """
-    plot_BBH_mass_Z_z(model_rates[0], COMPASfilename, [fit_param_vals[0]], tng=50, data_rates=False, only_stable = True, only_CE = False, channel_string='stable',  
-                      z_merger=0.2, z_form = [4, 8, 12, 14], Z_zams = [0.0001, 0.001, 0.01, 0.1], showplot=True)
-    plot_BBH_mass_Z_z(model_rates[0], COMPASfilename, [fit_param_vals[0]], tng=50, data_rates=False, only_stable = False, only_CE = True, channel_string='CE',  
-                      z_merger=0.2, z_form = [4, 8, 12, 14], Z_zams = [0.0001, 0.001, 0.01, 0.1], showplot=True)
-    plot_BBH_mass_Z_z(data_rates[0], COMPASfilename, [fit_param_vals[0]], tng=50, data_rates=True, only_stable = True, only_CE = True, channel_string='all',  
-                      z_merger=0.2, z_form = [4, 8, 12, 14], Z_zams = [0.0001, 0.001, 0.01, 0.1], showplot=True)
-    plot_BBH_mass_Z_z(data_rates[0], COMPASfilename, [fit_param_vals[0]], tng=50, data_rates=True, only_stable = True, only_CE = False, channel_string='stable',  
-                      z_merger=0.2, z_form = [4, 8, 12, 14], Z_zams = [0.0001, 0.001, 0.01, 0.1], showplot=True)
-    plot_BBH_mass_Z_z(data_rates[0], COMPASfilename, [fit_param_vals[0]], tng=50, data_rates=True, only_stable = False, only_CE = True, channel_string='CE',  
-                      z_merger=0.2, z_form = [4, 8, 12, 14], Z_zams = [0.0001, 0.001, 0.01, 0.1], showplot=True)
-    """
-
-   #plot_BBH_rate_Z_z(data_rates[0], COMPASfilename, tng=50, xlim=[], ylim=[], nlevels=30, z_formation=False, plotredshift=True, showplot=True)
+    #plot_BBH_rate_Z_z(data_rates[0], COMPASfilename, tng=50, xlim=[], ylim=[], nlevels=30, z_formation=False, plotredshift=True, showplot=True)

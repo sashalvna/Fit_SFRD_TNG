@@ -90,22 +90,21 @@ def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], err
             rbox=205
 
         #Plot the TNG data
-        Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ, Metals, MetalBins  = readTNGdata(loc = path+'SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=True, metals=True)
+        Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=False, metals=False)
 
         if plotredshift == True:
             xvals = Sim_Redshifts
         else:
             xvals = Sim_Lookbacktimes
 
-        ax.plot(xvals, np.sum(Sim_SFRD, axis=1), lw=8, c=data_colors[n], label=r'TNG%s-%s'%(tng, vers[n]))
+        ax.plot(xvals, np.sum(Sim_SFRD, axis=1)*step_fit_logZ, lw=8, c=data_colors[n], label=r'TNG%s-%s'%(tng, vers[n]))
 
         #Plot the TNG model
         if plotmodel==True:
-            
             sfr = Z_SFRD.Madau_Dickinson2014(Sim_Redshifts, a=fit_params[n][5], b=fit_params[n][6], c=fit_params[n][7], d=fit_params[n][8]).value
             ax.plot(xvals, sfr, lw=3, c=fit_colors[n], ls='--')
 
-        fractionalerr =  sfr/np.sum(Sim_SFRD, axis=1)
+        fractionalerr =  sfr/(np.sum(Sim_SFRD, axis=1)*step_fit_logZ)
         ax_x.plot(xvals, fractionalerr, lw=4, c=data_colors[n])
 
     x = [-0.0001]
@@ -140,7 +139,7 @@ def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], err
     ax_x.tick_params(length=10, width=2, which='major')
     ax_x.tick_params(length=5, width=1, which='minor')
     ax_x.xaxis.set_minor_locator(ticker.MultipleLocator(1))
-    ax_x.set_ylabel(r'$\mathcal{S}(z)_\mathrm{fit}/\mathcal{S}(z)_\mathrm{sim}$', fontsize = 20)
+    ax_x.set_ylabel(r'$\mathcal{S}(z)_\mathrm{fit}/\mathcal{S}(z)_\mathrm{sim}$', fontsize = 25)
     ax_x.set_yscale('log')
     #ax_x.legend(fontsize = 25, frameon=False)
     if len(error_ylim) > 0:
@@ -225,10 +224,6 @@ def compare_Zdist(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], e
         Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=False, metals=False)
         plt.plot(Sim_center_Zbin/Zsun, np.sum(Sim_SFRD, axis=0), lw=8, c=data_colors[n], label=r'TNG%s-%s'%(tng, vers[n]))
 
-        #Plot interpolated TNG data
-        #SFRDnew, redshift_new, Lookbacktimes_new, metals_new, step_fit_logZ_new = interpolate_TNGdata(Sim_Redshifts, Sim_Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng, vers[n], redshiftlimandstep=[0, 14.1, 0.05], saveplot=False)
-        #plt.plot(metals_new/Zsun, np.sum(SFRDnew, axis=1), lw=3, c=fit_colors[n], label=r'interpolated')
-
         #Plot the TNG model
         if plotmodel==True:
             sfr = Z_SFRD.Madau_Dickinson2014(Sim_Redshifts, a=fit_params[n][5], b=fit_params[n][6], c=fit_params[n][7], d=fit_params[n][8]).value # Msun year-1 Mpc-3 
@@ -270,7 +265,7 @@ def compare_Zdist(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], e
     ax_x.tick_params(length=10, width=2, which='major')
     ax_x.tick_params(length=5, width=1, which='minor')
     ax_x.xaxis.set_minor_locator(ticker.MultipleLocator(1))
-    ax_x.set_ylabel(r'$\mathcal{S}(Z)_\mathrm{fit}/\mathcal{S}(Z)_\mathrm{sim}$', fontsize = 20)
+    ax_x.set_ylabel(r'$\mathcal{S}(Z)_\mathrm{fit}/\mathcal{S}(Z)_\mathrm{sim}$', fontsize = 25)
     ax_x.set_xscale('log')
     ax_x.set_yscale('log')
     #ax_x.legend(fontsize = 25, frameon=False)

@@ -222,12 +222,6 @@ def SFRD_2Dplot_sidepanels(metals, Redshifts, Lookbacktimes, SFRD, step_fit_logZ
     #Plot data and is model is given plot model
     if plottype=='data':
 
-        #metals_mask_low = (metals >= 10**-1)
-        #metals_mask_high = (metals <= 1)
-        #metals_mask = ((metals_mask_low==True) & (metals_mask_high==True))
-        #SFRD[~metals_mask] = 0
-        #print(len(SFRD[metals_mask]))
-
         SFRD[SFRD <= 0] = 1e-7 #make sure there are no zeroes since plotting in log scale
 
         data = ax.contourf(xvals, metals/Zsun, SFRD, levels=levels, norm=matplotlib.colors.LogNorm(vmin=1e-6, vmax=1e-1), cmap=cmap, extend='min')
@@ -238,7 +232,9 @@ def SFRD_2Dplot_sidepanels(metals, Redshifts, Lookbacktimes, SFRD, step_fit_logZ
         ax_histx.plot(xvals, np.sum(SFRD, axis=0)*step_fit_logZ, color='darkorange', lw=3, label='TNG simulation')
         ax_histy.plot(np.sum(SFRD, axis=1), metals/Zsun, color='darkorange', lw=3)
         ax_histx.set_ylabel(r'$\mathcal{S}(z)$', fontsize=20)
-        ax_histy.set_xlabel(r'$\mathcal{S}(Z_{\rm{i}})$', fontsize=20)
+        ax_histy.set_xlabel(r'$\mathcal{S}(Z)$', fontsize=20)
+        #ax_histx.set_yscale('log')
+        #ax_histy.set_xscale('log')
 
         peak_location_top = np.where(np.sum(SFRD, axis=0)*step_fit_logZ == max(np.sum(SFRD, axis=0)*step_fit_logZ))[0][0]
         peak_location_side = np.where(np.sum(SFRD, axis=1) == max(np.sum(SFRD, axis=1)))[0][0]
@@ -580,16 +576,16 @@ if __name__ == "__main__":
         dPdlogZ, metallicities, step_logZ, p_draw_metallicity = \
                     Z_SFRD.skew_metallicity_distribution(redshiftsTNG[n] , mu_0 = fit_params[0], mu_z = fit_params[1],
                                                   omega_0= fit_params[2] , omega_z=fit_params[3] , alpha = fit_params[4], 
-                                                  metals=metalsTNG[n])
+                                                  metals=metalsTNG[n], min_logZ_COMPAS = np.log(1e-4), max_logZ_COMPAS = np.log(0.03))
         models.append(sfr[:,np.newaxis].value * dPdlogZ)
         dPdlogZs.append(dPdlogZ)
-        sfrs.append(sfr.to(u.Msun/u.yr/u.Gpc**3))
+        sfrs.append(sfr)
 
 
     for i in range(len(tngs)):
         #SFRDplot_2D(metalsTNG, LookbacktimesTNG, SFRDsTNG, tngs, vers, ylim=[10**-4, 50], nlevels=17, model=models, plottype='percenterr', plotregions=True)
         SFRD_2Dplot_sidepanels(metalsTNG[i], redshiftsTNG[i], LookbacktimesTNG[i], SFRDsTNG[i], step_fit_logZ_TNG[i], tngs[i], vers[i], nlevels=30, model=models[i], ylim=[1e-4, 10], 
-                               plottype='data', plotredshift=False, plotregions=True, transparent=True)
+                               plottype='data', plotredshift=False, plotregions=False, transparent=True)
         #dPdlogZ_plot(metalsTNG[1], redshiftsTNG[1], LookbacktimesTNG[1], sfrs[1], step_fit_logZ_TNG[1], tngs[1], vers[1], nlevels=30, dPdlogZ_model=dPdlogZs[1], ylim=[4e-5, 1], plotredshift=True)
 
     
