@@ -1,3 +1,9 @@
+## BBH merger populations using cosmic star formation histories of cosmological simulations
+
+This is the code used in the paper: 
+
+**From cosmological simulations to binary black hole mergers: The impact of using analytical star formation history models on gravitational-wave source populations**
+
 Model the binary black hole (BBH) merger population by obtaining the metallicity-dependent cosmic star formation rate density SFRD(Z, z) from an IllustrisTNG (https://www.tng-project.org/) cosmological simulation. The "cosmic integration" step is done using the COMPAS cosmic integration post-processing tool (https://github.com/TeamCOMPAS/COMPAS).
 The SFRD(Z, z) can be modeled using a 2D array (obtained from a TNG simulation) or an analytical fit to this 2D array. 
 
@@ -32,6 +38,7 @@ To reproduce the figures:
     - compare_BBH_data_and_model_mass_dist_over_z with plotdiff=False (Fig 6) and plotdiff=True (Fig 11)
     - residuals_BBH_data_and_model_mass_dist (Fig 7)
     - plot_BBH_mass_Z_z with fractionalerror=False (Fig 8) and fractionalerror=True (Fig 9)
+
 
 
 
