@@ -439,8 +439,6 @@ def dPdlogZ_plot(metals, Redshifts, Lookbacktimes, sfrd, step_fit_logZ, tng=[], 
     #     c.set_edgecolor('face') 
     #     c.set_linewidth(0.1)   
 
-    print(sfrd)
-
     data = ax.contourf(xvals, metals, (dPdlogZ_model*(1/metals) * sfrd[:,np.newaxis].value).T, norm=matplotlib.colors.LogNorm(vmin=1e6, vmax=1e10), levels=levels, cmap=cmap, extend='min')
 
     # ax_histx.plot(xvals, np.sum((dPdlogZ_model*(1/metals)), axis=1)*step_fit_logZ, color='darkorange', lw=3, label='TNG simulation')

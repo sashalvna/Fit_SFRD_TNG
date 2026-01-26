@@ -1951,20 +1951,26 @@ if __name__ == "__main__":
     #Read in SFRD model parameters for each TNG
     fit_param_vals = read_best_fits(fit_param_files)
 
-    #Compare model and data merger and formation rates
+    #Compare model and data merger rates
     compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, error_ylim=[1e-2, 1e4], plot_merger_rates=True, plot_logscale=True, showplot=True, showLVK=True, transparent=True)
     #residuals_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, ylim = [1e-1, 1e5], plot_merger_rates=True, showplot=True)
 
+    #Plot formation channel mass distributions for all TNGs (in one plot)
     #plot_BBH_mass_dist_over_z_allTNGs(model_rates, fit_param_vals, tngs=[50, 100, 300], z = [8, 7, 6, 5, 4, 3, 2, 1, 0.5, 0.2], showplot=False)
 
+    #Plot formation channel mass distributions for one TNG (make sure you select the right data_rates, model_rates index for the TNG used)
     plot_BBH_mass_dist_formation_channels(data_rates[1], model_rates[1], 100, 1, z = [8, 7, 6, 5, 4, 3, 2, 1, 0.5, 0.2], showplot=True, transparent=True)
 
+    #Plot mass distribution over redshift for all TNGs
     compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True, transparent=True, plotdiff=False)
     compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True, transparent=True, plotdiff=True)
-    #compare_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_vals, only_stable = True, only_CE = True, channel_string='all', z = 0.2, showplot=True, transparent=True)
-    residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True)
     
+    #compare_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_vals, only_stable = True, only_CE = True, channel_string='all', z = 0.2, showplot=True, transparent=True)
+    #residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True)
+    
+    #Plot mass distribitiom for one TNG, split up into Z, z bins (make sure you select the right data_rates, model_rates index for the TNG used)
     plot_BBH_mass_Z_z(COMPASfilename, tng=100, data_rates=data_rates[1], model_rates=model_rates[1], z_form = [0.2, 0.5, 1, 2, 6, 10], Z_zams = [0.03, 0.01, 0.001, 0.0001], 
                   only_stable = True, only_CE = True, channel_string='all',  z_merger=0.2, showplot=True, fractionalerror=False, plot_total_dist=True, transparent=True)
 
+    #This does not work yet
     #plot_BBH_rate_Z_z(data_rates[0], COMPASfilename, tng=50, xlim=[], ylim=[], nlevels=30, z_formation=False, plotredshift=True, showplot=True)
