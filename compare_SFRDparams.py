@@ -14,7 +14,6 @@ from Fit_model_TNG_SFRD import readTNGdata, interpolate_TNGdata
 
 ## PLOT setttings
 plt.rc('font', family='serif')
-from matplotlib import rc
 import matplotlib
 plt.rc('font', family='serif', weight='bold')
 plt.rc('text', usetex=True)
@@ -203,7 +202,7 @@ def compare_Zdist(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], e
     #Get model fit parameters 
     fit_param_files = []
     for n, tng in enumerate(tngs):
-        fit_param_files.append('test_best_fit_parameters_TNG%s-%s.txt'%(tng, vers[n]))
+        fit_param_files.append('test_best_fit_parameters_TNG%s-%s.txt'%(tng,vers[n]))
     fit_params = read_best_fits(fit_param_files)
     
     fig = plt.figure(layout='constrained',figsize=[13, 10])
@@ -222,15 +221,21 @@ def compare_Zdist(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], e
 
         #Plot the TNG data
         Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=False, metals=False)
-        plt.plot(Sim_center_Zbin/Zsun, np.sum(Sim_SFRD, axis=0), lw=8, c=data_colors[n], label=r'TNG%s-%s'%(tng, vers[n]))
+        #SFRDnew, redshift_new, Lookbacktimes_new, metals_new, step_fit_logZ_new = interpolate_TNGdata(Sim_Redshifts, Sim_Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng, vers[n], redshiftlimandstep=[0, 14.1, 0.05], saveplot=False)
+        #scale = max(np.sum(Sim_SFRD, axis=0))/max(np.sum(SFRDnew.T, axis=0))
+
+        ax.plot(Sim_center_Zbin/Zsun, np.sum(Sim_SFRD, axis=0), lw=8, c=data_colors[n], label=r'TNG%s-%s'%(tng, vers[n]))
 
         #Plot the TNG model
         if plotmodel==True:
-            sfr = Z_SFRD.Madau_Dickinson2014(Sim_Redshifts, a=fit_params[n][5], b=fit_params[n][6], c=fit_params[n][7], d=fit_params[n][8]).value # Msun year-1 Mpc-3 
-            dPdlogZ, metallicities, step_logZ, p_draw_metallicity = Z_SFRD.skew_metallicity_distribution(Sim_Redshifts, metals = Sim_center_Zbin, min_logZ_COMPAS = np.log(1e-4), max_logZ_COMPAS = np.log(0.03),
-                        mu_0=fit_params[n][0], mu_z=fit_params[n][1], omega_0=fit_params[n][2], omega_z=fit_params[n][3], alpha =-fit_params[n][4])
+            fit_param = fit_params[n]
+            sfr = Z_SFRD.Madau_Dickinson2014(Sim_Redshifts, a=fit_param[5], b=fit_param[6], c=fit_param[7], d=fit_param[8]).value # Msun year-1 Mpc-3 
+            dPdlogZ, metallicities, step_logZ, p_draw_metallicity = \
+                    Z_SFRD.skew_metallicity_distribution(Sim_Redshifts , mu_0 = fit_param[0], mu_z = fit_param[1],
+                                                  omega_0= fit_param[2] , omega_z=fit_param[3] , alpha = fit_param[4], 
+                                                  metals=Sim_center_Zbin, min_logZ_COMPAS = np.log(1e-4), max_logZ_COMPAS = np.log(0.03))
             model = sfr[:,np.newaxis] * dPdlogZ
-            ax.plot(Sim_center_Zbin/Zsun, np.sum(model, axis=0), lw=3, c=fit_colors[n], ls='--') 
+            ax.plot(Sim_center_Zbin/Zsun, np.sum(model.T, axis=1), lw=3, c=fit_colors[n], ls='--') 
 
         fractionalerr =  np.sum(model, axis=0)/np.sum(Sim_SFRD, axis=0) 
         ax_x.plot(Sim_center_Zbin/Zsun, fractionalerr, lw=4, c=data_colors[n])
@@ -287,173 +292,86 @@ def compare_Zdist(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], e
         plt.show()
 
 
-def SFR_residuals(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], plotredshift=True, show_MD17=True, plotlogscale=True, showplot=True):
+def Zdist_3panel_plots(path, tng, ver=1, showplot=True, transparent=False):
 
     #Get model fit parameters 
-    fit_param_files = []
-    for n, tng in enumerate(tngs):
-        fit_param_files.append('test_best_fit_parameters_TNG%s-%s.txt'%(tng, vers[n]))
-    fit_params = read_best_fits(fit_param_files)
+    fit_params = read_best_fits(['test_best_fit_parameters_TNG%s-%s.txt'%(tng,ver)])
     
-    fig, ax = plt.subplots(figsize=(13,8))
-
-    #gridline for reference
-    xs = np.arange(0, 20)
-    ys = np.zeros(len(xs))
-    plt.plot(xs, ys, c='lightgray', ls='-', lw=3)
+    fig, ax = plt.subplots(1, 3, figsize = (21, 9))
+    fig.subplots_adjust(wspace=0.15, hspace=0)
 
     #Plot the TNG data
-    for n, tng in enumerate(tngs):
+    if tng==50:
+        rbox=35
+        n=0
+    elif tng==100:
+        rbox=75
+        n=1
+    elif tng==300:
+        rbox=205
+        n=2
 
-        if tng==50:
-            rbox=35
-        elif tng==100:
-            rbox=75
-        elif tng==300:
-            rbox=205
-
-        #Plot the model-data residuals
-        Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=True, metals=False)
-
-        if plotredshift == True:
-            xvals = Sim_Redshifts
-        else:
-            xvals = Sim_Lookbacktimes
-
-        sfr = Z_SFRD.Madau_Dickinson2014(Sim_Redshifts, a=fit_params[n][5], b=fit_params[n][6], c=fit_params[n][7], d=fit_params[n][8]).value
-        #residuals =  abs(sfr - np.sum(Sim_SFRD, axis=1))/np.sum(Sim_SFRD, axis=1) * 100
-        residuals =  abs(np.sum(Sim_SFRD, axis=1) - sfr)/sfr * 100
-
-        plt.plot(xvals, residuals, lw=4, c=data_colors[n], label=r'TNG%s-%s'%(tng, vers[n]))
-
-    if show_MD17 == True:
-        #default Madau & Fragos 17
-        ax.plot(xvals, Z_SFRD.Madau_Dickinson2014(Sim_Redshifts, a=0.01, b=2.6, c=3.2, d=6.2), 
-            label = r'M\&F 2017', #+'\n'+'$a=%.2f, b=%.2f, c=%.2f, d=%.2f$'% (0.01,2.6,3.2,6.2), 
-            c = 'gray', lw=3)
-
-    ax.tick_params(axis='both', which='major', labelsize=25)
-    ax.tick_params(length=15, width=3, which='major')
-    ax.tick_params(length=10, width=2, which='minor')
-    ax.xaxis.set_minor_locator(ticker.MultipleLocator(1))
-    ax.set_ylabel(r'$\mathcal{S}(z)$ \% error', fontsize = 35)
-    #Set redshift ticks; make sure they don't overlap
-
-    if plotlogscale==True:
-        ax.set_yscale('log')
-    ax.legend(fontsize = 25, frameon=False)
-    if len(xlim) > 0:
-        ax.set_xlim(xlim[0], xlim[1])
-    if len(ylim) > 0:
-        ax.set_ylim(ylim[0], ylim[1])
-
-    if plotredshift:
-        ax.set_xlabel(r"Redshift", fontsize = 35)
-
-        ax2 = ax.twiny()
-        redshift_tick_list = [0, 1, 2, 6, 10, 14]#[0,0.1, 0.25, 0.5, 1.0, 10]
-        ax2.set_xticks([z for z in redshift_tick_list])
-        ax2.set_xticklabels(['${:.1f}$'.format(cosmo.lookback_time(z).value) for z in redshift_tick_list], fontsize = 25)
-        #lookbackt_tick_list = [cosmo.lookback_time(z).value for z in redshift_tick_list]
-        ax2.set_xlabel('Lookback time [Gyr]', fontsize = 35, labelpad=15)
-        #ax2.set_xticks([cosmo.lookback_time(z).value for z in lookbackt_tick_list])
-        #ax2.set_xticklabels(['${:.0f}$'.format(z) for z in lookbackt_tick_list])
-        ax2.tick_params(axis='both', which='major', labelsize=23)
-        ax2.tick_params(length=10, width=3, which='major')
-
-        #Set limits for horizontal axis
-        if len(xlim) > 0:
-            ax.set_xlim(xlim[0], xlim[1]) #not always want to set xlimits, so empty if not using any; in lookback time
-            ax2.set_xlim(xlim[0], xlim[1]) #in lookback time
-        else:
-            ax.set_xlim(min(Sim_Lookbacktimes), max(Sim_Lookbacktimes))
-            ax2.set_xlim(min(Sim_Lookbacktimes), max(Sim_Lookbacktimes))
-
-        fig.savefig('figures/SFR_res_redshift_fit.pdf',  format="pdf", bbox_inches='tight', dpi=300)
-
-    else:
-        ax.set_xlabel(r"Lookback time [Gyr]", fontsize = 35)
-        
-        ax2 = ax.twiny()
-        redshift_tick_list = [0,0.1, 0.25, 0.5, 0.75, 1.0,1.5, 2, 3, 6, 10]
-        ax2.set_xlabel('Redshift', fontsize = 35, labelpad=15)
-        ax2.set_xticks([cosmo.lookback_time(z).value for z in redshift_tick_list])
-        ax2.set_xticklabels(['${:g}$'.format(z) for z in redshift_tick_list])
-        ax2.tick_params(axis='both', which='major', labelsize=23)
-        ax2.tick_params(length=10, width=3, which='major')
-
-        #Set limits for horizontal axis
-        if len(xlim) > 0:
-            ax.set_xlim(xlim[0], xlim[1]) #not always want to set xlimits, so empty if not using any; in lookback time
-            ax2.set_xlim(xlim[0], xlim[1]) #in lookback time
-        else:
-            ax.set_xlim(min(Sim_Lookbacktimes), max(Sim_Lookbacktimes))
-            ax2.set_xlim(min(Sim_Lookbacktimes), max(Sim_Lookbacktimes))
-
-        fig.savefig('figures/SFR_res_lookbackt_fit.pdf',  format="pdf", bbox_inches='tight', dpi=300)
+    #Plot the TNG simulation SFRD
+    Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5'%(tng, ver), rbox=rbox, SFR=False, metals=False)
     
-    if showplot==True:
-        plt.show()
+    ax[0].plot(Sim_center_Zbin/Zsun, np.sum(Sim_SFRD, axis=0), lw=8, c=data_colors[n])
+    ax[1].plot(Sim_center_Zbin/Zsun, np.sum(Sim_SFRD, axis=0), lw=8, c=data_colors[n])
+    ax[2].plot(Sim_center_Zbin/Zsun, np.sum(Sim_SFRD, axis=0), lw=8, c=data_colors[n])
 
-def Zdist_residuals(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], plotlogscale=True, showplot=True):
-
-    #Get model fit parameters 
-    fit_param_files = []
-    for n, tng in enumerate(tngs):
-        fit_param_files.append('test_best_fit_parameters_TNG%s-%s.txt'%(tng, vers[n]))
-    fit_params = read_best_fits(fit_param_files)
+    #Plot the fit SFRD
+    fit_param = fit_params[0]
+    sfr = Z_SFRD.Madau_Dickinson2014(Sim_Redshifts, a=fit_param[5], b=fit_param[6], c=fit_param[7], d=fit_param[8]).value # Msun year-1 Mpc-3 
+    dPdlogZ, metallicities, step_logZ, p_draw_metallicity = \
+            Z_SFRD.skew_metallicity_distribution(Sim_Redshifts , mu_0 = fit_param[0], mu_z = fit_param[1],
+                                            omega_0= fit_param[2] , omega_z=fit_param[3] , alpha = fit_param[4], 
+                                            metals=Sim_center_Zbin, min_logZ_COMPAS = np.log(1e-4), max_logZ_COMPAS = np.log(0.03))
+    model = sfr[:,np.newaxis] * dPdlogZ
+    ax[0].plot(Sim_center_Zbin/Zsun, np.sum(model.T, axis=1), lw=3, c=fit_colors[n], ls='--') 
+    ax[1].plot(Sim_center_Zbin/Zsun, np.sum(model.T, axis=1), lw=3, c=fit_colors[n], ls='--') 
+    ax[2].plot(Sim_center_Zbin/Zsun, np.sum(model.T, axis=1), lw=3, c=fit_colors[n], ls='--') 
     
-    fig, ax = plt.subplots(figsize=(13,8))
+    ax[0].axvline(x=1, linewidth=2, color='gray', zorder=0)
+    ax[0].text(x=0.35, y= 0.24, s='$Z_\odot$', fontsize=25, color='gray')
+    ax[1].axvline(x=1, linewidth=2, color='gray', zorder=0)
+    ax[1].text(x=0.35, y= 0.0025, s='$Z_\odot$', fontsize=25, color='gray')
+    ax[2].axvline(x=1, linewidth=2, color='gray', zorder=0)
+    ax[2].text(x=0.4, y= 0.0025, s='$Z_\odot$', fontsize=25, color='gray')
 
-    #gridline for reference
-    xs = np.arange(0, 20)
-    ys = np.zeros(len(xs))
-    plt.plot(xs, ys, c='lightgray', ls='-', lw=3)
+    #set the different scales for each subplot: both x and y log, x log y linear, x linear y log
+    ax[0].set_xscale('log')
+    ax[1].set_yscale('log')
+    ax[1].set_xscale('log')
+    ax[2].set_yscale('log')
 
-    #Plot the TNG data
-    for n, tng in enumerate(tngs):
+    #set up tick marks and vertical line at Zsun
+    for i in range(3):
+        ax[i].tick_params(axis='both', which='major', labelsize=25)
+        ax[i].tick_params(length=15, width=3, which='major', direction='in', axis='y')
+        ax[i].tick_params(length=10, width=2, which='minor', direction='in', axis='y')
+        ax[i].tick_params(length=15, width=3, which='major', axis='x')
+        ax[i].tick_params(length=10, width=2, which='minor', axis='x')
+        ax[i].set_xlabel(r"Z/Z$_\odot$", fontsize = 35, labelpad=8)
+    ax[2].xaxis.set_major_locator(ticker.MultipleLocator(1))
 
-        if tng==50:
-            rbox=35
-        elif tng==100:
-            rbox=75
-        elif tng==300:
-            rbox=205
-
-        #Plot the model-data residuals
-        Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=False, metals=False)
-        sfr = Z_SFRD.Madau_Dickinson2014(Sim_Redshifts, a=fit_params[n][5], b=fit_params[n][6], c=fit_params[n][7], d=fit_params[n][8]).value # Msun year-1 Mpc-3 
-        dPdlogZ, metallicities, step_logZ, p_draw_metallicity = Z_SFRD.skew_metallicity_distribution(Sim_Redshifts, metals = Sim_center_Zbin, min_logZ_COMPAS = np.log(1e-4), max_logZ_COMPAS = np.log(0.03),
-                        mu_0=fit_params[n][0], mu_z=fit_params[n][1], omega_0=fit_params[n][2], omega_z=fit_params[n][3], alpha =-fit_params[n][4])
-        model = sfr[:,np.newaxis] * dPdlogZ
-
-        #residuals =  abs(np.sum(model, axis=0) - np.sum(Sim_SFRD, axis=0))/np.sum(Sim_SFRD, axis=0) * 100
-        residuals =  abs(np.sum(Sim_SFRD, axis=0) - np.sum(model, axis=0))/np.sum(model, axis=0) * 100
-
-        plt.plot(Sim_center_Zbin/Zsun, residuals, lw=4, c=data_colors[n], label=r'TNG%s-%s'%(tng, vers[n]))
-
-    ax.axvline(x=1, linewidth=2, color='gray', zorder=0)
-    ax.text(x=0.55, y= 0.04, s='$Z_\odot$', fontsize=30, color='gray')
-
-    ax.tick_params(axis='both', which='major', labelsize=25)
-    ax.tick_params(length=15, width=3, which='major')
-    ax.tick_params(length=10, width=2, which='minor')
-    ax.xaxis.set_minor_locator(ticker.MultipleLocator(1))
-    ax.set_xlabel(r"Z/Z$_\odot$", fontsize = 35)
-    ax.set_ylabel(r'$\mathcal{S}(Z)$ \% error', fontsize = 35)
-    #Set redshift ticks; make sure they don't overlap
-
-    if plotlogscale==True:
-        ax.set_xscale('log')
-        ax.set_yscale('log')
-    ax.legend(fontsize = 25, frameon=False)
-    if len(xlim) > 0:
-        ax.set_xlim(xlim[0], xlim[1])
-    if len(ylim) > 0:
-        ax.set_ylim(ylim[0], ylim[1])
-
-    fig.savefig('figures/Zdist_res.pdf',  format="pdf", bbox_inches='tight', dpi=300)
+    #set up legend
+    x = [-0.0001]
+    y1 = [0.0001]
+    y2 = [0.0001]
+    ax[0].plot(x, y1, c=data_colors[n], ls = '-', lw=6, label=r'$\mathrm{TNG \ simulation}$')
+    ax[0].plot(x, y2, c=fit_colors[n], ls = '--', lw=3, label=r'$\mathrm{Analytical \ fit}$')
+    ax[0].set_ylabel(r'$\mathcal{S}(Z) \ [\rm M_{\odot} \ yr^{-1} \ Mpc^{-3}]$', fontsize = 35, labelpad=10)
+    ax[0].legend(fontsize=25, frameon=False)
     
+    #set limits for axes (they cannot all be the same unfortunately)
+    ax[0].set_xlim(10**-3, 10) 
+    ax[0].set_ylim(1e-3, 2)
+    ax[1].set_xlim(10**-3, 10) 
+    ax[1].set_ylim(1e-3, 3)
+    ax[2].set_xlim(10**-3, 10) 
+    ax[2].set_ylim(1e-3, 3)
+
+    fig.savefig('figures/Z_fit_3panels.pdf',  format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
+
     if showplot==True:
         plt.show()
 
@@ -594,9 +512,6 @@ if __name__ == "__main__":
     vers = [1, 1, 1]
     Zsun = 0.014
 
-    #data_colors = [plt.cm.GnBu(0.8), plt.cm.PuRd(0.6), plt.cm.YlGn(0.4), 'tab:red', 'tab:purple', 'tab:brown']
-    #fit_colors = ['midnightblue', plt.cm.PuRd(0.9), plt.cm.YlGn(0.8), 'darkred', 'darkpurple', 'darkbrown']
-    #line_colors = [plt.cm.GnBu(0.99), plt.cm.PuRd(0.7), plt.cm.YlGn(0.5), 'tab:red', 'tab:purple', 'tab:brown']
     cmap_blue = matplotlib.colors.LinearSegmentedColormap.from_list("blue_cmap", ['#40E9E0', '#1C7EB7', '#100045'])
     cmap_pink = matplotlib.colors.LinearSegmentedColormap.from_list("pink_cmap", ['#F76FDD', '#C13277', '#490013'])
     cmap_green = matplotlib.colors.LinearSegmentedColormap.from_list("green_cmap", ['#CCE666', '#79B41C', '#004011'])
@@ -606,11 +521,11 @@ if __name__ == "__main__":
     line_styles = ['solid', 'dashed', 'dotted']
 
     #compare_params(tngs, vers)
+
     compare_SFR(path, tngs, vers, plotmodel=True, plotredshift=True, xlim=[0, 14], ylim=[10**-3, 10**-0.8], error_ylim = [5e-1, 1e1], plotlogscale=True, transparent=True)
 
-    compare_Zdist(path, tngs, vers, xlim=[10**-4, 10], ylim=[10**-3, 4], error_ylim=[1e-1, 1e3], plotmodel=True, plotlogscale=True, transparent=True)
+    compare_Zdist(path, tngs, vers, xlim=[10**-4, 10], ylim=[1e-3, 4], error_ylim=[1e-1, 1e3], plotmodel=True, plotlogscale=True, transparent=True)
 
-    #SFR_residuals(path, tngs, vers, plotredshift=True, xlim=[0, 14], ylim=[1e-2, 1e3], plotlogscale=True, show_MD17=False)
-    #Zdist_residuals(path, tngs, vers, xlim=[10**-4, 10], ylim=[1e-2, 1e3], plotlogscale=True)
-    #SFR_residuals(path, tngs, vers, plotredshift=False, xlim=[0, 14], ylim=[1e-2, 1e3], plotlogscale=True, show_MD17=False)
+    Zdist_3panel_plots(path, tng=100, ver=1, showplot=True, transparent=False)
+
     #compare_dPdlogZ(path, tngs, vers, ylim=[1e-2, 1e1], levels = [0, 0.55], nlevels=30)

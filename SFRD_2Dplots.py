@@ -13,13 +13,11 @@ from astropy.cosmology import Planck15  as cosmo #Planck 2015 since that's what 
 sys.path.append('../')
 import get_ZdepSFRD as Z_SFRD
 import paths
-import Fit_model_TNG_SFRD as fitmodel
 from TNG_BBHpop_properties import read_best_fits
-from Fit_model_TNG_SFRD import readTNGdata
+from Fit_model_TNG_SFRD import readTNGdata, interpolate_TNGdata
 
 ## PLOT setttings
 plt.rc('font', family='serif')
-from matplotlib import rc
 import matplotlib
 plt.rc('font', family='serif', weight='bold')
 plt.rc('text', usetex=True)
@@ -529,7 +527,7 @@ def dPdlogZ_plot(metals, Redshifts, Lookbacktimes, sfrd, step_fit_logZ, tng=[], 
 
 if __name__ == "__main__":
     #Change file names to match TNG version <- turn these into arguments
-    tngs=[50, 100, 300] 
+    tngs=[100] 
     vers = [1, 1, 1]
     Zsun = 0.014 #Solar metallicity
 
@@ -553,7 +551,8 @@ if __name__ == "__main__":
         elif tng==300:
             rbox=205
         Sim_SFRD, Lookbacktimes, Redshifts, Sim_center_Zbin, step_fit_logZ = readTNGdata(loc = Cosmol_sim_location, rbox=rbox, SFR=False, metals=False)
-        SFRDnew, redshift_new, Lookbacktimes_new, metals_new, step_fit_logZ_new = fitmodel.interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng, vers[n], redshiftlimandstep=[0, 14.1, 0.05], saveplot=False)
+        SFRDnew, redshift_new, Lookbacktimes_new, metals_new, step_fit_logZ_new = interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng, vers[n], redshiftlimandstep=[0, 14.1, 0.05], saveplot=False)
+
         SFRDsTNG.append(SFRDnew)
         redshiftsTNG.append(redshift_new)
         LookbacktimesTNG.append(Lookbacktimes_new)
@@ -570,15 +569,16 @@ if __name__ == "__main__":
     dPdlogZs = []
     sfrs = []
     for n, fit_params in enumerate(bestfits):
-        sfr = Z_SFRD.Madau_Dickinson2014(redshiftsTNG[n], a=fit_params[5], b=fit_params[6], c=fit_params[7], d=fit_params[8]) # Msun year-1 Mpc-3 
+        sfr = Z_SFRD.Madau_Dickinson2014(redshift_new, a=fit_params[5], b=fit_params[6], c=fit_params[7], d=fit_params[8]).value # Msun year-1 Mpc-3 
         dPdlogZ, metallicities, step_logZ, p_draw_metallicity = \
-                    Z_SFRD.skew_metallicity_distribution(redshiftsTNG[n] , mu_0 = fit_params[0], mu_z = fit_params[1],
+                    Z_SFRD.skew_metallicity_distribution(redshift_new , mu_0 = fit_params[0], mu_z = fit_params[1],
                                                   omega_0= fit_params[2] , omega_z=fit_params[3] , alpha = fit_params[4], 
-                                                  metals=metalsTNG[n], min_logZ_COMPAS = np.log(1e-4), max_logZ_COMPAS = np.log(0.03))
-        models.append(sfr[:,np.newaxis].value * dPdlogZ)
+                                                  metals=metals_new, min_logZ_COMPAS = np.log(1e-4), max_logZ_COMPAS = np.log(0.03))
+        model = sfr[:,np.newaxis] * dPdlogZ
+
+        models.append(sfr[:,np.newaxis] * dPdlogZ)
         dPdlogZs.append(dPdlogZ)
         sfrs.append(sfr)
-
 
     for i in range(len(tngs)):
         #SFRDplot_2D(metalsTNG, LookbacktimesTNG, SFRDsTNG, tngs, vers, ylim=[10**-4, 50], nlevels=17, model=models, plottype='percenterr', plotregions=True)

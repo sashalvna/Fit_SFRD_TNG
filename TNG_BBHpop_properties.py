@@ -18,7 +18,6 @@ import MassDistHelperFunctions as mfunc
 
 ## PLOT setttings
 plt.rc('font', family='serif')
-from matplotlib import rc
 import matplotlib
 plt.rc('font', family='serif', weight='bold')
 plt.rc('text', usetex=True)
@@ -198,209 +197,6 @@ def compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, error_yl
 
     if showplot==True:
         plt.show()
-
-
-def residuals_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, ylim = [], plot_merger_rates=True, showplot=True, transparent=False):
-
-    fig, ax = plt.subplots(figsize = (13, 8))
-
-    #gridline for reference
-    xs = np.arange(0, 20)
-    ys = np.zeros(len(xs))
-    plt.plot(xs, ys, c='lightgray', ls='-', lw=3)
-
-    for i, rfile in enumerate(model_rates):
-        with h5.File(data_dir + rfile ,'r') as File:
-            formation_rate = File[list(File.keys())[0]]['formation_rate'][()]
-            merger_rate    = File[list(File.keys())[0]]['merger_rate'][()]
-
-        with h5.File(data_dir + data_rates[i] ,'r') as File:
-            data_redshift      = File[list(File.keys())[0]]['redshifts'][()]
-            data_formation_rate = File[list(File.keys())[0]]['formation_rate'][()]
-            data_merger_rate    = File[list(File.keys())[0]]['merger_rate'][()]
-
-        if plot_merger_rates == True:
-            #Plot merger rates
-            total_merger_rate = np.sum(merger_rate, axis=0)
-            total_data_merger_rate = np.sum(data_merger_rate, axis=0)
-            percenterr = abs(total_data_merger_rate - total_merger_rate)/total_merger_rate * 100
-            plt.plot(data_redshift, percenterr, label='TNG%s'%labels[i], lw=4, c=data_colors[i])
-
-        else:
-            #Plot formation rates
-            total_formation_rate = np.sum(formation_rate, axis=0)
-            total_data_formation_rate = np.sum(data_formation_rate, axis=0)
-            percenterr = abs(total_data_formation_rate - total_formation_rate)/total_formation_rate * 100
-            plt.plot(data_redshift, percenterr, label='TNG%s'%labels[i], lw=4, c=data_colors[i])
-
-    ax.set_xlim(0, 13.5)
-    ax.set_ylim(ylim[0], ylim[1])
-    ax.set_xlabel('Redshift $z$', fontsize=35)
-    if plot_merger_rates == True:
-        ax.set_ylabel(r'$\mathcal{R}(z)$ \% error', fontsize=35)
-        fig.legend(bbox_to_anchor=(0.15, 0.88), fontsize=25, loc="upper left", frameon=False)
-        #fig.legend(bbox_to_anchor=(0.15, 0.1), fontsize=25, loc="lower left", frameon=False)
-    else:
-        ax.set_ylabel(r'Formation rate \% error', fontsize=35)
-        fig.legend(bbox_to_anchor=(0.15, 0.88), fontsize=25, loc="upper left", frameon=False)
-        #fig.legend(bbox_to_anchor=(0.15, 0.1), fontsize=25, loc="lower left", frameon=False)
-    ax.tick_params(axis='both', which='major', labelsize=25)
-    ax.tick_params(length=15, width=3, which='major')
-    ax.tick_params(length=10, width=2, which='minor')
-    ax.xaxis.set_minor_locator(ticker.MultipleLocator(1))
-    ax.set_yscale('log')
-    
-    ax2 = ax.twiny()
-    redshift_tick_list = [0, 1, 2, 6, 10, 14]#[0,0.1, 0.25, 0.5, 1.0, 10]
-    ax2.set_xticks([z for z in redshift_tick_list])
-    ax2.set_xticklabels(['${:.1f}$'.format(cosmo.lookback_time(z).value) for z in redshift_tick_list], fontsize = 24)
-    ax2.set_xlabel('Lookback time [Gyr]', fontsize = 35, labelpad=15)
-    #ax2.set_xticks([cosmo.lookback_time(z).value for z in lookbackt_tick_list])
-    #ax2.set_xticklabels(['${:.0f}$'.format(z) for z in lookbackt_tick_list])
-    ax2.tick_params(axis='both', which='major', labelsize=23)
-    ax2.tick_params(length=10, width=3, which='major')
-
-    if plot_merger_rates == True:
-        plt.savefig('figures/merger_rates_res_datavsmodel_TNG.pdf', format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
-    else:
-        plt.savefig('figures/formation_rates_res_datavsmodel_TNG.pdf', format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
-
-    if showplot==True:
-        plt.show()
-
-
-def plot_BBH_mass_dist(rates, fit_param_vals, only_stable = True, only_CE = True, channel_string='all', z = 0.2, showplot=True, show_reference_masses=True, transparent=False):
-    #get rate file names and rate keys
-    TNGpaths = []
-    rate_keys = []
-
-    for i in rates:
-        TNGpaths.append('/'+i)
-    for i in fit_param_vals:
-        rate_keys.append('Rates_mu0%s_muz%s_alpha%s_sigma0%s_sigmaz%s_a%s_b%s_c%s_d%s_zBinned'%(np.round(i[0], 3), np.round(i[1], 3), np.round(i[4], 3), np.round(i[2], 3), np.round(i[3], 3), np.round(i[5],3), np.round(i[6], 3), np.round(i[7], 3), np.round(i[8],3)))
-
-    fig, ax = plt.subplots(figsize = (12, 8))
-    bins = np.arange(0.,55,2.5)
-    plot_lines = []
-    x_lim=(0.,50)
-    y_lim = (1e-2,40)
-    xlabel = r'$M_{\mathrm{BH, 1}} \ \rm (M_{\odot})$'
-    ylabel = r'$\frac{d\mathcal{R}}{dM_{\mathrm{BH, 1} }} \ \left (\rm \frac{\mathrm{d}N}{\mathrm{d}Gpc^3 \mathrm{d}yr \mathrm{d}M_{\odot}} \right )$'
-    #ylabel = r'$\frac{d\mathcal{R}}{dM_{\mathrm{BH, 1} }} \ \mathrm{[Gpc^{-3}yr^{-1}M^{-1}_{\odot}]}$'
-
-
-    # GWTC-4 Spline mass distribution
-    color_plpeak = 'grey'#'#1f78b4'
-    input_fname = data_dir+'BBHMassSpinRedshift_BSplineIID.h5'
-    bptp_o4 = popsummary.popresult.PopulationResult(input_fname)
-    with h5.File(input_fname, "r") as f:
-        param = 'rate_vs_mass_1_at_z0-2' #'mass_1'
-        dat = bptp_o4.get_rates_on_grids(param)
-        bptp_m1 = dat[0][0]
-        bptp_m1_pdfs = dat[1]
-        mass_1_lower = np.percentile(bptp_m1_pdfs, 5, axis=0)
-        mass_1_upper = np.percentile(bptp_m1_pdfs, 95, axis=0)
-    # plot the max posterior and the 95th percentile
-    ax.plot(bptp_m1, np.median(bptp_m1_pdfs, axis=0), lw=1.8, color=color_plpeak, zorder=1, label="GWTC-4")
-    ax.fill_between(bptp_m1, mass_1_lower, mass_1_upper, alpha=0.14,color=color_plpeak,zorder=0)
-
-    """
-    # GWTC-3 Powerlaw + Peak Mass distribution
-    color_plpeak = 'grey'#'#1f78b4'
-    input_fname = data_dir+'o3only_mass_c_iid_mag_iid_tilt_powerlaw_redshift_mass_data.h5'
-    mass_1 = np.linspace(2, 100, 1000)
-    mass_ratio = np.linspace(0.1, 1, 500)
-    with h5.File(input_fname, "r") as f:
-        mass_ppd = f["ppd"]
-        mass_lines = f["lines"]
-        mass_1_ppd = np.trapz(mass_ppd, mass_ratio, axis=0)
-        mass_1_lower = np.percentile(mass_lines["mass_1"], 5, axis=0)
-        mass_1_upper = np.percentile(mass_lines["mass_1"], 95, axis=0)
-    # plot the max posterior and the 95th percentile
-    ax.plot(mass_1, mass_1_ppd, lw=1.8, color=color_plpeak, zorder=1, label="GWTC-3")
-    ax.fill_between(mass_1, mass_1_lower, mass_1_upper, alpha=0.14,color=color_plpeak,zorder=0)
-
-    #Callister&Farr 2024 non-parametric fit to LVK
-    input_fname = data_dir + "ar_lnm1_q_summary.hdf"
-    with h5.File(input_fname, "r") as f:
-        m1s = f['posterior/m1s'][()]
-        dR_dlnm1s = f['posterior/dR_dlnm1s'][()]
-
-    ax.plot(m1s,np.median(dR_dlnm1s,axis=1),color='gray',lw=1.8, zorder=1, label='GWTC-3')
-    ax.fill_between(m1s, np.quantile(dR_dlnm1s,0.05,axis=1), np.quantile(dR_dlnm1s,0.95,axis=1), alpha=0.14,color='gray',zorder=0)
-    """
-    nplot=0
-
-    DCO = mfunc.read_data(loc = data_dir +str(COMPASfilename))
-
-    ####################################################
-    #Loop over TNGs
-    for i, tngpath in enumerate(TNGpaths):
-        print('Path to TNG', tngpath, i)
-
-        #Reading Rate data 
-        with h5.File(data_dir + tngpath ,'r') as File:
-            redshifts = File[list(File.keys())[0]]['redshifts'][()]
-            DCO_mask = File[list(File.keys())[0]]['DCOmask'][()] # Mask from DCO to merging systems  
-            intrinsic_rate_density = File[list(File.keys())[0]]['merger_rate'][()]
-
-        CEcount = 'CE_Event_Counter'
-        #first bring it to the same shape as the rate table
-        merging_BBH    = DCO[DCO_mask]
-        #apply the additional mask based on your prefs
-        if np.logical_and(only_stable, only_CE):
-            print("Both only_stable and only_CE, I assume you just want both")
-            channel_bool = np.full(len(merging_BBH), True)
-        elif only_stable:
-            channel_bool = merging_BBH[CEcount] == 0
-        elif only_CE:
-            channel_bool = merging_BBH[CEcount] > 0
-        else:
-            raise ValueError("Both only_stable =%s and only_CE=%s, set at least one to true"%(only_stable,only_CE))
-        # we exclude CHE systems
-        not_CHE  = merging_BBH['Stellar_Type@ZAMS(1)'] != 16
-        BBH_bool = np.logical_and(merging_BBH['Stellar_Type(1)'] == 14, merging_BBH['Stellar_Type(2)'] == 14)
-
-        merging_BBH         = merging_BBH[BBH_bool * not_CHE  * channel_bool]
-        Red_intr_rate_dens  = intrinsic_rate_density[BBH_bool* not_CHE * channel_bool, :]
-    
-        #Calculate average rate density per z-bin
-        x_vals              = merging_BBH['M_moreMassive']
-        i_redshift = np.where(redshifts == z)[0][0] # Rate at redshift 0.2
-        Weights             = Red_intr_rate_dens[:, i_redshift]#crude_rate_density[:,0]
-    
-        # Get the Hist    
-        hist, bin_edge = np.histogram(x_vals, weights = Weights, bins=bins)
-
-        # And the KDE
-        kernel = stats.gaussian_kde(x_vals, bw_method='scott', weights=Weights)
-    
-        x_KDE = np.arange(0.1,50.,0.1)
-        KDEy_vals =  kernel(x_KDE)*sum(hist) #re-normalize the KDE
-        plot_lines.append(ax.plot(x_KDE, KDEy_vals, label = 'TNG'+labels[nplot], color=data_colors[nplot], lw= 4,  zorder =i+1,ls = '-'))
-    
-        nplot += 1
-        
-    #########################################
-    # plot values
-    ax.set_xlim(x_lim)
-    ax.set_ylim(y_lim)
-    ax.tick_params(axis='both', which='major', labelsize=15)
-    ax.tick_params(length=10, width=2, which='major')
-    ax.tick_params(length=5, width=1, which='minor')
-    
-    # Channel
-    plt.text(0.75, 0.60, '$\mathrm{%s \ channel}$\nz=%s'%(channel_string, z), ha = 'center', transform=ax.transAxes, size = 20)
-
-    ax.set_xlabel(xlabel, fontsize = 25)
-    ax.set_ylabel(ylabel, fontsize = 25)
-    ax.set_yscale('log')
-    fig.legend(bbox_to_anchor=(0.9, 0.88), fontsize=15)
-    fig.savefig('figures/massdist_%s_z%s.pdf'%(channel_string, z), format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
-
-    if showplot==True:
-        plt.show()
-
 
 def plot_BBH_mass_dist_over_z(rates, fit_param_vals, tng, model=True, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True, transparent=False):
     #get rate file names and rate keys
@@ -1922,7 +1718,6 @@ if __name__ == "__main__":
                  'SFRMetallicityFromGasTNG100-2.hdf5', 'SFRMetallicityFromGasTNG50-2.hdf5', 'SFRMetallicityFromGasTNG50-3.hdf5'] 
     fit_param_files = ['test_best_fit_parameters_TNG50-1.txt', 'test_best_fit_parameters_TNG100-1.txt', 'test_best_fit_parameters_TNG300-1.txt']
     fit_param_files_data = ['test_best_fit_parameters_TNG50-1.txt', 'test_best_fit_parameters_TNG100-1.txt', 'test_best_fit_parameters_TNG300-1.txt']
-    #rates = ['Rate_info_TNG50-1.h5', 'Rate_info_TNG100-1.h5', 'Rate_info_TNG300-1.h5']
     model_rates = ['Rate_info_TNG50-1.h5', 'Rate_info_TNG100-1.h5', 'Rate_info_TNG300-1.h5']
     data_rates = ['data_Rate_info_TNG50-1.h5', 'data_Rate_info_TNG100-1.h5', 'data_Rate_info_TNG300-1.h5']
 
@@ -1939,21 +1734,16 @@ if __name__ == "__main__":
     cmap_blue = matplotlib.colors.LinearSegmentedColormap.from_list("blue_cmap", ['#40E9E0', '#1C7EB7', '#100045'])
     cmap_pink = matplotlib.colors.LinearSegmentedColormap.from_list("pink_cmap", ['#F76FDD', '#C13277', '#490013'])
     cmap_green = matplotlib.colors.LinearSegmentedColormap.from_list("green_cmap", ['#CCE666', '#79B41C', '#004011'])
-    #cmap_gray = matplotlib.colors.LinearSegmentedColormap.from_list("gray_cmap", ['#D3D2D2', "#0F0F0F"])
     cmap_gray = matplotlib.colors.LinearSegmentedColormap.from_list("gray_cmap", ["#C9C8D7", "#151618"])
     data_colors = ["#0067A6", '#C01874', '#98CB4F', '#D3D2D2']
     model_colors = ['#0C0034', '#4B0012', '#005B2F', '#787878']
-    #colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown', 'tab:pink']
-    #colors = ["#0067A6", '#79B41C', "#ECA120", "#ED6544",  '#C01874']
     colormap = sns.color_palette('viridis_r', as_cmap=True)
     
-
     #Read in SFRD model parameters for each TNG
     fit_param_vals = read_best_fits(fit_param_files)
 
     #Compare model and data merger rates
     compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, error_ylim=[1e-2, 1e4], plot_merger_rates=True, plot_logscale=True, showplot=True, showLVK=True, transparent=True)
-    #residuals_BBH_data_and_model_rates(data_dir, model_rates, data_rates, fit_param_vals, ylim = [1e-1, 1e5], plot_merger_rates=True, showplot=True)
 
     #Plot formation channel mass distributions for all TNGs (in one plot)
     #plot_BBH_mass_dist_over_z_allTNGs(model_rates, fit_param_vals, tngs=[50, 100, 300], z = [8, 7, 6, 5, 4, 3, 2, 1, 0.5, 0.2], showplot=False)
