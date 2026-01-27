@@ -12,8 +12,6 @@
 # Ignore all dat files
 *.dat
 
-*.txt
-
 *.png
 *.csp
 
