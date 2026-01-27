@@ -19,7 +19,8 @@ To fit the analytical model to a TNG simulation SFRD(Z, z):
 - Run Fit_model_TNG_SFRD.py
 - Returns test_best_fit_parameters_TNG[version].txt
 
-To model BBH merger population using TNG simulation or analytical fit SFRD(Z, z):
+To model BBH merger population using TNG simulation or analytical fit SFRD(Z, z)
+- See cosmic_int_guide.txt inside the CosmicIntegration directory for additional detail 
 - Run CosmicIntegration/FastCosmicIntegration-withdata.py or CosmicIntegration/FastCosmicIntegration.py
 - If using slurm:
     - Set up init_values.py
@@ -39,6 +40,8 @@ To reproduce the figures:
     - compare_BBH_data_and_model_mass_dist_over_z with plotdiff=False (Fig 6) and plotdiff=True (Fig 12)
     - residuals_BBH_data_and_model_mass_dist (Fig 7)
     - plot_BBH_mass_Z_z with fractionalerror=False (Fig 8) and fractionalerror=True (Fig 9)
+
+
 
 
 
