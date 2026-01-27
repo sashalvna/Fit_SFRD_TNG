@@ -1,0 +1,93 @@
+This was a guide that I wrote intended for undergraduate summer students running COMPAS cosmic integration with varying SFRD models; I put this here since it may be helpful to anyone that is using the code in this repository.
+I also have a broader guide to running cosmic integration here: https://github.com/sashalvna/Cosmic_integration_tutorial
+
+
+Guide to running cosmic integration with COMPAS using my code (https://github.com/sashalvna/Fit_SFRD_TNG)
+Includes:
+ - Running cosmic integration using an analytical, 9 parameter SFRD model
+ - Running cosmic integration using a 2d SFRD(Z, z) dataset from a cosmological simulation
+ - Making plots of the SFRD(Z, z) and SFRD(z) using both an analytical SFRD model and an SFRD(Z, z) dataset
+ - Making plots of BBH merger rates and mass distribution using cosmic integration output
+
+
+ This guide assumes you have a COMPAS run to use, and that you have put it into the data directory.
+ I'd recommend downloading the COMPAS output file from here: https://zenodo.org/records/7612755
+ A lot of the files used throughout are h5/hdf5 files (same thing). I would recommend getting familiar opening them using h5py and understanding their data structure
+
+------------------
+
+Cosmic integration
+(note: the code is set up to run on a cluster, but you should be able to run it locally. I'll note the changes you'd need to make)
+
+Go into the CosmicIntegration directory
+> cd CosmicIntegration
+
+You have three options of cosmic integration setups to use. All of them do the same thing: set up a command that can be run using slurm (on a cluster),
+OR you can copy the output command it creates and run that locally. If running on a cluster, CallCosmicIntegration will automatically submit the job(s) to slurm, but it will also save everything to an sbatch file.
+- CallCosmicIntegration_small.py: uses the analytical SFRD model (FastCosmicIntegration.py), saves a smaller output file, only saves rate data to z=0.5 at intervals of z=0.01 (can change this)
+- CallCosmicIntegration_full.py: uses the analytical SFRD model (FastCosmicIntegration.py), saves a much larger output file, saves rate data to z=14 at intervals of z=0.05 (can also change this)
+- CallCosmicIntegration_data.py: uses the SFRD(Z, z) data (FastCosmicIntegration-withdata.py), otherwise same as the "full" version
+
+One of the things CallCosmicIntegration needs is an init_values.py file, which will contain 
+1. Which COMPAS run you are using (currently 'COMPAS_Output_wWeights.h5')
+2. Your desired output file name (currently 'data_Rate_info_TNG50-1.h5')
+3. The SFRD(Z, z) data file. It should have the SFRD(Z, z) and metallicity distribution data. This is not used if you're not using the "data" version,
+   and you can just leave whatever it says there if you don't need it, it won't even try reading it in unless you run CallCosmicIntegration_data.py
+   (currently '/home/alevina1/data/TNGdata/SFRMetallicityFromGasWithMetalsTNG50-1.hdf5')
+4. User email is what gets used for slurm (to give you notifications when it's done running)
+5. A file that contains the 9 analytical SFRD(Z, z) parameters (currently 'test_best_fit_parameters_TNG50-1.txt'). If running the "data" version,
+   it'll still read it, but not actually use the parameters. Just leave some working file there, it won't use it but COMPAS will complain if you don't provide it.
+
+Inside the Call_Cosmic_Integration function, there is a list of parameters which are the arguments that FastCosmicIntegration.py uses.
+You can look at the full list of arguments (optional and required) inside the FastCosmicIntegration file you're using.
+You can change parameters as necessary. One of them sets the cosmology that you are using, which is critical to set correctly. Since the 
+TNG simulations use Planck 2016 cosmology, I set Planck15 as the cosmology argument. If you're not working with cosmological simulations or other 
+datasets that require a specific cosmology, you can change it to use more recent results (e.g. Planck18)
+
+Once everything is set up, you can run CallCosmicIntegration
+> python CallCosmicIntegration_small.py
+
+This will likely take 10-15 minutes to run, but the data version might take quite a bit longer.
+At the end, you will have a Rate_info file at the location you defined in the init_values file.
+
+To run without a cluster, just run the command that Call_Cosmic_Integration would output (something like this):
+python FastCosmicIntegration-withdata.py  --path /Users/sashalvna/Research/Fit_SFRD_TNG/data --filename COMPAS_Output_wWeights.h5 --outfname /Users/sashalvna/Research/Fit_SFRD_TNG/data/data_Rate_info_TNG50-1.h5 --mu0 0.026 --muz -0.022 --sigma0 1.051 --sigmaz 0.067 --alpha -1.655 --aSF 0.031 --bSF 1.55 --cSF 3.748 --dSF 4.989 --weight mixture_weight --zstep 0.05 --sens O3 --m1min 5. --dco_type BBH --BinAppend --redshiftBinSize 0.05 --maxzdet 14 --maxz 14 --cosmology Planck15  --zSF 14 --datafname /Users/sashalvna/Research/Fit_SFRD_TNG/data/SFRMetallicityFromGasWithMetalsTNG50-1.hdf5 
+
+-------------------
+
+Plotting Cosmic Integration output
+(note: make sure you're in the root directory of this repository, not inside CosmicIntegration)
+
+All the plotting functions for visualizing the BBH merger population properties that I use are contained in TNG_BBHpop_properties.py.
+This includes several functions to plot the merger rate and formation rate over redshift (or lookback time), and the mass distributions.
+Most of the functions are set up for comparing several different versions of CosmicIntegration outputs, in different ways.
+
+In particular, they compare the BBH merger population produced using SFRDs from different TNG simulations. You should be able to remove the TNG
+dependence relatively easily, a lot of it just goes into the labels of plots and subplots. Depending on which functions you need, it shouldn't 
+be too hard to change/remove. I would probably recommend copying over the functions you need into a separate file if you're doing that (as well
+as the imports and whatever you need from the bottom of the file that actually runs the function(s)). Also check you import the same cosmology
+as what you used to run CosmicIntegration! Otherwise, just change file names and paths to match whatever you have.
+
+To run, just use:
+> python TNG_BBHpop_properties.py
+
+-------------------
+
+Plotting SFRDs
+
+All the plotting functions are in compare_SFRDparams.py and SFRD_2Dplots.py
+In compare_SFRDparams.py, the functions are set up to compare different SFRDs that you may be using. This does not require any COMPAS files at all,
+and can be run without running cosmic integration, just with either a file of SFRD(Z, z) parameters or an SFRD(Z, z) dataset. You should
+be able to change it to run a single SFRD model or dataset. The function compare_SFR is the main function you'd probably be interested in,
+and it plots the SFRD(z) (averaged over metallicity)
+
+To run,
+> python compare_SFRDparams.py
+
+SFRD_2Dplots.py contains the functions to plot the full SFRD(Z, z) as a 2D plot (heatmap/contour plot/etc). There are options to plot just
+the SFRD(Z, z) data, or also (over)plot an analytical model SFRD(Z, z). Somewhere I think I have an option or function to plot the percent error
+between the SFRD(Z, z) data and the model? I can't seem to find it now and should make sure I have it in the public code somewhere.
+
+To run,
+> python SFRD_2Dplots.py
+
