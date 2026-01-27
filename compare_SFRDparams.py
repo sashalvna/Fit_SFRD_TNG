@@ -297,7 +297,7 @@ def Zdist_3panel_plots(path, tng, ver=1, showplot=True, transparent=False):
     #Get model fit parameters 
     fit_params = read_best_fits(['test_best_fit_parameters_TNG%s-%s.txt'%(tng,ver)])
     
-    fig, ax = plt.subplots(1, 3, figsize = (21, 9))
+    fig, ax = plt.subplots(1, 3, figsize = (21, 7))
     fig.subplots_adjust(wspace=0.15, hspace=0)
 
     #Plot the TNG data
@@ -335,7 +335,7 @@ def Zdist_3panel_plots(path, tng, ver=1, showplot=True, transparent=False):
     ax[1].axvline(x=1, linewidth=2, color='gray', zorder=0)
     ax[1].text(x=0.35, y= 0.0025, s='$Z_\odot$', fontsize=25, color='gray')
     ax[2].axvline(x=1, linewidth=2, color='gray', zorder=0)
-    ax[2].text(x=0.4, y= 0.0025, s='$Z_\odot$', fontsize=25, color='gray')
+    ax[2].text(x=1.1, y= 0.0025, s='$Z_\odot$', fontsize=25, color='gray')
 
     #set the different scales for each subplot: both x and y log, x log y linear, x linear y log
     ax[0].set_xscale('log')
