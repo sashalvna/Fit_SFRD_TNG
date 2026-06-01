@@ -5,6 +5,7 @@ from astropy.cosmology import Planck15  as cosmo #Planck 2015 since that's what 
 import seaborn as sns
 from math import ceil
 import matplotlib.ticker as ticker
+import tol_colors
 
 # Custom scripts
 sys.path.append('../')
@@ -20,53 +21,87 @@ plt.rc('text', usetex=True)
 matplotlib.rcParams['font.weight']= 'bold'
 matplotlib.rcParams.update({'font.weight': 'bold'})
 
-def compare_params(tngs=[50, 100, 300], vers=[1, 1, 1], showplot=True):
+def compare_params(tngs=[50, 100, 300, 100], vers=[1, 1, 1, 2], params=[], xparam = 'mu_0', yparam = 'sigma_0', other_sfrd_params=['vanSon23_fid'], showplot=True):
     
+    #get fit parameters for the given TNGs
     fit_param_files = []
-    for n, tng in enumerate(tngs):
-        fit_param_files.append('test_best_fit_parameters_TNG%s-%s.txt'%(tng, vers[n]))
+    for n, name in enumerate(tngs + other_sfrd_params):
+        try:
+            fit_param_files.append('test_best_fit_parameters_TNG%s-%s.txt'%(name, vers[n]))
+        except:
+            fit_param_files.append('best_fit_parameters_%s.txt'%name)
     fit_params = read_best_fits(fit_param_files)
 
+    #create dictionary of fit parameters
+    keys = ['mu_0', 'mu_z', 'sigma_0', 'sigma_z', 'alpha', 'sf_a', 'sf_b', 'sf_c', 'sf_d']
+    values = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+    sfrd_params = dict(zip(keys, values))
 
-    #ticks =  ["mean metallicity at z=0", "redshift evolution of mean", "variance in metallicity density distribution", 
-    #          "redshift evolution of variance", "skewness","SFR scaling", "SFR upward slope", "SFR peak location", "SFR downward slope"]
-    ticks = [r'$\mu_0$', r'$\mu_z$', r'$\sigma_0$', r'$\sigma_z$', r'$\alpha$', r'$a$', r'$b$', r'$c$', r'$d$']
-    x = [0,1,2,3,4,5,6,7,8] #9 parameters
+    #plot the SFRD parameters as points
+    if len(params) == 1:
+        w = 14
+        h = 10
+    elif len(params) == 2:
+        w = 18
+        h = 10
+    else:
+        w = 20
+        h = 20
+    fig, ax = plt.subplots(figsize = (w,h))
+    fig.subplots_adjust(wspace=0.3, hspace=0.3)
 
-    fig, ax = plt.subplots(1, 2, figsize=(16, 6))
-    
-    for n, fits in enumerate(fit_params):
-        ax[0].plot(x, fits, label="TNG%s-%s"%(tngs[n], vers[n]), lw=3, color=data_colors[n], ls = line_styles[n])
+    for ind, p in enumerate(params):
+        #Set up configuration of subplots depending on how many plotting
+        if len(params) == 1: 
+            ax = plt.subplot(1, 1, ind + 1)
+        elif len(params) > 1 and len(params) <= 2:
+            ax = plt.subplot(1, len(params), ind + 1)
+        elif len(params) > 2:
+            ax = plt.subplot(ceil(len(params)/2), 2, ind + 1)
 
-        if n != 1:
-            ax[1].plot(x, fit_params[n]/fit_params[1], label='TNG%s-%s/TNG%s-%s'%(tngs[n], vers[n], tngs[1], vers[1]), lw=3, color=data_colors[n])
-    
-    ax[0].set_xticks(x)
-    ax[0].legend(fontsize=15, frameon=True)
-    ax[0].tick_params(axis='both', which='major', labelsize=15)
-    ax[0].set_xticklabels(ticks, fontsize=20)
-    ax[0].tick_params(length=10, width=2, which='major')
-    ax[0].tick_params(length=5, width=1, which='minor')
-    ax[0].set_ylabel(r'$\mathcal{S}(Z_{\rm{i}},z)$ fit parameter value', fontsize=20)
-    ax[0].xaxis.grid(True)
+        for n, val in enumerate(fit_params): #n is index of the tng, p is the set of x,y parameters
+            try: 
+                ax.plot(fit_params[n][sfrd_params[p[0]]], fit_params[n][sfrd_params[p[1]]], '.', ms=30, label="TNG%s-%s"%(tngs[n], vers[n]),color=data_colors_all[n])
+            except:
+                ax.plot(fit_params[n][sfrd_params[p[0]]], fit_params[n][sfrd_params[p[1]]], '*', ms=25, label="%s"%other_sfrd_params[n-len(tngs)], color=data_colors_all[n])
+            
+        #connect TNGs that have same box size with dashed lines, and those with same resolution with solid lines
+        same_box = [[fit_params[0], fit_params[1], fit_params[2]], [fit_params[3], fit_params[4]]]
+        same_res = [[], [], [fit_params[4], fit_params[5]]]
+        for n, vals in enumerate(same_box):
+            xvals=[]
+            yvals=[]
+            for val in vals:
+                xvals.append(val[sfrd_params[p[0]]])
+                yvals.append(val[sfrd_params[p[1]]])
+            ax.plot(xvals, yvals, lw=2, ls='--', color=data_colors[n], zorder=1)
+        for n, vals in enumerate(same_res):
+            xvals=[]
+            yvals=[]
+            for val in vals:
+                xvals.append(val[sfrd_params[p[0]]])
+                yvals.append(val[sfrd_params[p[1]]])
+            ax.plot(xvals, yvals, lw=2, ls='-', color=data_colors[n], zorder=1)
+        
+        ax.set_xlabel(r'$\%s$'%p[0], fontsize=35) 
+        ax.set_ylabel(r'$\%s$'%p[1], fontsize=35)
+        ax.tick_params(axis='both', which='major', labelsize=25) 
+        ax.tick_params(length=15, width=3, which='major')
+        ax.tick_params(length=10, width=2, which='minor')
+        if ind==0:
+            ax.legend(fontsize=25, frameon=True, bbox_to_anchor=(0.2, 1.4), loc='upper left', ncol=4)
 
-    ax[1].set_xticks(x)
-    ax[1].legend(fontsize=15, frameon=True)
-    ax[1].tick_params(axis='both', which='major', labelsize=15)
-    ax[1].set_xticklabels(ticks, fontsize=20)
-    ax[1].tick_params(length=10, width=2, which='major')
-    ax[1].tick_params(length=5, width=1, which='minor')
-    ax[1].set_ylabel(r'Percent error', fontsize=20)
-    ax[1].xaxis.grid(True)
+    # ax.set_axisbelow(True)
+    # ax.yaxis.grid(True)
 
-    fig.savefig('figures/fitparams_percenterror.png', bbox_inches='tight', dpi=300)
+    #fig.savefig('figures/fitparams_%s_vs_%s.png'%(xparam, yparam), bbox_inches='tight', dpi=300)
+    fig.savefig('figures/fitparams_all.pdf', format='pdf', bbox_inches='tight', dpi=300)
     
     if showplot==True:
         plt.show()
 
-
 def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], error_ylim=[], plotmodel=True, plotredshift=True, show_MD17=True, 
-                plotlogscale=False, showplot=True, transparent=False):
+                plotlogscale=False, showfractionalerr=True, showplot=True, transparent=False):
 
     #Get model fit parameters 
     fit_param_files = []
@@ -74,9 +109,12 @@ def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], err
         fit_param_files.append('test_best_fit_parameters_TNG%s-%s.txt'%(tng, vers[n]))
     fit_params = read_best_fits(fit_param_files)
     
-    fig = plt.figure(layout='constrained',figsize=[13, 10])
-    ax = fig.add_subplot()
-    ax_x = ax.inset_axes([0, 1.0, 1, 0.30], sharex=ax)
+    if showfractionalerr==True:
+        fig = plt.figure(layout='constrained',figsize=[13, 10])
+        ax = fig.add_subplot()
+        ax_x = ax.inset_axes([0, 1.0, 1, 0.30], sharex=ax)
+    else:
+        fig, ax = plt.subplots(figsize=(13, 9))
 
     #Plot the TNG data
     for n, tng in enumerate(tngs):
@@ -89,28 +127,43 @@ def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], err
             rbox=205
 
         #Plot the TNG data
-        Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=False, metals=False)
+        if vers[n]==1:
+            Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=False, metals=False)
+        else:
+            Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=False, metals=False)
 
         if plotredshift == True:
             xvals = Sim_Redshifts
         else:
             xvals = Sim_Lookbacktimes
 
-        ax.plot(xvals, np.sum(Sim_SFRD, axis=1)*step_fit_logZ, lw=8, c=data_colors[n], label=r'TNG%s-%s'%(tng, vers[n]))
+        if vers[n]==1:
+            linestyle='-'
+            z_order=1
+        if vers[n]==2:
+            linestyle='--'
+            z_order=1
+        if vers[n]==3:
+            linestyle=':'
+            z_order=2
+        #ax.plot(xvals, np.sum(Sim_SFRD, axis=1)*step_fit_logZ, lw=6, ls=linestyle, c=data_colors[n], zorder=z_order, label=r'TNG%s-%s'%(tng, vers[n]))
 
         #Plot the TNG model
         if plotmodel==True:
             sfr = Z_SFRD.Madau_Dickinson2014(Sim_Redshifts, a=fit_params[n][5], b=fit_params[n][6], c=fit_params[n][7], d=fit_params[n][8]).value
-            ax.plot(xvals, sfr, lw=3, c=fit_colors[n], ls='--')
+            ax.plot(xvals, sfr, lw=3, c=data_colors[n], ls='--')
 
-        fractionalerr =  sfr/(np.sum(Sim_SFRD, axis=1)*step_fit_logZ)
-        ax_x.plot(xvals, fractionalerr, lw=4, c=data_colors[n])
+        if showfractionalerr==True:
+            fractionalerr =  sfr/(np.sum(Sim_SFRD, axis=1)*step_fit_logZ)
+            ax_x.plot(xvals, fractionalerr, lw=4, c=data_colors[n])
+            ax_x.axhline(y=1, linewidth=1, color='gray', zorder=0)
 
-    x = [-0.0001]
-    y1 = [0.0001] 
-    y2 = [0.0001]
-    plt.plot(x, y1, c='black', ls = '-', lw=6, label=r'$\mathrm{TNG \ simulation}$')
-    plt.plot(x, y2, c='black', ls = '--', lw=3, label=r'$\mathrm{Analytical \ fit}$')
+    if plotmodel==True:
+        x = [-0.0001]
+        y1 = [0.0001] 
+        y2 = [0.0001]
+        plt.plot(x, y1, c='black', ls = '-', lw=6, label=r'$\mathrm{TNG \ simulation}$')
+        plt.plot(x, y2, c='black', ls = '--', lw=3, label=r'$\mathrm{Analytical \ fit}$')
     ax.tick_params(axis='both', which='major', labelsize=25) 
     ax.tick_params(length=15, width=3, which='major')
     ax.tick_params(length=10, width=2, which='minor')
@@ -122,8 +175,6 @@ def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], err
         ax.plot(xvals, Z_SFRD.Madau_Dickinson2014(Sim_Redshifts, a=0.01, b=2.6, c=3.2, d=6.2), 
             label = r'M\&F 2017', #+'\n'+'$a=%.2f, b=%.2f, c=%.2f, d=%.2f$'% (0.01,2.6,3.2,6.2), 
             c = 'gray',lw=3, zorder=0)
-        
-    ax_x.axhline(y=1, linewidth=1, color='gray', zorder=0)
 
     ax.legend(fontsize = 25, frameon=False)
     if plotlogscale==True:
@@ -133,21 +184,25 @@ def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], err
     if len(ylim) > 0:
         ax.set_ylim(ylim[0], ylim[1])
 
-    ax_x.tick_params(axis='y', which='major', labelsize=20)
-    ax_x.tick_params(axis='x', which='both', direction='in', labelbottom=False)
-    ax_x.tick_params(length=10, width=2, which='major')
-    ax_x.tick_params(length=5, width=1, which='minor')
-    ax_x.xaxis.set_minor_locator(ticker.MultipleLocator(1))
-    ax_x.set_ylabel(r'$\mathcal{S}(z)_\mathrm{fit}/\mathcal{S}(z)_\mathrm{sim}$', fontsize = 25)
-    ax_x.set_yscale('log')
-    #ax_x.legend(fontsize = 25, frameon=False)
-    if len(error_ylim) > 0:
-        ax_x.set_ylim(error_ylim[0], error_ylim[1])
+    if showfractionalerr==True:
+        ax_x.tick_params(axis='y', which='major', labelsize=20)
+        ax_x.tick_params(axis='x', which='both', direction='in', labelbottom=False)
+        ax_x.tick_params(length=10, width=2, which='major')
+        ax_x.tick_params(length=5, width=1, which='minor')
+        ax_x.xaxis.set_minor_locator(ticker.MultipleLocator(1))
+        ax_x.set_ylabel(r'$\mathcal{S}(z)_\mathrm{fit}/\mathcal{S}(z)_\mathrm{sim}$', fontsize = 25)
+        ax_x.set_yscale('log')
+        #ax_x.legend(fontsize = 25, frameon=False)
+        if len(error_ylim) > 0:
+            ax_x.set_ylim(error_ylim[0], error_ylim[1])
 
     if plotredshift:
         ax.set_xlabel(r"Redshift $z$", fontsize = 35)
 
-        ax2 = ax_x.twiny()
+        if showfractionalerr==True:
+            ax2 = ax_x.twiny()
+        else:
+            ax2 = ax.twiny()
         redshift_tick_list = [0, 1, 2, 6, 10, 14]#[0,0.1, 0.25, 0.5, 1.0, 10]
         ax2.set_xticks([z for z in redshift_tick_list])
         ax2.set_xticklabels(['${:.1f}$'.format(cosmo.lookback_time(z).value) for z in redshift_tick_list], fontsize = 25)
@@ -169,7 +224,7 @@ def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], err
         if plotmodel:
             fig.savefig('figures/SFR_redshift_fit.pdf', format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
         else:
-            fig.savefig('figures/SFR_redshift.pdf', format="pdf",  bbox_inches='tight', dpi=300, transparent=transparent)
+            fig.savefig('figures/SFR_redshift_allTNGs.pdf', format="pdf",  bbox_inches='tight', dpi=300, transparent=transparent)
     else:
         ax.set_xlabel(r"Lookback time (Gyr)", fontsize = 35)
         
@@ -192,12 +247,13 @@ def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], err
         if plotmodel:
             fig.savefig('figures/SFR_lookbackt_fit.pdf',  format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
         else:
-            fig.savefig('figures/SFR_lookbackt.pdf',  format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
+            fig.savefig('figures/SFR_lookbackt_allTNGs.pdf',  format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
     
     if showplot==True:
         plt.show()
 
-def compare_Zdist(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], error_ylim=[], plotmodel=True, plotlogscale=False, showplot=True, transparent=False):
+def compare_Zdist(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], error_ylim=[], plotmodel=True, plotlogscale=False, showplot=True, 
+                  showfractionalerr=True, transparent=False):
 
     #Get model fit parameters 
     fit_param_files = []
@@ -205,9 +261,12 @@ def compare_Zdist(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], e
         fit_param_files.append('test_best_fit_parameters_TNG%s-%s.txt'%(tng,vers[n]))
     fit_params = read_best_fits(fit_param_files)
     
-    fig = plt.figure(layout='constrained',figsize=[13, 10])
-    ax = fig.add_subplot()
-    ax_x = ax.inset_axes([0, 1.0, 1, 0.30], sharex=ax)
+    if showfractionalerr==True:
+        fig = plt.figure(layout='constrained',figsize=[13, 10])
+        ax = fig.add_subplot()
+        ax_x = ax.inset_axes([0, 1.0, 1, 0.30], sharex=ax)
+    else:
+        fig, ax = plt.subplots(figsize=[13, 9])
 
     #Plot the TNG data
     for n, tng in enumerate(tngs):
@@ -220,11 +279,23 @@ def compare_Zdist(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], e
             rbox=205
 
         #Plot the TNG data
-        Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=False, metals=False)
+        if vers[n]==1:
+            Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=False, metals=False)
+        else:
+            Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=False, metals=False)
         #SFRDnew, redshift_new, Lookbacktimes_new, metals_new, step_fit_logZ_new = interpolate_TNGdata(Sim_Redshifts, Sim_Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng, vers[n], redshiftlimandstep=[0, 14.1, 0.05], saveplot=False)
         #scale = max(np.sum(Sim_SFRD, axis=0))/max(np.sum(SFRDnew.T, axis=0))
 
-        ax.plot(Sim_center_Zbin/Zsun, np.sum(Sim_SFRD, axis=0), lw=8, c=data_colors[n], label=r'TNG%s-%s'%(tng, vers[n]))
+        if vers[n]==1:
+            linestyle='-'
+            z_order=1
+        if vers[n]==2:
+            linestyle='--'
+            z_order=1
+        if vers[n]==3:
+            linestyle=':'
+            z_order=2
+        #ax.plot(Sim_center_Zbin/Zsun, np.sum(Sim_SFRD, axis=0), lw=6, ls=linestyle, zorder=z_order, c=data_colors[n], label=r'TNG%s-%s'%(tng, vers[n]))
 
         #Plot the TNG model
         if plotmodel==True:
@@ -235,21 +306,23 @@ def compare_Zdist(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], e
                                                   omega_0= fit_param[2] , omega_z=fit_param[3] , alpha = fit_param[4], 
                                                   metals=Sim_center_Zbin, min_logZ_COMPAS = np.log(1e-4), max_logZ_COMPAS = np.log(0.03))
             model = sfr[:,np.newaxis] * dPdlogZ
-            ax.plot(Sim_center_Zbin/Zsun, np.sum(model.T, axis=1), lw=3, c=fit_colors[n], ls='--') 
+            ax.plot(Sim_center_Zbin/Zsun, np.sum(model.T, axis=1), lw=3, c=data_colors[n], ls='--') 
 
-        fractionalerr =  np.sum(model, axis=0)/np.sum(Sim_SFRD, axis=0) 
-        ax_x.plot(Sim_center_Zbin/Zsun, fractionalerr, lw=4, c=data_colors[n])
+        if showfractionalerr==True:
+            fractionalerr =  np.sum(model, axis=0)/np.sum(Sim_SFRD, axis=0) 
+            ax_x.plot(Sim_center_Zbin/Zsun, fractionalerr, lw=4, c=data_colors[n])
+            ax_x.axvline(x=1, linewidth=2, color='gray', zorder=0)
+            ax_x.axhline(y=1, linewidth=1, color='gray', zorder=0)
 
     ax.axvline(x=1, linewidth=2, color='gray', zorder=0)
     ax.text(x=0.55, y= 0.002, s='$Z_\odot$', fontsize=30, color='gray')
-    ax_x.axvline(x=1, linewidth=2, color='gray', zorder=0)
-    ax_x.axhline(y=1, linewidth=1, color='gray', zorder=0)
 
-    x = [-0.0001]
-    y1 = [0.0001]
-    y2 = [0.0001]
-    plt.plot(x, y1, c='black', ls = '-', lw=6, label=r'$\mathrm{TNG \ simulation}$')
-    plt.plot(x, y2, c='black', ls = '--', lw=3, label=r'$\mathrm{Analytical \ fit}$')
+    if plotmodel==True:
+        x = [-0.0001]
+        y1 = [0.0001]
+        y2 = [0.0001]
+        plt.plot(x, y1, c='black', ls = '-', lw=6, label=r'$\mathrm{TNG \ simulation}$')
+        plt.plot(x, y2, c='black', ls = '--', lw=3, label=r'$\mathrm{Analytical \ fit}$')
     ax.tick_params(axis='both', which='major', labelsize=25)
     ax.tick_params(length=15, width=3, which='major')
     ax.tick_params(length=10, width=2, which='minor')
@@ -265,17 +338,18 @@ def compare_Zdist(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], e
     if len(ylim) > 0:
         ax.set_ylim(ylim[0], ylim[1])
 
-    ax_x.tick_params(axis='y', which='major', labelsize=20)
-    ax_x.tick_params(axis='x', which='both', direction='in', labelbottom=False)
-    ax_x.tick_params(length=10, width=2, which='major')
-    ax_x.tick_params(length=5, width=1, which='minor')
-    ax_x.xaxis.set_minor_locator(ticker.MultipleLocator(1))
-    ax_x.set_ylabel(r'$\mathcal{S}(Z)_\mathrm{fit}/\mathcal{S}(Z)_\mathrm{sim}$', fontsize = 25)
-    ax_x.set_xscale('log')
-    ax_x.set_yscale('log')
-    #ax_x.legend(fontsize = 25, frameon=False)
-    if len(error_ylim) > 0:
-        ax_x.set_ylim(error_ylim[0], error_ylim[1])
+    if showfractionalerr==True:
+        ax_x.tick_params(axis='y', which='major', labelsize=20)
+        ax_x.tick_params(axis='x', which='both', direction='in', labelbottom=False)
+        ax_x.tick_params(length=10, width=2, which='major')
+        ax_x.tick_params(length=5, width=1, which='minor')
+        ax_x.xaxis.set_minor_locator(ticker.MultipleLocator(1))
+        ax_x.set_ylabel(r'$\mathcal{S}(Z)_\mathrm{fit}/\mathcal{S}(Z)_\mathrm{sim}$', fontsize = 25)
+        ax_x.set_xscale('log')
+        ax_x.set_yscale('log')
+        #ax_x.legend(fontsize = 25, frameon=False)
+        if len(error_ylim) > 0:
+            ax_x.set_ylim(error_ylim[0], error_ylim[1])
 
     #Set limits for horizontal axis
     if len(xlim) > 0:
@@ -286,7 +360,7 @@ def compare_Zdist(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], e
     if plotmodel:
         fig.savefig('figures/Z_fit_avg_sfr.pdf',  format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
     else:
-        fig.savefig('figures/Z_avg_sfr.pdf',  format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
+        fig.savefig('figures/Z_avg_sfr_allTNGs.pdf',  format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
     
     if showplot==True:
         plt.show()
@@ -517,15 +591,21 @@ if __name__ == "__main__":
     cmap_green = matplotlib.colors.LinearSegmentedColormap.from_list("green_cmap", ['#CCE666', '#79B41C', '#004011'])
     cmap_gray = matplotlib.colors.LinearSegmentedColormap.from_list("gray_cmap", ['#D3D2D2', '#787878', '#222222'])
     data_colors = ["#0067A6", '#C01874', '#98CB4F', '#D3D2D2']
+    data_colors_all = ['#40E9E0', '#1C7EB7', "#00446E",'#F76FDD', "#900849", '#98CB4F', 'black', 'gray', 'lightgray']
+    #data_colors_all = [tol_colors.muted.teal, tol_colors.medium_contrast.light_blue, tol_colors.medium_contrast.dark_blue,tol_colors.muted.wine, tol_colors.muted.purple, tol_colors.muted.olive, 'black', 'gray', 'lightgray']
     fit_colors = ['#0C0034', '#4B0012', '#005B2F', '#787878']
     line_styles = ['solid', 'dashed', 'dotted']
 
-    #compare_params(tngs, vers)
+    params = [['mu_0', 'sigma_0'], ['mu_z', 'sigma_z'], ['mu_0', 'mu_z'], ['sigma_0', 'sigma_z'], ['sf_a', 'sf_c'], ['sf_b', 'sf_d']]
+    #for n in params:
+    #compare_params(tngs, vers, params=params, other_sfrd_params=['vanSon23_fid'], showplot=True)
 
-    compare_SFR(path, tngs, vers, plotmodel=True, plotredshift=True, xlim=[0, 14], ylim=[10**-3, 10**-0.8], error_ylim = [5e-1, 1e1], plotlogscale=True, transparent=True)
+    compare_SFR(path, tngs, vers, plotmodel=True, plotredshift=True, xlim=[0, 14], ylim=[10**-3, 10**-0.8], error_ylim = [5e-1, 1e1], 
+                 showfractionalerr=True, plotlogscale=True, transparent=True)
 
-    compare_Zdist(path, tngs, vers, xlim=[10**-4, 10], ylim=[1e-3, 4], error_ylim=[1e-1, 1e3], plotmodel=True, plotlogscale=True, transparent=True)
+    compare_Zdist(path, tngs, vers, xlim=[10**-4, 10], ylim=[1e-3, 4], error_ylim=[1e-1, 1e3], plotmodel=True, plotlogscale=True, 
+                   showfractionalerr=True, transparent=True)
 
-    Zdist_3panel_plots(path, tng=100, ver=1, showplot=True, transparent=False)
+    #Zdist_3panel_plots(path, tng=100, ver=1, showplot=True, transparent=False)s
 
     #compare_dPdlogZ(path, tngs, vers, ylim=[1e-2, 1e1], levels = [0, 0.55], nlevels=30)

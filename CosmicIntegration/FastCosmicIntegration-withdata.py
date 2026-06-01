@@ -188,8 +188,6 @@ def find_formation_and_merger_rates(n_binaries, redshifts, times, time_first_SF,
         COMPAS_weights = np.ones(n_binaries)
 
     # assume a flat in log distribution in metallicity to find probability of drawing Z in COMPAS
-    min_logZ_COMPAS = np.log(np.min(COMPAS.initialZ))
-    max_logZ_COMPAS = np.log(np.max(COMPAS.initialZ))
     p_draw_metallicity = 1 / (max_logZ_COMPAS - min_logZ_COMPAS)
 
     # initalise rates to zero
@@ -495,9 +493,10 @@ def find_detection_rate(path, filename="COMPAS_Output.h5", dco_type="BBH", weigh
 
         # calculate the formation and merger rates using what we computed above
         formation_rate, merger_rate = find_formation_and_merger_rates(n_binaries, redshifts, times, time_first_SF, metals_new,
-                                                                     COMPAS.metallicitySystems, COMPAS.delayTimes, COMPAS.sw_weights, 
+                                                                     COMPAS.metallicitySystems, COMPAS.delayTimes, 
                                                                      min_logZ_COMPAS = np.log(np.min(COMPAS.initialZ)),
                                                                      max_logZ_COMPAS = np.log(np.max(COMPAS.initialZ)),
+                                                                     COMPAS_weights=COMPAS.sw_weights,
                                                                      Metal_distributions=Metals_dist, n_formed=n_formed)
 
         
