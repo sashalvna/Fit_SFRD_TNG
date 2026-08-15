@@ -115,6 +115,8 @@ def getSFRMetallicityFromGas(TNGpath, TNG, lvl, snap, nfiles, jupyterlab=True, n
                 data, metaldata = getandbinSFRandZdata(fname, ifile, mbins)
                 sfrs += data
                 metals += metaldata
+                #z = read_header(TNGpath, snap)
+                #lookbacktime = cosmo.lookback_time(z)
                 delete_snapshotsubfile(TNGpath, snap, ifile) #delete subfile after getting data from it
 
             else: #if file is missing, try re downloading that file
@@ -124,6 +126,8 @@ def getSFRMetallicityFromGas(TNGpath, TNG, lvl, snap, nfiles, jupyterlab=True, n
                     data, metaldata = getandbinSFRandZdata(fname, ifile, mbins)
                     sfrs += data
                     metals += metaldata
+                    #z = read_header(TNGpath, snap)
+                    #lookbacktime = cosmo.lookback_time(z)
                     delete_snapshotsubfile(TNGpath, snap, ifile) 
 
                 else: #if file still doesn't exist, just skip it
@@ -146,12 +150,16 @@ def getFullSFRMetallicityFromGas(TNGpath, outfname, TNG, lvl, snaps, nfiles, sta
     sfrs = np.zeros((len(snaps),nbins))
     metals = np.zeros((len(snaps),nbins))
     redshifts, lookbacktimes = get_z_and_lookbacktime(snaps)
+    #redshifts = np.zeros(len(snaps))
+    #lookbacktimes = np.zeros(len(snaps))
 
     for snap in range(starting_snap, len(snaps)):
 
         if sfrs[snap].sum() == 0:
             print( "Doing snap %d." % snap )
             s, m = getSFRMetallicityFromGas(TNGpath, TNG, lvl, snap, nfiles, nBinsSFR=nbins, jupyterlab=jupyterlab)
+            # redshifts[snap] = z
+            # lookbacktimes[snap] = lookbacktime
             sfrs[snap,:] = s
             metals[snap,:] = m
 
@@ -172,6 +180,10 @@ def getFullSFRMetallicityFromGas(TNGpath, outfname, TNG, lvl, snaps, nfiles, sta
             data[snap] = sfrs[snap] #write new snapshot data to it; overwrites anything already in that column
             metal_data = f['Metals']   # load existing metallicity data; assuming other cols already written
             metal_data[snap] = metals[snap] #write new snapshot data to it; overwrites anything already in that column
+            # z_data = f['Redshifts']   # load existing redshift data; assuming other cols already written
+            # z_data[snap] = redshifts[snap] #write new snapshot data to it; overwrites anything already in that column
+            # lookbacktime_data = f['Lookbacktimes']   # load existing lookback time data; assuming other cols already written
+            # lookbacktime_data[snap] = lookbacktimes[snap] #write new snapshot data to it; overwrites anything already in that column
             f.close()
 
 

@@ -34,3 +34,6 @@ output = root / "output"
 
 # Absolute path to TNG data
 tng = root2 / "TNGdata"
+
+# Absolute path to TNG data
+eagle = root2 / "EAGLEdata"

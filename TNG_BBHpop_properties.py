@@ -242,20 +242,34 @@ def plot_BBH_massdist_allTNGs(rates, only_stable = True, only_CE = True, channel
     xlabel = r'$M_{\mathrm{BH, 1}} \ \rm [M_{\odot}]$'
     ylabel = r'$\frac{d\mathcal{R}}{dM_{\mathrm{BH, 1} }} \ \mathrm{[Gpc^{-3}yr^{-1}M^{-1}_{\odot}]}$'
 
-    # GWTC-4 Spline mass distribution
+    # # GWTC-4 Spline mass distribution
     color_plpeak = 'grey'#'#1f78b4'
-    input_fname = data_dir+'BBHMassSpinRedshift_BSplineIID.h5'
-    bptp_o4 = popsummary.popresult.PopulationResult(input_fname)
-    with h5.File(input_fname, "r") as f:
-        param = 'rate_vs_mass_1_at_z0-2' #'mass_1'
-        dat = bptp_o4.get_rates_on_grids(param)
-        bptp_m1 = dat[0][0]
-        bptp_m1_pdfs = dat[1]
-        mass_1_lower = np.percentile(bptp_m1_pdfs, 5, axis=0)
-        mass_1_upper = np.percentile(bptp_m1_pdfs, 95, axis=0)
-    # plot the max posterior and the 95th percentile
-    ax.plot(bptp_m1, np.median(bptp_m1_pdfs, axis=0), lw=1.8, color=color_plpeak, zorder=1, label="GWTC-4")
-    ax.fill_between(bptp_m1, mass_1_lower, mass_1_upper, alpha=0.14,color=color_plpeak,zorder=0)
+    # input_fname = data_dir+'BBHMassSpinRedshift_BSplineIID.h5'
+    # bptp_o4 = popsummary.popresult.PopulationResult(input_fname)
+    # with h5.File(input_fname, "r") as f:
+    #     param = 'rate_vs_mass_1_at_z0-2' #'mass_1'
+    #     dat = bptp_o4.get_rates_on_grids(param)
+    #     bptp_m1 = dat[0][0]
+    #     bptp_m1_pdfs = dat[1]
+    #     mass_1_lower = np.percentile(bptp_m1_pdfs, 5, axis=0)
+    #     mass_1_upper = np.percentile(bptp_m1_pdfs, 95, axis=0)
+    # # plot the max posterior and the 95th percentile
+    # ax.plot(bptp_m1, np.median(bptp_m1_pdfs, axis=0), lw=1.8, color=color_plpeak, zorder=1, label="GWTC-4")
+    # ax.fill_between(bptp_m1, mass_1_lower, mass_1_upper, alpha=0.14,color=color_plpeak,zorder=0)
+
+    #default gwtc-5
+    strong_bbh_O4b = popsummary.popresult.PopulationResult(fname=data_dir+f'gwtc5_updated_default_mmax_mass_TwoPeakBrokenPowerLawSmoothedMassDistribution_redshift_PowerLawRedshift_magnitude_iid_spin_magnitude_gaussian_tilt_iid_spin_orientation_popsummary_result.h5')
+    strong_bbh_O4b_m1_grid, strong_bbh_O4b_Rm1 = strong_bbh_O4b.get_rates_on_grids('mass_1')
+    strong_bbh_O4b_m1_grid = strong_bbh_O4b_m1_grid.reshape((strong_bbh_O4b_m1_grid.size, ))
+    zeval = 0.2
+    redshift_factor_strong_bbh_o4b = (1 + zeval)**(strong_bbh_O4b.get_hyperparameter_samples(hyperparameters=['lamb']))
+    ax.plot(strong_bbh_O4b_m1_grid, 
+            np.quantile(redshift_factor_strong_bbh_o4b * strong_bbh_O4b_Rm1, 0.5, axis=0),
+            color=color_plpeak, label='GWTC-5.0', lw=1.5, zorder=1)
+    ax.fill_between(strong_bbh_O4b_m1_grid, 
+                    np.quantile(redshift_factor_strong_bbh_o4b * strong_bbh_O4b_Rm1, 0.05, axis=0),
+                np.quantile(redshift_factor_strong_bbh_o4b * strong_bbh_O4b_Rm1, 0.95, axis=0), 
+                    color=color_plpeak, edgecolor=None, alpha=0.2, zorder=0)
 
     DCO = mfunc.read_data(loc = data_dir +str(COMPASfilename))
 
@@ -305,7 +319,7 @@ def plot_BBH_massdist_allTNGs(rates, only_stable = True, only_CE = True, channel
 
         x_KDE = np.arange(0.1,50.,0.1)
         KDEy_vals =  kernel(x_KDE)*sum(hist) #re-normalize the KDE
-        ax.plot(x_KDE, KDEy_vals, color=data_colors[nplot], lw= 5, ls=linestyles[nplot], label = 'TNG '+labels[nplot])
+        ax.plot(x_KDE, KDEy_vals, color=data_colors[nplot], lw= 5, ls=linestyles[nplot], label = 'TNG'+labels[nplot])
         massdists.append(KDEy_vals)
         nplot += 1
         
@@ -645,8 +659,18 @@ def plot_BBH_mass_dist_formation_channels(data_rates, model_rates, tng, version,
     #colors.append(colormap2(np.linspace(0.2, 0.9, len(z))))
     #colors.append(cmap_gray(np.linspace(0, 1, len(z))))
     colors.append(colormap(np.linspace(0.2, 0.9, len(z))))
-    linestyles = ['-', '--']
-    linewidths = [4, 3]
+    opacity = []
+    #linewidths = []
+    #linestyles = []
+    for i in range(len(z)-1):
+        opacity.append(1)
+        #linewidths.append(2)
+        #linestyles.append('--')
+    opacity.append(1)
+    #linewidths.append(4)
+    #linestyles.append('-')
+    linestyles = ['-', '-']
+    linewidths = [4, 4]
 
     bins = np.arange(0.,55,2.5)
     x_lim=(0.,49)
@@ -739,9 +763,9 @@ def plot_BBH_mass_dist_formation_channels(data_rates, model_rates, tng, version,
     
                 x_KDE = np.arange(0.1,50.,0.1)
                 KDEy_vals =  kernel(x_KDE)*sum(hist) #re-normalize the KDE
-                line, = ax[j, i].plot(x_KDE, KDEy_vals, color=colors[i][m], lw= linewidths[i], ls = linestyles[i])
-                if i == 1:
-                    line.set_dashes([5, 1])
+                line, = ax[j, i].plot(x_KDE, KDEy_vals, color=colors[i][m], lw= linewidths[i], ls = linestyles[i], alpha=opacity[m])
+                #if i == 1:
+                #    line.set_dashes([5, 1])
 
                 if j==0:
                     ax[j, i].set_title(titles[i], fontsize = 25)
@@ -796,7 +820,7 @@ def plot_BBH_mass_dist_formation_channels(data_rates, model_rates, tng, version,
 
 
 
-def compare_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_vals, only_stable = True, only_CE = True, channel_string='all', z = 0.2, showplot=True, transparent=False):
+def compare_BBH_data_and_model_mass_dist(model_rates, data_rates, only_stable = True, only_CE = True, channel_string='all', z = 0.2, showplot=True, transparent=False, shadediff=False):
     #get rate file names and rate keys
     TNGpaths = []
     TNGpaths_data = []
@@ -806,30 +830,48 @@ def compare_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_vals
     for i in data_rates:
         TNGpaths_data.append('/'+i)
 
-    fig = plt.figure(layout='constrained',figsize=[13, 10])
+    fig = plt.figure(layout='constrained',figsize=[12, 8])
     ax = fig.add_subplot()
-    ax_x = ax.inset_axes([0, 1.0, 1, 0.30], sharex=ax)
+    #ax_x = ax.inset_axes([0, 1.0, 1, 0.30], sharex=ax)
     bins = np.arange(0.,55,2.5)
     plot_lines = []
-    x_lim=(0.,50)
+    x_lim=(3,50)
     y_lim = (1e-2,40)
     xlabel = r'$M_{\mathrm{BH, 1}} \ \rm [M_{\odot}]$'
     ylabel = r'$\frac{d\mathcal{R}}{dM_{\mathrm{BH, 1} }} \ \mathrm{[Gpc^{-3}yr^{-1}M^{-1}_{\odot}]}$'
 
-    # GWTC-4 Spline mass distribution
+    # GWTC-5 pixelpop mass distribution
     color_plpeak = 'grey'#'#1f78b4'
-    input_fname = data_dir+'BBHMassSpinRedshift_BSplineIID.h5'
-    bptp_o4 = popsummary.popresult.PopulationResult(input_fname)
-    with h5.File(input_fname, "r") as f:
-        param = 'rate_vs_mass_1_at_z0-2' #'mass_1'
-        dat = bptp_o4.get_rates_on_grids(param)
-        bptp_m1 = dat[0][0]
-        bptp_m1_pdfs = dat[1]
-        mass_1_lower = np.percentile(bptp_m1_pdfs, 5, axis=0)
-        mass_1_upper = np.percentile(bptp_m1_pdfs, 95, axis=0)
-    # plot the max posterior and the 95th percentile
-    ax.plot(bptp_m1, np.median(bptp_m1_pdfs, axis=0), lw=1.8, color=color_plpeak, zorder=1, label="GWTC-4")
-    ax.fill_between(bptp_m1, mass_1_lower, mass_1_upper, alpha=0.14,color=color_plpeak,zorder=0)
+    # input_fname = data_dir+'BBHMassSpinRedshift_BSplineIID.h5'
+    # bptp_o4 = popsummary.popresult.PopulationResult(input_fname)
+
+    # pixelpop O4b
+    m1q_pixelpop = popsummary.popresult.PopulationResult(fname=data_dir+f'bbh_m1q_varcut1_popsummary.h5')
+    m1m2_pixelpop = popsummary.popresult.PopulationResult(fname=data_dir+f'm1m2_varcut1_popsummary.h5')
+    (pixelpop_m1_grid, pixelpop_m2_grid), pixelpop_R = m1m2_pixelpop.get_rates_on_grids('joint_pixelpop_rate')
+    pixelpop_m1_grid, pixelpop_Rm1 = m1m2_pixelpop.get_rates_on_grids('log_mass_1')
+    pixelpop_m1_grid = pixelpop_m1_grid.reshape((pixelpop_m1_grid.size, ))
+    pixelpop_q_grid, pixelpop_Rq = m1q_pixelpop.get_rates_on_grids('mass_ratio')
+    pixelpop_q_grid = pixelpop_q_grid.reshape((pixelpop_q_grid.size, ))
+    redshift_factor_pixelpop_m1 = (1 + 0.2)**(m1m2_pixelpop.get_hyperparameter_samples(hyperparameters=['lamb']))
+
+    ax.step(np.exp(pixelpop_m1_grid), np.quantile(redshift_factor_pixelpop_m1 * pixelpop_Rm1 /np.exp(pixelpop_m1_grid) , 0.5, axis = 0), 
+          color=color_plpeak, label=r'GWTC-5', lw=1.8, zorder=1)
+    ax.fill_between(np.exp(pixelpop_m1_grid), 
+                 np.quantile(redshift_factor_pixelpop_m1 * pixelpop_Rm1 / np.exp(pixelpop_m1_grid) , 0.05, axis = 0), 
+                np.quantile(redshift_factor_pixelpop_m1 * pixelpop_Rm1 / np.exp(pixelpop_m1_grid), 0.95, axis = 0), 
+                color=color_plpeak, edgecolor=None, alpha=0.2, step='pre', zorder=0)
+
+    # with h5.File(input_fname, "r") as f:
+    #     param = 'rate_vs_mass_1_at_z0-2' #'mass_1'
+    #     dat = bptp_o4.get_rates_on_grids(param)
+    #     bptp_m1 = dat[0][0]
+    #     bptp_m1_pdfs = dat[1]
+    #     mass_1_lower = np.percentile(bptp_m1_pdfs, 5, axis=0)
+    #     mass_1_upper = np.percentile(bptp_m1_pdfs, 95, axis=0)
+    # # plot the max posterior and the 95th percentile
+    # ax.plot(bptp_m1, np.median(bptp_m1_pdfs, axis=0), lw=1.8, color=color_plpeak, zorder=1, label="GWTC-4")
+    # ax.fill_between(bptp_m1, mass_1_lower, mass_1_upper, alpha=0.14,color=color_plpeak,zorder=0)
 
     DCO = mfunc.read_data(loc = data_dir +str(COMPASfilename))
 
@@ -878,7 +920,7 @@ def compare_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_vals
 
         x_KDE = np.arange(0.1,50.,0.1)
         KDEy_vals_sim =  kernel(x_KDE)*sum(hist) #re-normalize the KDE
-        plot_lines.append(ax.plot(x_KDE, KDEy_vals_sim, color=data_colors[nplot], label = 'TNG '+labels[nplot], lw=8, ls = '-'))
+        plot_lines.append(ax.plot(x_KDE, KDEy_vals_sim, color=data_colors[nplot], label = 'TNG'+labels[nplot]+" simulation (expected)", lw=8, ls = '-'))
     
         nplot += 1
 
@@ -928,8 +970,9 @@ def compare_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_vals
 
         x_KDE = np.arange(0.1,50.,0.1)
         KDEy_vals_fit =  kernel(x_KDE)*sum(hist) #re-normalize the KDE
-        ax.plot(x_KDE, KDEy_vals_fit, color=model_colors[nplot], lw= 3, ls='--')
-        ax_x.plot(x_KDE, KDEy_vals_fit/KDEy_vals_sim, color=data_colors[nplot], lw=4)
+        ax.plot(x_KDE, KDEy_vals_fit, color=model_colors[nplot], lw= 3, ls='--', label = 'Analytical fit to TNG'+labels[nplot])
+        #ax_x.plot(x_KDE, KDEy_vals_fit/KDEy_vals_sim, color=data_colors[nplot], lw=4)
+        ax.fill_between(x_KDE, KDEy_vals_sim, KDEy_vals_fit, alpha=0.3,color=data_colors[nplot],zorder=0)
     
         nplot += 1
         
@@ -942,35 +985,44 @@ def compare_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_vals
     ax.tick_params(length=10, width=2, which='minor')
     ax.xaxis.set_minor_locator(ticker.MultipleLocator(5))
 
-    ax_x.set_ylabel(r'$\frac{d\mathcal{R}}{dM_{\mathrm{BH, 1}}}_\mathrm{fit}/\frac{d\mathcal{R}}{dM_{\mathrm{BH, 1}}}_\mathrm{sim}$', fontsize=20)
-    error_ylim = [1.5e-1,1e2]
-    ax_x.set_ylim(error_ylim[0], error_ylim[1])
-    ax_x.tick_params(axis='y', which='major', labelsize=20)
-    ax_x.tick_params(axis='x', which='both', direction='in', labelbottom=False)
-    ax_x.tick_params(length=10, width=2, which='major')
-    ax_x.tick_params(length=5, width=1, which='minor')
-    ax_x.xaxis.set_minor_locator(ticker.MultipleLocator(5))
-    ax_x.yaxis.set_minor_locator(ticker.LogLocator(subs='all'))
-    ax_x.set_yscale('log')
-    ax_x.axhline(y=1, linewidth=1, color='gray', zorder=0)
+    # ax_x.set_ylabel(r'$\frac{d\mathcal{R}}{dM_{\mathrm{BH, 1}}}_\mathrm{fit}/\frac{d\mathcal{R}}{dM_{\mathrm{BH, 1}}}_\mathrm{sim}$', fontsize=20)
+    # error_ylim = [1.5e-1,1e2]
+    # ax_x.set_ylim(error_ylim[0], error_ylim[1])
+    # ax_x.tick_params(axis='y', which='major', labelsize=20)
+    # ax_x.tick_params(axis='x', which='both', direction='in', labelbottom=False)
+    # ax_x.tick_params(length=10, width=2, which='major')
+    # ax_x.tick_params(length=5, width=1, which='minor')
+    # ax_x.xaxis.set_minor_locator(ticker.MultipleLocator(5))
+    # ax_x.yaxis.set_minor_locator(ticker.LogLocator(subs='all'))
+    # ax_x.set_yscale('log')
+    # ax_x.axhline(y=1, linewidth=1, color='gray', zorder=0)
 
     #legend
-    x = [-0.0001]
-    y1 = [1]
-    y2 = [1]
-    plt.plot(x, y1, c='black', ls = '-', lw=6, label='TNG simulation')
-    plt.plot(x, y2, c='black', ls = '--', lw=3, label='Analytical fit')
+    # x = [-0.0001]
+    # y1 = [1]
+    # y2 = [1]
+    # plt.plot(x, y1, c='black', ls = '-', lw=6, label='TNG simulation')
+    # plt.plot(x, y2, c='black', ls = '--', lw=3, label='Analytical fit')
 
-    ax.set_xlabel(xlabel, fontsize = 30)
-    ax.set_ylabel(ylabel, fontsize = 30)
+    ax.set_xlabel(xlabel, fontsize = 35)
+    ax.set_ylabel(ylabel, fontsize = 35)
     ax.set_yscale('log')
     if channel_string=='all':
-        plt.text(0.03, 0.88, '$\mathrm{%s \ channels}$\nz=%s'%(channel_string, z), ha = 'left', transform=ax.transAxes, size = 25)
+        plt.text(0.03, 0.92, '$z=%s$'%(z), ha = 'left', transform=ax.transAxes, size = 30)
     else:
-        plt.text(0.03, 0.88, '$\mathrm{%s \ channel}$\nz=%s'%(channel_string, z), ha = 'left', transform=ax.transAxes, size = 25)
+        plt.text(0.03, 0.92, '$z=%s$'%(z), ha = 'left', transform=ax.transAxes, size = 30)
 
-    fig.legend(bbox_to_anchor=(0.98, 0.8), fontsize=25, frameon=False)
-    fig.savefig('figures/massdist_modelvsdata_%s_z%s.pdf'%(channel_string, z),format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
+
+    plt.text(0.15, 0.15, 'difference from \n $S(Z,z)$ simplification \n by analytical fit', ha = 'left', transform=ax.transAxes, size = 30)
+    ax.annotate(
+        "", 
+        xy=(29, 0.4),      # Arrow tip destination
+        xytext=(23, 0.1),  # Arrow base origin
+        arrowprops=dict(arrowstyle="->", color=data_colors[0], lw=2)
+    )
+
+    fig.legend(bbox_to_anchor=(1, 1), fontsize=30, frameon=False)
+    fig.savefig('figures/massdist_modelvsdata_%s_z%s_TNG100.pdf'%(channel_string, z),format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
 
     if showplot==True:
         plt.show()
@@ -1393,7 +1445,7 @@ def residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, only_stable 
 
 def plot_BBH_mass_Z_z(COMPASpath, tng, data_rates=None, model_rates=None, only_stable = True, only_CE = True, channel_string='all', z_merger=0.2, max_redshift=14, 
                       redshift_step=0.05, z_first_SF=14, z_form = [0, 1, 2, 6, 10, 14], Z_zams = [0.1, 0.01, 0.001, 0.0001], showplot=True, plot_total_dist=True,
-                      fractionalerror=False, transparent=False):
+                      fractionalerror=False, transparent=False, multipanel=True):
     
     bins = np.arange(0.,55,2.5)
     x_lim=(0.,50)
@@ -1412,9 +1464,9 @@ def plot_BBH_mass_Z_z(COMPASpath, tng, data_rates=None, model_rates=None, only_s
         y_lim = (1e-3, 1e3)
     elif (data_rates!= None) and (model_rates != None):
         rates = [data_rates, model_rates]
-        fig, ax = plt.subplots(figsize = (20, 8), sharey=True)
+        fig, ax = plt.subplots(3, 2, figsize = (16, 16), sharex=True, sharey=True)
         fig.subplots_adjust(wspace=0, hspace=0)
-        fig.suptitle('all channels, $z_\mathrm{merger}$ = %s'%z_merger, fontsize = 30)
+        fig.suptitle('all channels, $z_\mathrm{merger}$ = %s'%z_merger, fontsize = 30, y=0.95)
     else:
         fig, ax = plt.subplots(figsize = (12, 8))
         if data_rates is not None:
@@ -1425,17 +1477,16 @@ def plot_BBH_mass_Z_z(COMPASpath, tng, data_rates=None, model_rates=None, only_s
             ax.set_title('all channels, $z_\mathrm{merger}$ = %s, analytical fit'%z_merger, fontsize = 30)
 
     n=0
+    legend = []
     if fractionalerror==True:
         dists = []
-    for filename in rates:
+    for f, filename in enumerate(rates):
 
         #set up subplots
         if fractionalerror==True:
             ax = plt.subplot(1, 1, 1)
         elif len(rates) == 1: 
             ax = plt.subplot(1, 1, 1)
-        elif len(rates) == 2:
-            ax = plt.subplot(1, 2, n + 1)
 
         #Reading Rate data 
         with h5.File(data_dir + '/' + filename ,'r') as File:
@@ -1481,7 +1532,9 @@ def plot_BBH_mass_Z_z(COMPASpath, tng, data_rates=None, model_rates=None, only_s
             x_KDE = np.arange(0.1,50.,0.1)
             KDEy_vals =  kernel(x_KDE)*sum(hist) #re-normalize the KDE
             #ax.plot(x_KDE, KDEy_vals, color='black', lw=2, ls = '-', zorder=0, label='total')
-            ax.fill_between(x_KDE, x_KDE*0, KDEy_vals, alpha=0.1,color='gray',zorder=0)
+            ax[0, f].fill_between(x_KDE, x_KDE*0, KDEy_vals, alpha=0.1,color='gray',zorder=0)
+            ax[1, f].fill_between(x_KDE, x_KDE*0, KDEy_vals, alpha=0.1,color='gray',zorder=0)
+            ax[2, f].fill_between(x_KDE, x_KDE*0, KDEy_vals, alpha=0.1,color='gray',zorder=0)
 
         #read in formation redshift and metallicity for all binaries
         with h5.File(data_dir + '/' + COMPASpath ,'r') as File:
@@ -1576,24 +1629,32 @@ def plot_BBH_mass_Z_z(COMPASpath, tng, data_rates=None, model_rates=None, only_s
                             KDEy_vals =  kernel(x_KDE)*sum(hist) #re-normalize the KDE
                             if fractionalerror==False:
                                 if (counter == 0) and (n==0):
-                                    if i==0:
-                                        ax.plot(x_KDE, KDEy_vals, label = r'%s $\leq z_{form} <$ %s'%(redshift_form, z_form[i+1]), color = data_colors[i], lw= 5, ls = linestyles2[j], zorder=5)
-                                    else:
-                                        ax.plot(x_KDE, KDEy_vals, label = r'%s $\leq z_{form} <$ %s'%(redshift_form, z_form[i+1]), color = colors_gray[i], lw= 3, ls = linestyles2[j])
+                                    legend1, = ax[j, f].plot(x_KDE, KDEy_vals, label = r'%s $\leq z_{form} <$ %s'%(redshift_form, z_form[i+1]), color = colors[i], lw= 3, ls = linestyles2[j], zorder=5)
+                                    legend.append(legend1)
                                 else:
-                                    if i==0 and j==0:
-                                        ax.plot(x_KDE, KDEy_vals, color = data_colors[i], lw= 5, ls = linestyles2[j], zorder=5)
-                                    else:
-                                        ax.plot(x_KDE, KDEy_vals, color = colors_gray[i], lw= 3, ls = linestyles2[j])
+                                    ax[j, f].plot(x_KDE, KDEy_vals, color = colors[i], lw= 3, ls = linestyles2[j], zorder=5)
+
                             else:
                                 if n==0:
                                     data_dists.append(KDEy_vals)
                                 else:
                                     if (counter == 0):
-                                        ax.plot(x_KDE, KDEy_vals/dists[i][j], label = r'%s $\leq z_{form} <$ %s'%(redshift_form, z_form[i+1]), color = colors[i], lw= 3, ls = linestyles2[j])
+                                        legend1, = ax[j, f].plot(x_KDE, KDEy_vals/dists[i][j], label = r'%s $\leq z_{form} <$ %s'%(redshift_form, z_form[i+1]), color = colors[i], lw= 3, ls = linestyles2[j])
+                                        legend.append(legend1)
                                     else:
-                                        ax.plot(x_KDE, KDEy_vals/dists[i][j], color = colors[i], lw= 3, ls = linestyles2[j])
+                                        ax[j, f].plot(x_KDE, KDEy_vals/dists[i][j], color = colors[i], lw= 3, ls = linestyles2[j])
                             counter+=1
+
+                            ax[j, f].set_xlim(x_lim)
+                            ax[j, f].set_ylim(y_lim)
+                            ax[j, f].tick_params(axis='both', which='major', labelsize=25)
+                            ax[j, f].tick_params(length=15, width=3, which='major')
+                            ax[j, f].tick_params(length=10, width=2, which='minor')
+                            ax[j, f].xaxis.set_minor_locator(ticker.MultipleLocator(5))
+                            ax[j, f].set_yscale('log')
+                            if fractionalerror==True:
+                                ax[j, f].axhline(y=1, linewidth=1, color='gray', zorder=0)
+
                     
                     if fractionalerror==True:
                         dists.append(data_dists)      
@@ -1604,50 +1665,44 @@ def plot_BBH_mass_Z_z(COMPASpath, tng, data_rates=None, model_rates=None, only_s
 
         #########################################
         # plot values
-        ax.set_xlim(x_lim)
-        ax.set_ylim(y_lim)
-        ax.tick_params(axis='both', which='major', labelsize=25)
-        ax.tick_params(length=15, width=3, which='major')
-        ax.tick_params(length=10, width=2, which='minor')
-        ax.xaxis.set_minor_locator(ticker.MultipleLocator(5))
-        if fractionalerror==True:
-            ax.axhline(y=1, linewidth=1, color='gray', zorder=0)
-
+        
         if n==0:
             x = [-0.0001]
             y1 = [0.0001]
-            ax.plot(x, y1, c='black', ls = '-', lw=3, label=r'$%s \leq Z < %s$'%(Z_zams[1], Z_zams[0]))
+            legendZ1, = ax[0, 0].plot(x, y1, c='black', ls = '-', lw=3, label=r'$%s \leq Z < %s$'%(Z_zams[1], Z_zams[0]))
+            metallicity_legend1 = ax[0,0].legend(handles=[legendZ1], bbox_to_anchor=(0.99, 0.91), fontsize=20, frameon=False)
+            ax[0, 0].add_artist(metallicity_legend1)
             if len(Z_zams) >= 3:
-                ax.plot(x, y1, c='black', ls = '--', lw=3, label=r'$%s \leq Z < %s$'%(Z_zams[2], Z_zams[1],))
+                legendZ2, = ax[1, 0].plot(x, y1, c='black', ls = '--', lw=3, label=r'$%s \leq Z < %s$'%(Z_zams[2], Z_zams[1]))
+                metallicity_legend2 = ax[1,0].legend(handles=[legendZ2], bbox_to_anchor=(0.99, 0.91), fontsize=20, frameon=False)
+                ax[1, 0].add_artist(metallicity_legend2)
                 if len(Z_zams) >= 4:
-                    ax.plot(x, y1, c='black', ls = ':', lw=3, label=r'$%s \leq Z < %s$'%(Z_zams[3], Z_zams[2]))
-    
+                    legendZ3, = ax[2, 0].plot(x, y1, c='black', ls = ':', lw=3, label=r'$%s \leq Z < %s$'%(Z_zams[3], Z_zams[2]))
+                    metallicity_legend3 = ax[2,0].legend(handles=[legendZ3], bbox_to_anchor=(0.99, 0.91), fontsize=20, frameon=False)
+                    ax[2, 0].add_artist(metallicity_legend3)
+            
             # Channel
             if tng==50:
-                ax.text(0.13, 0.92, 'TNG%s'%labels[0], ha = 'center', transform=ax.transAxes, size = 30)
+                ax[0, 0].text(0.17, 0.88, 'TNG%s'%labels[0], ha = 'center', transform=ax[0,0].transAxes, size = 30)
             elif tng==100:
-                ax.text(0.13, 0.92, 'TNG%s'%labels[1], ha = 'center', transform=ax.transAxes, size = 30)
+                ax[0, 0].text(0.17, 0.88, 'TNG%s'%labels[1], ha = 'center', transform=ax[0,0].transAxes, size = 30)
             elif tng==300:
-                ax.text(0.13, 0.92, 'TNG%s'%labels[2], ha = 'center', transform=ax.transAxes, size = 30)
+                ax[0, 0].text(0.17, 0.88, 'TNG%s'%labels[2], ha = 'center', transform=ax[0,0].transAxes, size = 30)
 
-            xticklabels = ax.get_xticklabels()
-            xticklabels[-1] = ''
-            ax.set_xticklabels(xticklabels)
-        
         if (fractionalerror==False) and (len(rates)==2):
             if n==0:
-                ax.set_title('TNG simulation', fontsize = 30)
+                ax[0, 0].set_title('TNG simulation', fontsize = 30)
             if n==1:
-                ax.set_title('Analytical fit', fontsize = 30)
-                ax.tick_params(axis='both',  which='both', labelleft=False)
+                ax[0, 1].set_title('Analytical fit', fontsize = 30)
     
-        ax.set_xlabel(xlabel, fontsize = 30)
-        if n == 0:
-            ax.set_ylabel(ylabel, fontsize = 30)
-        ax.set_yscale('log')
-
+        fig.supxlabel(xlabel, fontsize = 30, y=0.03)
+        fig.supylabel(ylabel, fontsize = 30)
         n+=1 
-    
+
+    ax[2, 0].get_xticklabels()[-1].set_visible(False)
+    ax[1, 0].get_yticklabels()[-2].set_visible(False)
+    ax[2, 0].get_yticklabels()[-2].set_visible(False)
+
     if len(rates) == 1:
         fig.legend(bbox_to_anchor=(0.91, 0.88), fontsize=18, frameon=False)
         if data_rates is not None:
@@ -1664,11 +1719,11 @@ def plot_BBH_mass_Z_z(COMPASpath, tng, data_rates=None, model_rates=None, only_s
             fig.savefig('figures/massdist_TNG%s_%s_%s_Z_z.pdf'%(tng, channel_string, z_merger), format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
     elif fractionalerror==True:
         fig.legend(bbox_to_anchor=(0.62, 0.32), fontsize=18, frameon=False, ncol=2)
-        ax.set_title('all channels, $z_\mathrm{merger}$ = %s'%z_merger, fontsize = 30)
+        fig.suptitle('all channels, $z_\mathrm{merger}$ = %s'%z_merger, fontsize = 30)
         fig.savefig('figures/massdist_TNG%s_%s_%s_Z_z_fractionalerr.pdf'%(tng, channel_string, z_merger), format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
     else:
-        fig.legend(bbox_to_anchor=(0.91, 0.88), fontsize=18, frameon=False)
-        fig.savefig('figures/massdist_TNG%s_%s_%s_Z_z_both.pdf'%(tng, channel_string, z_merger), format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
+        fig.legend(handles=legend, bbox_to_anchor=(0.91, 0.88), fontsize=20, frameon=False)
+        fig.savefig('figures/massdist_TNG%s_%s_%s_Z_z_panels.pdf'%(tng, channel_string, z_merger), format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
 
     if showplot==True:
         plt.show()
@@ -1872,10 +1927,10 @@ if __name__ == "__main__":
     Zsun = 0.014 #Solar metallicity
 
     filenames = ['SFRMetallicityFromGasWithMetalsTNG50-1.hdf5', 'SFRMetallicityFromGasWithMetalsTNG100-1.hdf5', 'SFRMetallicityFromGasWithMetalsTNG300-1.hdf5',
-                 'SFRMetallicityFromGasWithMetalsTNG100-2.hdf5', 'SFRMetallicityFromGasTNG50-2.hdf5', 'SFRMetallicityFromGasTNG50-3.hdf5'] 
-    fit_param_files = ['test_best_fit_parameters_TNG50-1.txt', 'test_best_fit_parameters_TNG100-1.txt', 'test_best_fit_parameters_TNG300-1.txt']
+                 'SFRMetallicityFromGasWithMetalsTNG100-2.hdf5'] #, 'SFRMetallicityFromGasTNG50-2.hdf5', 'SFRMetallicityFromGasTNG50-3.hdf5'] 
+    fit_param_files = ['test_best_fit_parameters_TNG50-1.txt', 'test_best_fit_parameters_TNG100-1.txt', 'test_best_fit_parameters_TNG300-1.txt', 'test_best_fit_parameters_TNG100-2.txt']
     fit_param_files_data = ['test_best_fit_parameters_TNG50-1.txt', 'test_best_fit_parameters_TNG100-1.txt', 'test_best_fit_parameters_TNG300-1.txt', 'test_best_fit_parameters_TNG100-2.txt']
-    model_rates = ['Rate_info_TNG50-1.h5', 'Rate_info_TNG100-1.h5', 'Rate_info_TNG300-1.h5', 'Rate_info_TNG100-2.h5']
+    model_rates = ['Rate_info_TNG50-1.h5', 'Rate_info_TNG100-1.h5', 'Rate_info_TNG1300-1.h5', 'Rate_info_TNG100-2.h5']
     data_rates = ['data_Rate_info_TNG50-1.h5', 'data_Rate_info_TNG100-1.h5', 'data_Rate_info_TNG300-1.h5', 'data_Rate_info_TNG100-2.h5']
 
     #Plot setup
@@ -1918,12 +1973,12 @@ if __name__ == "__main__":
     #compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True, transparent=True, plotdiff=False)
     #compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True, transparent=True, plotdiff=True)
     
-    #compare_BBH_data_and_model_mass_dist(model_rates, data_rates, fit_param_vals, only_stable = True, only_CE = True, channel_string='all', z = 0.2, showplot=True, transparent=True)
+    #compare_BBH_data_and_model_mass_dist(model_rates, data_rates, only_stable = True, only_CE = True, channel_string='all', z = 0.2, showplot=True, transparent=True)
     #residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True)
     
     #Plot mass distribitiom for one TNG, split up into Z, z bins (make sure you select the right data_rates, model_rates index for the TNG used)
     #plot_BBH_mass_Z_z(COMPASfilename, tng=100, data_rates=data_rates[1], model_rates=model_rates[1], z_form = [0.2, 0.5, 1, 2, 6, 10], Z_zams = [0.03, 0.01, 0.001, 0.0001], 
-                  #only_stable = True, only_CE = True, channel_string='all',  z_merger=0.2, showplot=True, fractionalerror=False, plot_total_dist=True, transparent=True)
+    #              only_stable = True, only_CE = True, channel_string='all',  z_merger=0.2, showplot=True, fractionalerror=False, multipanel=True, plot_total_dist=True, transparent=True)
 
     #This does not work yet
     #plot_BBH_rate_Z_z(data_rates[0], COMPASfilename, tng=50, xlim=[], ylim=[], nlevels=30, z_formation=False, plotredshift=True, showplot=True)

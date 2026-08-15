@@ -106,7 +106,7 @@ def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], err
     #Get model fit parameters 
     fit_param_files = []
     for n, tng in enumerate(tngs):
-        fit_param_files.append('test_best_fit_parameters_TNG%s-%s.txt'%(tng, vers[n]))
+        fit_param_files.append('test_best_fit_parameters_%s.txt'%(tng))
     fit_params = read_best_fits(fit_param_files)
     
     if showfractionalerr==True:
@@ -119,18 +119,26 @@ def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], err
     #Plot the TNG data
     for n, tng in enumerate(tngs):
 
-        if tng==50:
+        if tng=='TNG50-1':
             rbox=35
-        elif tng==100:
+        elif tng=='TNG100-1':
             rbox=75
-        elif tng==300:
+        elif tng=='TNG300-1':
             rbox=205
+        elif tng=='COLIBRE':
+            rbox = 200
+        else:
+            rbox=12
 
         #Plot the TNG data
-        if vers[n]==1:
-            Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=False, metals=False)
+        if tng=='COLIBRE':
+            Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(tng, loc = path+'sfr_metallicity_redshift_L200_m6_Thermal_feh.hdf5', rbox=rbox, SFR=False, metals=False)
+            Sim_SFRD = Sim_SFRD[:, 1:]
+            Sim_center_Zbin = Sim_center_Zbin[1:]
         else:
-            Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=False, metals=False)
+            Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(tng, loc = path+'SFRMetallicityFromGasWithMetals%s.hdf5'%(tng), rbox=rbox, SFR=False, metals=False)
+        #else:
+        #    Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(tng, loc = path+'SFRMetallicityFromGas%s.hdf5'%tng, rbox=rbox, SFR=False, metals=False)
 
         if plotredshift == True:
             xvals = Sim_Redshifts
@@ -146,12 +154,12 @@ def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], err
         if vers[n]==3:
             linestyle=':'
             z_order=2
-        #ax.plot(xvals, np.sum(Sim_SFRD, axis=1)*step_fit_logZ, lw=6, ls=linestyle, c=data_colors[n], zorder=z_order, label=r'TNG%s-%s'%(tng, vers[n]))
+        ax.plot(xvals, np.sum(Sim_SFRD, axis=1)*step_fit_logZ, lw=6, ls=linestyle, c=data_colors[n], zorder=z_order, label=tng)
 
         #Plot the TNG model
         if plotmodel==True:
             sfr = Z_SFRD.Madau_Dickinson2014(Sim_Redshifts, a=fit_params[n][5], b=fit_params[n][6], c=fit_params[n][7], d=fit_params[n][8]).value
-            ax.plot(xvals, sfr, lw=3, c=data_colors[n], ls='--')
+            ax.plot(xvals, sfr, lw=3, c=fit_colors[n], ls='--')
 
         if showfractionalerr==True:
             fractionalerr =  sfr/(np.sum(Sim_SFRD, axis=1)*step_fit_logZ)
@@ -162,7 +170,7 @@ def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], err
         x = [-0.0001]
         y1 = [0.0001] 
         y2 = [0.0001]
-        plt.plot(x, y1, c='black', ls = '-', lw=6, label=r'$\mathrm{TNG \ simulation}$')
+        plt.plot(x, y1, c='black', ls = '-', lw=6, label=r'$\mathrm{Simulation}$')
         plt.plot(x, y2, c='black', ls = '--', lw=3, label=r'$\mathrm{Analytical \ fit}$')
     ax.tick_params(axis='both', which='major', labelsize=25) 
     ax.tick_params(length=15, width=3, which='major')
@@ -222,9 +230,9 @@ def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], err
             ax2.set_xlim(min(Sim_Lookbacktimes), max(Sim_Lookbacktimes))
 
         if plotmodel:
-            fig.savefig('figures/SFR_redshift_fit.pdf', format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
+            fig.savefig('figures/SFR_redshift_fit_COLIBRE.pdf', format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
         else:
-            fig.savefig('figures/SFR_redshift_allTNGs.pdf', format="pdf",  bbox_inches='tight', dpi=300, transparent=transparent)
+            fig.savefig('figures/SFR_redshift_all.pdf', format="pdf",  bbox_inches='tight', dpi=300, transparent=transparent)
     else:
         ax.set_xlabel(r"Lookback time (Gyr)", fontsize = 35)
         
@@ -247,7 +255,7 @@ def compare_SFR(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], err
         if plotmodel:
             fig.savefig('figures/SFR_lookbackt_fit.pdf',  format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
         else:
-            fig.savefig('figures/SFR_lookbackt_allTNGs.pdf',  format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
+            fig.savefig('figures/SFR_lookbackt_all.pdf',  format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
     
     if showplot==True:
         plt.show()
@@ -258,7 +266,7 @@ def compare_Zdist(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], e
     #Get model fit parameters 
     fit_param_files = []
     for n, tng in enumerate(tngs):
-        fit_param_files.append('test_best_fit_parameters_TNG%s-%s.txt'%(tng,vers[n]))
+        fit_param_files.append('test_best_fit_parameters_%s.txt'%(tng))
     fit_params = read_best_fits(fit_param_files)
     
     if showfractionalerr==True:
@@ -271,18 +279,27 @@ def compare_Zdist(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], e
     #Plot the TNG data
     for n, tng in enumerate(tngs):
 
-        if tng==50:
+        if tng=='TNG50-1':
             rbox=35
-        elif tng==100:
+        elif tng=='TNG100-1':
             rbox=75
-        elif tng==300:
+        elif tng=='TNG300-1':
             rbox=205
+        elif tng=='COLIBRE':
+            rbox=200
+        else:
+            rbox=12
 
         #Plot the TNG data
-        if vers[n]==1:
-            Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=False, metals=False)
+        #if vers[n]==1:
+        if tng=='COLIBRE':
+            Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(tng, loc = path+'sfr_metallicity_redshift_L200_m6_Thermal_feh.hdf5', rbox=rbox, SFR=False, metals=False)
+            Sim_SFRD = Sim_SFRD[:, 1:]
+            Sim_center_Zbin = Sim_center_Zbin[1:]
         else:
-            Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=False, metals=False)
+            Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(tng, loc = path+'SFRMetallicityFromGasWithMetals%s.hdf5'%(tng), rbox=rbox, SFR=False, metals=False)
+        #else:
+        #    Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(tng, loc = path+'SFRMetallicityFromGas%s.hdf5'%(tng), rbox=rbox, SFR=False, metals=False)
         #SFRDnew, redshift_new, Lookbacktimes_new, metals_new, step_fit_logZ_new = interpolate_TNGdata(Sim_Redshifts, Sim_Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng, vers[n], redshiftlimandstep=[0, 14.1, 0.05], saveplot=False)
         #scale = max(np.sum(Sim_SFRD, axis=0))/max(np.sum(SFRDnew.T, axis=0))
 
@@ -295,18 +312,20 @@ def compare_Zdist(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], e
         if vers[n]==3:
             linestyle=':'
             z_order=2
-        #ax.plot(Sim_center_Zbin/Zsun, np.sum(Sim_SFRD, axis=0), lw=6, ls=linestyle, zorder=z_order, c=data_colors[n], label=r'TNG%s-%s'%(tng, vers[n]))
+        ax.plot(Sim_center_Zbin/Zsun, np.sum(Sim_SFRD, axis=0), lw=6, ls=linestyle, zorder=z_order, c=data_colors[n], label=tng)
 
         #Plot the TNG model
         if plotmodel==True:
             fit_param = fit_params[n]
+            #metals_bins = 10**(np.arange( -10, 0., 0.2 ))
+            #metals  = (metals_bins[:-1] + metals_bins[1:])/2.
             sfr = Z_SFRD.Madau_Dickinson2014(Sim_Redshifts, a=fit_param[5], b=fit_param[6], c=fit_param[7], d=fit_param[8]).value # Msun year-1 Mpc-3 
             dPdlogZ, metallicities, step_logZ, p_draw_metallicity = \
                     Z_SFRD.skew_metallicity_distribution(Sim_Redshifts , mu_0 = fit_param[0], mu_z = fit_param[1],
-                                                  omega_0= fit_param[2] , omega_z=fit_param[3] , alpha = fit_param[4], 
-                                                  metals=Sim_center_Zbin, min_logZ_COMPAS = np.log(1e-4), max_logZ_COMPAS = np.log(0.03))
+                                                    omega_0= fit_param[2] , omega_z=fit_param[3] , alpha = fit_param[4], 
+                                                    metals=Sim_center_Zbin, min_logZ_COMPAS = np.log(1e-4), max_logZ_COMPAS = np.log(0.03))
             model = sfr[:,np.newaxis] * dPdlogZ
-            ax.plot(Sim_center_Zbin/Zsun, np.sum(model.T, axis=1), lw=3, c=data_colors[n], ls='--') 
+            ax.plot(Sim_center_Zbin/Zsun, np.sum(model.T, axis=1), lw=3, c=fit_colors[n], ls='--') 
 
         if showfractionalerr==True:
             fractionalerr =  np.sum(model, axis=0)/np.sum(Sim_SFRD, axis=0) 
@@ -321,7 +340,7 @@ def compare_Zdist(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], e
         x = [-0.0001]
         y1 = [0.0001]
         y2 = [0.0001]
-        plt.plot(x, y1, c='black', ls = '-', lw=6, label=r'$\mathrm{TNG \ simulation}$')
+        plt.plot(x, y1, c='black', ls = '-', lw=6, label=r'$\mathrm{Simulation}$')
         plt.plot(x, y2, c='black', ls = '--', lw=3, label=r'$\mathrm{Analytical \ fit}$')
     ax.tick_params(axis='both', which='major', labelsize=25)
     ax.tick_params(length=15, width=3, which='major')
@@ -358,9 +377,9 @@ def compare_Zdist(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[], e
         ax.set_xlim(min(Sim_center_Zbin/Zsun), max(Sim_center_Zbin/Zsun))
 
     if plotmodel:
-        fig.savefig('figures/Z_fit_avg_sfr.pdf',  format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
+        fig.savefig('figures/Z_fit_avg_sfr_COLIBRE.pdf',  format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
     else:
-        fig.savefig('figures/Z_avg_sfr_allTNGs.pdf',  format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
+        fig.savefig('figures/Z_avg_sfr_all.pdf',  format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
     
     if showplot==True:
         plt.show()
@@ -493,7 +512,7 @@ def compare_dPdlogZ(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[],
         elif tng==300:
             rbox=205
 
-        Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5'%(tng, vers[n]), rbox=rbox, SFR=True, metals=False)
+        Sim_SFRD, Sim_Lookbacktimes, Sim_Redshifts, Sim_center_Zbin, step_fit_logZ  = readTNGdata(loc = path+'SFRMetallicityFromGasWithMetals%s.hdf5'%sim, rbox=rbox, SFR=True, metals=False)
         SFRDnew, redshift_new, Lookbacktimes_new, metals_new, step_fit_logZ_new = interpolate_TNGdata(Sim_Redshifts, Sim_Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng, vers[n], saveplot=False)
 
         dPdlogZ, metallicities, step_logZ, p_draw_metallicity = \
@@ -582,29 +601,31 @@ def compare_dPdlogZ(path, tngs=[50, 100, 300], vers=[1, 1, 1], xlim=[], ylim=[],
 if __name__ == "__main__":
     #Change file names to match TNG version <- turn these into arguments
     path = '/Users/sashalvna/Research/Fit_SFRD_TNG/data/'
-    tngs=[50, 100, 300] 
-    vers = [1, 1, 1]
+    tngs=['TNG100-1', 'COLIBRE'] 
+    vers = [1, 1, 1, 1]
     Zsun = 0.014
 
     cmap_blue = matplotlib.colors.LinearSegmentedColormap.from_list("blue_cmap", ['#40E9E0', '#1C7EB7', '#100045'])
     cmap_pink = matplotlib.colors.LinearSegmentedColormap.from_list("pink_cmap", ['#F76FDD', '#C13277', '#490013'])
     cmap_green = matplotlib.colors.LinearSegmentedColormap.from_list("green_cmap", ['#CCE666', '#79B41C', '#004011'])
     cmap_gray = matplotlib.colors.LinearSegmentedColormap.from_list("gray_cmap", ['#D3D2D2', '#787878', '#222222'])
-    data_colors = ["#0067A6", '#C01874', '#98CB4F', '#D3D2D2']
+    #data_colors = ["#0067A6", '#C01874', '#98CB4F', '#D3D2D2']
+    data_colors = ["#0067A6", '#C01874', '#98CB4F',"#F6A030"]
     data_colors_all = ['#40E9E0', '#1C7EB7', "#00446E",'#F76FDD', "#900849", '#98CB4F', 'black', 'gray', 'lightgray']
     #data_colors_all = [tol_colors.muted.teal, tol_colors.medium_contrast.light_blue, tol_colors.medium_contrast.dark_blue,tol_colors.muted.wine, tol_colors.muted.purple, tol_colors.muted.olive, 'black', 'gray', 'lightgray']
-    fit_colors = ['#0C0034', '#4B0012', '#005B2F', '#787878']
+    #fit_colors = ['#0C0034', '#4B0012', '#005B2F', '#787878']
+    fit_colors = ['#0C0034', '#4B0012', '#005B2F', "#D85706"]
     line_styles = ['solid', 'dashed', 'dotted']
 
     params = [['mu_0', 'sigma_0'], ['mu_z', 'sigma_z'], ['mu_0', 'mu_z'], ['sigma_0', 'sigma_z'], ['sf_a', 'sf_c'], ['sf_b', 'sf_d']]
     #for n in params:
     #compare_params(tngs, vers, params=params, other_sfrd_params=['vanSon23_fid'], showplot=True)
 
-    compare_SFR(path, tngs, vers, plotmodel=True, plotredshift=True, xlim=[0, 14], ylim=[10**-3, 10**-0.8], error_ylim = [5e-1, 1e1], 
-                 showfractionalerr=True, plotlogscale=True, transparent=True)
+    compare_SFR(path, tngs, vers, plotmodel=True, plotredshift=True, xlim=[0, 14], #ylim=[10**-3, 10**-0.8], error_ylim = [5e-1, 1e1], 
+                 showfractionalerr=False, plotlogscale=True, transparent=True)
 
-    compare_Zdist(path, tngs, vers, xlim=[10**-4, 10], ylim=[1e-3, 4], error_ylim=[1e-1, 1e3], plotmodel=True, plotlogscale=True, 
-                   showfractionalerr=True, transparent=True)
+    compare_Zdist(path, tngs, vers, xlim=[10**-4, 10], #ylim=[1e-3, 4], error_ylim=[1e-1, 1e3], 
+                  plotmodel=True, plotlogscale=True, showfractionalerr=False, transparent=True)
 
     #Zdist_3panel_plots(path, tng=100, ver=1, showplot=True, transparent=False)s
 

@@ -18,7 +18,8 @@ def readTNGdata(filename):
     elif 'TNG300' in filename:
         rbox = 205
     else:
-        raise Exception("Make sure that you are reading in TNG data, and that the TNG version is contained in the filename (e.g. TNG50)")
+        rbox = 12 #for EAGLE_RefL0012N0188
+    #     raise Exception("Make sure that you are reading in TNG data, and that the TNG version is contained in the filename (e.g. TNG50)")
 
     # Read in the simulation data
     with h5.File(filename, "r") as f:
@@ -32,7 +33,11 @@ def readTNGdata(filename):
 
     # Convert SFR from sfr/box to sfr Mpc-3
     littleh  = 0.6774
-    Rbox     = rbox/littleh
+    if 'TNG' in filename:
+        Rbox     = rbox/littleh
+    else:
+        print("Not using TNG")
+        Rbox = rbox
     Sim_SFRD = BoxSfr / Rbox**3 * u.Msun / u.yr / u.Mpc**3
     Sim_SFRD = Sim_SFRD.to(u.Msun / u.yr / u.Gpc**3).value
 

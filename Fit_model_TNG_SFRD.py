@@ -7,7 +7,7 @@ import astropy.units as u
 from scipy import interpolate
 from scipy.optimize import minimize
 
-from astropy.cosmology import Planck15  as cosmo # Planck 2015 since that's what TNG uses
+from astropy.cosmology import Planck18  as cosmo # Planck 15 for TNG, Planck 13 for EAGLE, Planck 18 for COLIBRE
 
 ############################
 # Custom scripts
@@ -15,28 +15,50 @@ sys.path.append('../')
 import get_ZdepSFRD as Z_SFRD
 import paths
 
-def readTNGdata(loc = './', rbox=75, SFR=False, metals=True):
+def readTNGdata(sim, loc = './', rbox=75, SFR=False, metals=True):
     ##########################################
     # Simulated SFRD data (from TNG)
     ##########################################
     ## Read in the pure simulation data
     with h5.File(loc, "r") as f:
-        MetalBins     = f["MetalBins"][:]
-        Lookbacktimes = f["Lookbacktimes"][:]
-        BoxSfr        = f["Sfr"][:]
-        Redshifts     = f["Redshifts"][:]
-        if metals==True:
-            Metals        = f["Metals"][:]
+        print(list(f.keys()))
+        if 'COLIBRE' in sim:
+            #Mass_formed     = f["mass_formed"][:]
+            logMetalBins = f["metallicity_edges"][:] #NEED TO CONVERT TO Z, it is [Fe/H] by default !! 
+            BoxSfr        = f["sfr_density"][:]
+            RedshiftBins     = f["z_birth_edges"][:]
+            Redshifts  = (RedshiftBins[:-1] + RedshiftBins[1:])/2.
+            Lookbacktimes = [cosmo.lookback_time(z).value for z in Redshifts] #get lookback times from redshifts
 
+            Zsun = 0.014 #Solar metallicity
+            logMetalBins = logMetalBins + np.log10(Zsun)
+            MetalBins = 10**logMetalBins
+            step_fit_logZ  = np.diff(np.log(MetalBins))[0]  
+            BoxSfr = BoxSfr*step_fit_logZ 
+
+        else:
+            MetalBins     = f["MetalBins"][:]
+            Lookbacktimes = f["Lookbacktimes"][:]
+            BoxSfr        = f["Sfr"][:]
+            Redshifts     = f["Redshifts"][:]
+            if metals==True:
+                Metals        = f["Metals"][:]
+
+            step_fit_logZ  = np.diff(np.log(MetalBins))[0]  
+             
     Sim_center_Zbin  = (MetalBins[:-1] + MetalBins[1:])/2.
 
     # Convert SFR from sfr/box to sfr Mpc-3
-    littleh  = 0.6774
-    Rbox     = rbox/littleh
+    if 'TNG' in sim:
+        littleh  = 0.6774
+        Rbox     = rbox/littleh
+    else:
+        Rbox = rbox
     Sim_SFRD = BoxSfr / Rbox**3 *u.Mpc**-3
     Sim_SFRD = Sim_SFRD.value
-
-    step_fit_logZ  = np.diff(np.log(MetalBins))[0]    
+    if 'COLIBRE' in sim:
+        Sim_SFRD = BoxSfr*u.Mpc**-3
+        Sim_SFRD = Sim_SFRD.value
 
     if SFR == False:
         ## The model comes in SFRD/DeltaZ, make sure your data does as well!! 
@@ -66,14 +88,18 @@ def interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng
     redshifts_Sim = Redshifts
 
     #log_tofit_Sim_metals = np.log10(tofit_Sim_metals)
+    #if 'COLIBRE' in sim:
+        #log_tofit_Sim_metals = Sim_center_Zbin
+    #    metals_new           = np.linspace(min(log_tofit_Sim_metals), max(log_tofit_Sim_metals), Nmetals) #base=np.e
+        
+    #else:
     log_tofit_Sim_metals = np.log10(Sim_center_Zbin)
     metals_new           = np.logspace(min(log_tofit_Sim_metals), max(log_tofit_Sim_metals), Nmetals) #base=np.e
 
     SFRDnew = f_interp(Lookbacktimes_new,metals_new)
     SFRDnew[SFRDnew < 0] = 0
-    step_fit_logZ_new = np.diff(np.log(metals_new))[0]
 
-    print(SFRDnew.shape)
+    step_fit_logZ_new = np.diff(np.log(metals_new))[0]
 
     if saveplot==True:
         #check what the SFR and interpolated SFRD (with metallicities) look like 
@@ -90,9 +116,9 @@ def interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng
         ax[1].set_ylabel("SFRD(z)");
 
         if ver>1:
-            fig.savefig('figures/TNG%s_%s_dataSFRD.png'%(tng, ver), bbox_inches='tight')
+            fig.savefig('figures/%s_dataSFRD.png'%(tng), bbox_inches='tight')
         else:
-            fig.savefig('figures/TNG%s_dataSFRD.png'%tng, bbox_inches='tight')
+            fig.savefig('figures/%s_dataSFRD.png'%tng, bbox_inches='tight')
 
     return(SFRDnew, redshift_new, Lookbacktimes_new, metals_new, step_fit_logZ_new)
 
@@ -156,26 +182,37 @@ def test_chi(x0 = [-0.09, 0.026, 1.9, 0.1, -3.3, 0.01, 2.6, 3.2, 6.2] ):
 
 if __name__ == "__main__":
     #Change file names to match TNG version <- turn these into arguments
-    tng= 100
-    ver = 2
-    Cosmol_sim_location = paths.data / str("SFRMetallicityFromGasWithMetalsTNG%s-%s.hdf5"%(tng,ver))
-    fit_filename = 'test_best_fit_parameters_TNG%s-%s.txt'%(tng,ver)
-    if tng==50:
+    tng= 'COLIBRE'
+    ver = 1
+    #Cosmol_sim_location = paths.data / str("SFRMetallicityFromGasWithMetals%s.hdf5"%(tng))
+    Cosmol_sim_location = paths.data / str("sfr_metallicity_redshift_L200_m6_Thermal_feh.hdf5")
+    fit_filename = 'test_best_fit_parameters_%s.txt'%(tng)
+    if (tng=='TNG50-1') or (tng=='TNG50-2') or (tng=='TNG50-3'):
         rbox=35
-    elif tng==100:
+    elif (tng=='TNG100-1') or (tng=='TNG100-2'):
         rbox=75
-    elif tng==300:
+    elif tng=='TNG300-1':
         rbox=205
+    elif tng=='COLIBRE':
+        rbox=200
+    else:
+        rbox=12 #for EAGLE RefL0012N0188
 
-    if tng==300:
+    Zsun = 0.014 #Solar metallicity
+
+    if tng=='TNG300-1':
         minimize_method = 'nelder-mead' #nelder-mead, BFGS
     elif ver>1:
         minimize_method = 'nelder-mead' #nelder-mead, BFGS
-    else:
+    elif (tng=='TNG50-1') or (tng=='TNG100-1'):
         minimize_method = 'BFGS'
+    else:
+        minimize_method = 'nelder-mead'
 
     #Read the TNG data and interpolate it
-    Sim_SFRD, Lookbacktimes, Redshifts, Sim_center_Zbin, step_fit_logZ, Metals, MetalBins = readTNGdata(loc = Cosmol_sim_location, rbox=rbox)
+    Sim_SFRD, Lookbacktimes, Redshifts, Sim_center_Zbin, step_fit_logZ = readTNGdata(tng, loc = Cosmol_sim_location, rbox=rbox, metals=False)
+    Sim_SFRD = Sim_SFRD[:, 1:]
+    Sim_center_Zbin = Sim_center_Zbin[1:]
     SFRDnew, redshift_new, Lookbacktimes_new, metals_new, step_fit_logZ_new = interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, 
                                                                                                   Sim_center_Zbin, saveplot=True, tng=tng, ver=ver, 
                                                                                                   redshiftlimandstep=[0, 14.1, 0.05], Nmetals=500)
