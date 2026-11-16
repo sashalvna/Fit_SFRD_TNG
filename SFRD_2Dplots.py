@@ -32,6 +32,8 @@ def SFRDplot_2D(metals, Lookbacktimes, SFRD, tngs=[], ver=[], model=None, xlim=[
     plottype (str): type of SFRD 2D plot, options: 'data', 'percenterr'
     """
 
+    Zsun = 0.014 #Solar metallicity
+
     if plottype == 'data':
         if len(levels) > 0:
             levels = np.linspace(levels[0], levels[1], nlevels)
@@ -273,7 +275,7 @@ def SFRD_2Dplot_sidepanels(metals, Redshifts, Lookbacktimes, SFRD, step_fit_logZ
         if plottype=='data':
             ax.contour(xvals, metals/Zsun, model.T, levels=levels, colors='black', linewidths=1, linestyles='dashed')
             ax_histx.plot(xvals, np.sum(model.T, axis=0)*step_fit_logZ, color='black', label='analytical fit', ls='--')
-            ax_histy.plot(np.sum(model.T, axis=1), metals/Zsun, color='black', ls='--')
+            ax_histy.plot(np.sum(model.T, axis=1), metals/Zsun, color='black', ls='--') #scale for redshift bin rescaling
 
             peak_location_top = np.where(np.sum(model.T, axis=0)*step_fit_logZ == max(np.sum(model.T, axis=0)*step_fit_logZ))[0][0]
             peak_location_side = np.where(np.sum(model.T, axis=1) == max(np.sum(model.T, axis=1)))[0][0]
@@ -627,8 +629,8 @@ def dPdlogZ_plot(metals, Redshifts, Lookbacktimes, sfrd, step_fit_logZ, tng=[], 
 
 if __name__ == "__main__":
     #Change file names to match TNG version <- turn these into arguments
-    tngs=['TNG50-1', 'TNG100-1', 'EAGLE_RefL0012N0188', 'COLIBRE'] 
-    vers = [1,1,1, 1]
+    tngs=['TNG50-1', 'TNG100-1', 'TNG100-2', 'TNG300-1'] 
+    vers = [1,1,2, 1]
     Zsun = 0.014 #Solar metallicity
 
     data_colors_all = ["#0067A6", '#C01874', '#98CB4F', '#F76FDD']
@@ -660,14 +662,24 @@ if __name__ == "__main__":
         else:
             rbox=12 #for EAGLE RefL0012N0188
         Sim_SFRD, Lookbacktimes, Redshifts, Sim_center_Zbin, step_fit_logZ = readTNGdata(tng, loc = Cosmol_sim_location, rbox=rbox, SFR=False, metals=False)
-        Sim_SFRD = Sim_SFRD[:, 1:]
-        Sim_center_Zbin = Sim_center_Zbin[1:]
+        #Sim_SFRD = Sim_SFRD[:, 1:]
+        #Sim_center_Zbin = Sim_center_Zbin[1:]
         SFRDnew, redshift_new, Lookbacktimes_new, metals_new, step_fit_logZ_new = interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng, vers[n], redshiftlimandstep=[0, 14.1, 0.05], Nmetals=500, saveplot=False)
+        #SFRDnew, redshift_new, Lookbacktimes_new, metals_new, step_fit_logZ_new = Sim_SFRD.T, Redshifts, Lookbacktimes, Sim_center_Zbin, step_fit_logZ
         SFRDsTNG.append(SFRDnew)
         redshiftsTNG.append(redshift_new)
         LookbacktimesTNG.append(Lookbacktimes_new)
         metalsTNG.append(metals_new)
         step_fit_logZ_TNG.append(step_fit_logZ_new)
+        print(SFRDnew.shape)
+
+        # import h5py as h5
+
+        # with h5.File('data/%s_SFRD_Z_z.h5'%tng, "w") as f:
+        #     f.create_dataset('redshifts', data=redshift_new)
+        #     f.create_dataset('lookback_times', data=Lookbacktimes_new)
+        #     f.create_dataset('SFRD', data=SFRDnew)
+        #     f.create_dataset('metallicities', data=metals_new)
 
         # Sim_SFRD = Sim_SFRD[:, 1:]
         # Sim_center_Zbin = Sim_center_Zbin[1:]
@@ -703,8 +715,5 @@ if __name__ == "__main__":
     #for i in range(len(tngs)):
         #SFRDplot_2D(metalsTNG, LookbacktimesTNG, SFRDsTNG, tngs, vers, ylim=[10**-4, 50], nlevels=17, model=models, plottype='percenterr', plotregions=True)
         #SFRD_2Dplot_sidepanels(metalsTNG[i], redshiftsTNG[i], LookbacktimesTNG[i], SFRDsTNG[i], step_fit_logZ_TNG[i], tngs[i], vers[i], model=models[i], nlevels=30, ylim=[1e-2, 10], 
-                               #plottype='data', plotredshift=True, plotregions=False, transparent=True)
+        #                       plottype='data', plotredshift=False, plotregions=False, transparent=True)
         #dPdlogZ_plot(metalsTNG[1], redshiftsTNG[1], LookbacktimesTNG[1], sfrs[1], step_fit_logZ_TNG[1], tngs[1], vers[1], nlevels=30, dPdlogZ_model=dPdlogZs[1], ylim=[4e-5, 1], plotredshift=True)
-
-    
-

@@ -17,17 +17,37 @@ def readTNGdata(filename):
         rbox=75
     elif 'TNG300' in filename:
         rbox = 205
-    else:
+    elif 'EAGLE' in filename:
         rbox = 12 #for EAGLE_RefL0012N0188
+    elif 'COLIBRE' in filename:
+        rbox = 200
     #     raise Exception("Make sure that you are reading in TNG data, and that the TNG version is contained in the filename (e.g. TNG50)")
 
     # Read in the simulation data
     with h5.File(filename, "r") as f:
-        MetalBins     = f["MetalBins"][:]
-        Lookbacktimes = f["Lookbacktimes"][:]
-        BoxSfr        = f["Sfr"][:]
-        Redshifts     = f["Redshifts"][:]
-        Metals        = f["Metals"][:]
+        print(list(f.keys()))
+        if 'COLIBRE' in filename:
+            #Mass_formed     = f["mass_formed"][:]
+            logMetalBins = f["metallicity_edges"][:] #NEED TO CONVERT TO Z, it is [Fe/H] by default !! 
+            BoxSfr        = f["sfr_density"][:]
+            RedshiftBins     = f["z_birth_edges"][:]
+            Redshifts  = (RedshiftBins[:-1] + RedshiftBins[1:])/2.
+            Lookbacktimes = [cosmology.lookback_time(z).value for z in Redshifts] #get lookback times from redshifts
+
+            Zsun = 0.014 #Solar metallicity
+            logMetalBins = logMetalBins + np.log10(Zsun)
+            MetalBins = 10**logMetalBins
+            step_fit_logZ  = np.diff(np.log(MetalBins))[0]  
+            BoxSfr = BoxSfr*step_fit_logZ 
+
+        else:
+            MetalBins     = f["MetalBins"][:]
+            Lookbacktimes = f["Lookbacktimes"][:]
+            BoxSfr        = f["Sfr"][:]
+            Redshifts     = f["Redshifts"][:]
+            Metals        = f["Metals"][:]
+
+            step_fit_logZ  = np.diff(np.log(MetalBins))[0]  
 
     Sim_center_Zbin  = (MetalBins[:-1] + MetalBins[1:])/2.
 
@@ -38,8 +58,13 @@ def readTNGdata(filename):
     else:
         print("Not using TNG")
         Rbox = rbox
-    Sim_SFRD = BoxSfr / Rbox**3 * u.Msun / u.yr / u.Mpc**3
-    Sim_SFRD = Sim_SFRD.to(u.Msun / u.yr / u.Gpc**3).value
+
+    if 'COLIBRE' in filename:
+        Sim_SFRD = BoxSfr* u.Msun / u.yr / u.Mpc**3
+        Sim_SFRD = Sim_SFRD.to(u.Msun / u.yr / u.Gpc**3).value
+    else:
+        Sim_SFRD = BoxSfr / Rbox**3 * u.Msun / u.yr / u.Mpc**3
+        Sim_SFRD = Sim_SFRD.to(u.Msun / u.yr / u.Gpc**3).value
 
     step_fit_logZ  = np.diff(np.log(MetalBins))[0]    
 

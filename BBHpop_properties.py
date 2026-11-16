@@ -41,6 +41,33 @@ def plot_BBH_merger_rate(data_dir, rates, plot_logscale=False, showplot=True, tr
         ax_x = ax.inset_axes([0, 1.0, 1, 0.30], sharex=ax)
     else:
         fig, ax = plt.subplots(figsize=[13, 9])
+
+    # GWTC-5 pixelpop mass distribution
+    color_plpeak = 'grey'#'#1f78b4'
+    # input_fname = data_dir+'BBHMassSpinRedshift_BSplineIID.h5'
+    # bptp_o4 = popsummary.popresult.PopulationResult(input_fname)
+
+    # pixelpop O4b
+    # z_pixelpop = popsummary.popresult.PopulationResult(fname=data_dir+f'z_varcut1_popsummary.h5')
+    # pixelpop_z_grid, pixelpop_z = z_pixelpop.get_rates_on_grids('redshift')
+    # pixelpop_z_grid = pixelpop_z_grid.reshape((pixelpop_z_grid.size, ))
+    
+    # ax.step(pixelpop_z_grid, np.quantile(pixelpop_z, 0.5, axis = 0), 
+    #         color=color_plpeak, label='PixelPop, GWTC-5.0', zorder=1)
+    # ax.fill_between(pixelpop_z_grid, np.quantile(pixelpop_z, 0.05, axis = 0), 
+    #             np.quantile(pixelpop_z, 0.95, axis = 0), 
+    #             color=color_plpeak, edgecolor=None, alpha=0.2, step='pre', zorder=0)
+
+    #default gwtc-5
+    strong_bbh_O4b = popsummary.popresult.PopulationResult(fname=data_dir+f'gwtc5_updated_default_mmax_mass_TwoPeakBrokenPowerLawSmoothedMassDistribution_redshift_PowerLawRedshift_magnitude_iid_spin_magnitude_gaussian_tilt_iid_spin_orientation_popsummary_result.h5')
+    strong_bbh_O4b_z_grid, strong_bbh_O4b_Rz = strong_bbh_O4b.get_rates_on_grids('redshift')
+    strong_bbh_O4b_z_grid = strong_bbh_O4b_z_grid.reshape((strong_bbh_O4b_z_grid.size, ))
+    ax.semilogy(strong_bbh_O4b_z_grid, np.quantile(strong_bbh_O4b_Rz, 0.5, axis = 0), 
+            color=color_plpeak, label='GWTC-5.0', zorder=0)
+    ax.fill_between(strong_bbh_O4b_z_grid, np.quantile(strong_bbh_O4b_Rz, 0.05, axis = 0), 
+                np.quantile(strong_bbh_O4b_Rz, 0.95, axis = 0), 
+                color=color_plpeak, edgecolor=None, alpha=0.2, zorder=0)
+    
     redshifts = []
     merger_rates = []
     for i, rfile in enumerate(rates):
@@ -49,7 +76,7 @@ def plot_BBH_merger_rate(data_dir, rates, plot_logscale=False, showplot=True, tr
             merger_rate    = File[list(File.keys())[0]]['merger_rate'][()]
     
         total_merger_rate = np.sum(merger_rate, axis=0)
-        plt.plot(redshift, total_merger_rate, label=labels[i], ls=linestyles[i], lw=5, color=data_colors[i])
+        plt.plot(redshift, total_merger_rate, label=labels[i], ls=linestyles[i], lw=5, color=data_colors[i], zorder=z_order[i])
         redshifts.append(redshift)
         merger_rates.append(total_merger_rate)
         print("The TNG%s merger rate at z=%s is: "%(labels[i], redshift[0]), total_merger_rate[0])
@@ -84,34 +111,10 @@ def plot_BBH_merger_rate(data_dir, rates, plot_logscale=False, showplot=True, tr
     #     ax.plot(bptp_m1, np.median(bptp_m1_pdfs, axis=0), lw=3, color='gray', zorder=1, label="GWTC-4")
     #     ax.fill_between(bptp_m1, r_1_lower, r_1_upper, alpha=0.25,color='gray',zorder=0)
 
-    # GWTC-5 pixelpop mass distribution
-    color_plpeak = 'grey'#'#1f78b4'
-    # input_fname = data_dir+'BBHMassSpinRedshift_BSplineIID.h5'
-    # bptp_o4 = popsummary.popresult.PopulationResult(input_fname)
-
-    # pixelpop O4b
-    # z_pixelpop = popsummary.popresult.PopulationResult(fname=data_dir+f'z_varcut1_popsummary.h5')
-    # pixelpop_z_grid, pixelpop_z = z_pixelpop.get_rates_on_grids('redshift')
-    # pixelpop_z_grid = pixelpop_z_grid.reshape((pixelpop_z_grid.size, ))
     
-    # ax.step(pixelpop_z_grid, np.quantile(pixelpop_z, 0.5, axis = 0), 
-    #         color=color_plpeak, label='PixelPop, GWTC-5.0', zorder=1)
-    # ax.fill_between(pixelpop_z_grid, np.quantile(pixelpop_z, 0.05, axis = 0), 
-    #             np.quantile(pixelpop_z, 0.95, axis = 0), 
-    #             color=color_plpeak, edgecolor=None, alpha=0.2, step='pre', zorder=0)
 
-    #default gwtc-5
-    strong_bbh_O4b = popsummary.popresult.PopulationResult(fname=data_dir+f'gwtc5_updated_default_mmax_mass_TwoPeakBrokenPowerLawSmoothedMassDistribution_redshift_PowerLawRedshift_magnitude_iid_spin_magnitude_gaussian_tilt_iid_spin_orientation_popsummary_result.h5')
-    strong_bbh_O4b_z_grid, strong_bbh_O4b_Rz = strong_bbh_O4b.get_rates_on_grids('redshift')
-    strong_bbh_O4b_z_grid = strong_bbh_O4b_z_grid.reshape((strong_bbh_O4b_z_grid.size, ))
-    ax.semilogy(strong_bbh_O4b_z_grid, np.quantile(strong_bbh_O4b_Rz, 0.5, axis = 0), 
-            color=color_plpeak, label='GWTC-5.0', zorder=0)
-    ax.fill_between(strong_bbh_O4b_z_grid, np.quantile(strong_bbh_O4b_Rz, 0.05, axis = 0), 
-                np.quantile(strong_bbh_O4b_Rz, 0.95, axis = 0), 
-                color=color_plpeak, edgecolor=None, alpha=0.2, zorder=0)
-
-    ax.set_xlim(0, 14)
-    ax.set_ylim(1e-3, 5e2)
+    ax.set_xlim(0, 20)
+    ax.set_ylim(1e-5, 5e2)
     ax.set_xlabel('Redshift $z$', fontsize=35)
     ax.set_ylabel(r'$\frac{d\mathcal{R}}{dz} \ [\rm Gpc^{-3} \ yr^{-1}]$', fontsize=35)
     #fig.legend(bbox_to_anchor=(0.9, 0.88), fontsize=25, loc="upper right", frameon=False)
@@ -127,7 +130,7 @@ def plot_BBH_merger_rate(data_dir, rates, plot_logscale=False, showplot=True, tr
         ax2 = ax_x.twiny()
     else:
         ax2 = ax.twiny() 
-    redshift_tick_list = [0, 1, 2, 6, 10, 14]#[0,0.1, 0.25, 0.5, 1.0, 10]
+    redshift_tick_list = [0, 1, 2, 6, 10, 14, 20]#[0,0.1, 0.25, 0.5, 1.0, 10]
     ax2.set_xticks([z for z in redshift_tick_list])
     ax2.set_xticklabels(['${:.1f}$'.format(cosmo.lookback_time(z).value) for z in redshift_tick_list], fontsize = 25)
     ax2.set_xlabel('Lookback time [Gyr]', fontsize = 35, labelpad=15)
@@ -256,10 +259,10 @@ def compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, error_yl
     ax2.tick_params(length=10, width=3, which='major')
 
     if plot_merger_rates == True:
-        plt.savefig('figures/merger_rates_datavsmodel.png', format="png", bbox_inches='tight', dpi=300, transparent=transparent)
+        plt.savefig('figures/merger_rates_datavsmodel.pdf', format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
 
     else:
-        plt.savefig('figures/formation_rates_datavsmodel.png', format="png", bbox_inches='tight', dpi=300, transparent=transparent)
+        plt.savefig('figures/formation_rates_datavsmodel.pdf', format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
 
     if showplot==True:
         plt.show()
@@ -304,31 +307,44 @@ def plot_BBH_massdist_allTNGs(rates, only_stable = True, only_CE = True, channel
     # bptp_o4 = popsummary.popresult.PopulationResult(input_fname)
 
     # pixelpop O4b
-    m1q_pixelpop = popsummary.popresult.PopulationResult(fname=data_dir+f'bbh_m1q_varcut1_popsummary.h5')
-    m1m2_pixelpop = popsummary.popresult.PopulationResult(fname=data_dir+f'm1m2_varcut1_popsummary.h5')
-    (pixelpop_m1_grid, pixelpop_m2_grid), pixelpop_R = m1m2_pixelpop.get_rates_on_grids('joint_pixelpop_rate')
-    pixelpop_m1_grid, pixelpop_Rm1 = m1m2_pixelpop.get_rates_on_grids('log_mass_1')
-    pixelpop_m1_grid = pixelpop_m1_grid.reshape((pixelpop_m1_grid.size, ))
-    pixelpop_q_grid, pixelpop_Rq = m1q_pixelpop.get_rates_on_grids('mass_ratio')
-    pixelpop_q_grid = pixelpop_q_grid.reshape((pixelpop_q_grid.size, ))
-    redshift_factor_pixelpop_m1 = (1 + 0.2)**(m1m2_pixelpop.get_hyperparameter_samples(hyperparameters=['lamb']))
+    # m1q_pixelpop = popsummary.popresult.PopulationResult(fname=data_dir+f'bbh_m1q_varcut1_popsummary.h5')
+    # m1m2_pixelpop = popsummary.popresult.PopulationResult(fname=data_dir+f'm1m2_varcut1_popsummary.h5')
+    # (pixelpop_m1_grid, pixelpop_m2_grid), pixelpop_R = m1m2_pixelpop.get_rates_on_grids('joint_pixelpop_rate')
+    # pixelpop_m1_grid, pixelpop_Rm1 = m1m2_pixelpop.get_rates_on_grids('log_mass_1')
+    # pixelpop_m1_grid = pixelpop_m1_grid.reshape((pixelpop_m1_grid.size, ))
+    # pixelpop_q_grid, pixelpop_Rq = m1q_pixelpop.get_rates_on_grids('mass_ratio')
+    # pixelpop_q_grid = pixelpop_q_grid.reshape((pixelpop_q_grid.size, ))
+    # redshift_factor_pixelpop_m1 = (1 + 0.2)**(m1m2_pixelpop.get_hyperparameter_samples(hyperparameters=['lamb']))
 
-    ax.step(np.exp(pixelpop_m1_grid), np.quantile(redshift_factor_pixelpop_m1 * pixelpop_Rm1 /np.exp(pixelpop_m1_grid) , 0.5, axis = 0), 
-            color=color_plpeak, label=r'GWTC-5', lw=1.8, zorder=1)
-    ax.fill_between(np.exp(pixelpop_m1_grid), 
-                    np.quantile(redshift_factor_pixelpop_m1 * pixelpop_Rm1 / np.exp(pixelpop_m1_grid) , 0.05, axis = 0), 
-                np.quantile(redshift_factor_pixelpop_m1 * pixelpop_Rm1 / np.exp(pixelpop_m1_grid), 0.95, axis = 0), 
-                color=color_plpeak, edgecolor=None, alpha=0.2, step='pre', zorder=0)
+    # ax.step(np.exp(pixelpop_m1_grid), np.quantile(redshift_factor_pixelpop_m1 * pixelpop_Rm1 /np.exp(pixelpop_m1_grid) , 0.5, axis = 0), 
+    #         color=color_plpeak, label=r'GWTC-5', lw=1.8, zorder=1)
+    # ax.fill_between(np.exp(pixelpop_m1_grid), 
+    #                 np.quantile(redshift_factor_pixelpop_m1 * pixelpop_Rm1 / np.exp(pixelpop_m1_grid) , 0.05, axis = 0), 
+    #             np.quantile(redshift_factor_pixelpop_m1 * pixelpop_Rm1 / np.exp(pixelpop_m1_grid), 0.95, axis = 0), 
+    #             color=color_plpeak, edgecolor=None, alpha=0.2, step='pre', zorder=0)
 
     #default gwtc-5
-    strong_bbh_O4b = popsummary.popresult.PopulationResult(fname=f'{O4b_run_dir}/gwtc5_updated_default_mmax_mass_TwoPeakBrokenPowerLawSmoothedMassDistribution_redshift_PowerLawRedshift_magnitude_iid_spin_magnitude_gaussian_tilt_iid_spin_orientation_popsummary_result.h5')
+    # strong_bbh_O4b = popsummary.popresult.PopulationResult(fname=f'{O4b_run_dir}/gwtc5_updated_default_mmax_mass_TwoPeakBrokenPowerLawSmoothedMassDistribution_redshift_PowerLawRedshift_magnitude_iid_spin_magnitude_gaussian_tilt_iid_spin_orientation_popsummary_result.h5')
+    # strong_bbh_O4b_m1_grid, strong_bbh_O4b_Rm1 = strong_bbh_O4b.get_rates_on_grids('mass_1')
+    # strong_bbh_O4b_m1_grid = strong_bbh_O4b_m1_grid.reshape((strong_bbh_O4b_m1_grid.size, ))
+    # ax.semilogy(strong_bbh_O4b_z_grid, np.quantile(strong_bbh_O4b_Rz, 0.5, axis = 0), 
+    #         color=color_plpeak, label='GWTC-5.0', zorder=0)
+    # ax.fill_between(strong_bbh_O4b_z_grid, np.quantile(strong_bbh_O4b_Rz, 0.05, axis = 0), 
+    #         np.quantile(strong_bbh_O4b_Rz, 0.95, axis = 0), 
+    #         color=color_plpeak, edgecolor=None, alpha=0.2, zorder=0)
+
+    strong_bbh_O4b = popsummary.popresult.PopulationResult(fname=data_dir+f'gwtc5_updated_default_mmax_mass_TwoPeakBrokenPowerLawSmoothedMassDistribution_redshift_PowerLawRedshift_magnitude_iid_spin_magnitude_gaussian_tilt_iid_spin_orientation_popsummary_result.h5')
     strong_bbh_O4b_m1_grid, strong_bbh_O4b_Rm1 = strong_bbh_O4b.get_rates_on_grids('mass_1')
     strong_bbh_O4b_m1_grid = strong_bbh_O4b_m1_grid.reshape((strong_bbh_O4b_m1_grid.size, ))
-    ax.semilogy(strong_bbh_O4b_z_grid, np.quantile(strong_bbh_O4b_Rz, 0.5, axis = 0), 
-            color=color_plpeak, label='GWTC-5.0', zorder=0)
-    ax.fill_between(strong_bbh_O4b_z_grid, np.quantile(strong_bbh_O4b_Rz, 0.05, axis = 0), 
-            np.quantile(strong_bbh_O4b_Rz, 0.95, axis = 0), 
-            color=color_plpeak, edgecolor=None, alpha=0.2, zorder=0)
+    zeval = 0.2
+    redshift_factor_strong_bbh_o4b = (1 + zeval)**(strong_bbh_O4b.get_hyperparameter_samples(hyperparameters=['lamb']))
+    ax.plot(strong_bbh_O4b_m1_grid, 
+            np.quantile(redshift_factor_strong_bbh_o4b * strong_bbh_O4b_Rm1, 0.5, axis=0),
+            color=color_plpeak, label='GWTC-5.0', lw=1.5, zorder=1)
+    ax.fill_between(strong_bbh_O4b_m1_grid, 
+                    np.quantile(redshift_factor_strong_bbh_o4b * strong_bbh_O4b_Rm1, 0.05, axis=0),
+                np.quantile(redshift_factor_strong_bbh_o4b * strong_bbh_O4b_Rm1, 0.95, axis=0), 
+                    color=color_plpeak, edgecolor=None, alpha=0.2, zorder=0)
 
     DCO = mfunc.read_data(loc = data_dir +str(COMPASfilename))
 
@@ -378,7 +394,7 @@ def plot_BBH_massdist_allTNGs(rates, only_stable = True, only_CE = True, channel
 
         x_KDE = np.arange(0.1,50.,0.1)
         KDEy_vals =  kernel(x_KDE)*sum(hist) #re-normalize the KDE
-        ax.plot(x_KDE, KDEy_vals, color=data_colors[nplot], lw= 5, ls=linestyles[nplot], label = labels[nplot])
+        ax.plot(x_KDE, KDEy_vals, color=data_colors[nplot], lw= 5, ls=linestyles[nplot], label = labels[nplot], zorder=z_order[i])
         massdists.append(KDEy_vals)
         nplot += 1
         
@@ -1031,10 +1047,14 @@ def compare_BBH_data_and_model_mass_dist(model_rates, data_rates, only_stable = 
         print('Path to TNG', tngpath, i)
 
         #Reading Rate data 
-        with h5.File(data_dir + tngpath ,'r') as File:
-            redshifts = File[list(File.keys())[0]]['redshifts'][()]
-            DCO_mask = File[list(File.keys())[0]]['DCOmask'][()] # Mask from DCO to merging systems  
-            intrinsic_rate_density = File[list(File.keys())[0]]['merger_rate'][()]
+        try:
+            with h5.File(data_dir + tngpath ,'r') as File:
+                redshifts = File[list(File.keys())[0]]['redshifts'][()]
+                DCO_mask = File[list(File.keys())[0]]['DCOmask'][()] # Mask from DCO to merging systems  
+                intrinsic_rate_density = File[list(File.keys())[0]]['merger_rate'][()]
+        except:
+            print("No data file found")
+            continue
 
         CEcount = 'CE_Event_Counter'
         #first bring it to the same shape as the rate table
@@ -1173,7 +1193,7 @@ def compare_BBH_data_and_model_mass_dist(model_rates, data_rates, only_stable = 
 
     #fig.legend(bbox_to_anchor=(1, 1), fontsize=30, frameon=False)
     fig.legend(bbox_to_anchor=(0.9, 0.88), fontsize=25, frameon=False)
-    fig.savefig('figures/massdist_modelvsdata_%s_z%s.png'%(channel_string, z),format="png", bbox_inches='tight', dpi=300, transparent=transparent)
+    fig.savefig('figures/massdist_modelvsdata_%s_z%s.pdf'%(channel_string, z),format="pdf", bbox_inches='tight', dpi=300, transparent=transparent)
 
     if showplot==True:
         plt.show()
@@ -2100,18 +2120,20 @@ if __name__ == "__main__":
     COMPASfilename = 'COMPAS_Output_wWeights.h5'
     Zsun = 0.014 #Solar metallicity
 
-    filenames = ['SFRMetallicityFromGasWithMetalsTNG100-1.hdf5', 'sfr_metallicity_redshift_L200_m6_Thermal_feh.hdf5'] #'SFRMetallicityFromGasWithMetalsTNG100-1.hdf5', 'SFRMetallicityFromGasWithMetalsTNG300-1.hdf5',
+    filenames = ['SFRMetallicityFromGasWithMetalsTNG50-1.hdf5', 'SFRMetallicityFromGasWithMetalsTNG100-1.hdf5', 'SFRMetallicityFromGasWithMetalsTNG100-2.hdf5', 'SFRMetallicityFromGasWithMetalsTNG300-1.hdf5']
                  #'SFRMetallicityFromGasWithMetalsEAGLE_RefL0012N0188.hdf5'] #, 'SFRMetallicityFromGasTNG50-2.hdf5', 'SFRMetallicityFromGasTNG50-3.hdf5'] 
-    fit_param_files = ['test_best_fit_parameters_TNG100-1.txt', 'test_best_fit_parameters_COLIBRE.txt'] # 'test_best_fit_parameters_TNG100-1.txt', 'test_best_fit_parameters_TNG300-1.txt', 
+                 #'sfr_metallicity_redshift_L200_m6_Thermal_feh.hdf5'
+    fit_param_files = ['test_best_fit_parameters_TNG50-1.txt',  'test_best_fit_parameters_TNG100-1.txt',  'test_best_fit_parameters_TNG100-2.txt', 'test_best_fit_parameters_TNG300-1.txt']
                        #'test_best_fit_parameters_EAGLE_RefL0012N0188.txt']
-    model_rates = ['Rate_info_TNG100-1.h5', 'Rate_info_COLIBRE.h5'] #'Rate_info_TNG100-1.h5', 'Rate_info_TNG300-1.h5', 
+    model_rates = ['Rate_info_TNG50-1.h5', 'Rate_info_TNG100-1.h5',  'Rate_info_TNG100-2.h5', 'Rate_info_TNG300-1.h5']
                    #'Rate_info_EAGLE_RefL0012N0188.h5']
-    data_rates = ['data_Rate_info_TNG100-1.h5'] #'data_Rate_info_TNG100-1.h5', 'data_Rate_info_TNG300-1.h5', 
+    data_rates = ['data_Rate_info_TNG50-1.h5',  'data_Rate_info_TNG100-1.h5',  'data_Rate_info_TNG100-2.h5', 'data_Rate_info_TNG300-1.h5']
                   #'data_Rate_info_EAGLE_RefL0012N0188.h5']
 
     #Plot setup
-    labels = ['TNG100-1', 'COLIBRE'] #'EAGLE_RefL0012N0188']
-    linestyles = ['-', '-', '-', '-', '-', '-']
+    labels = ['TNG50-1', 'TNG100-1', 'TNG100-2', 'TNG300-1'] #'EAGLE_RefL0012N0188']
+    linestyles = ['-', '-', '--', '-', '-', '-']
+    z_order = [2, 2, 3, 2]
     linestyles2 = ['-', '--', ':', '-.']
     lineweights = [4, 4, 4, 4, 4, 4]
 
@@ -2124,10 +2146,10 @@ if __name__ == "__main__":
     cmap_green = matplotlib.colors.LinearSegmentedColormap.from_list("green_cmap", ['#CCE666', '#79B41C', '#004011'])
     cmap_orange = matplotlib.colors.LinearSegmentedColormap.from_list("orange_cmap", ["#F1994B", "#D56A19", "#AE4803"])
     cmap_gray = matplotlib.colors.LinearSegmentedColormap.from_list("gray_cmap", ["#C9C8D7", "#151618"])
-    #data_colors = [ "#1275AF", '#F76FDD', '#98CB4F', "#F6A030"]
-    data_colors = [ "#1275AF", '#F76FDD', '#98CB4F', "#900849"] #["#0067A6", '#C01874', '#98CB4F',"#F6A030"]
+    data_colors = [ "#1275AF", '#F76FDD',  "#900849", '#98CB4F']
+    #data_colors = [ "#1275AF", '#F76FDD', '#98CB4F', "#DA801A"] #["#0067A6", '#C01874', '#98CB4F',"#F6A030"]
     data_colors_all = ['#40E9E0', '#1C7EB7', "#00446E",'#F76FDD', "#900849", '#98CB4F', 'black', 'gray', 'lightgray']
-    model_colors = ['#0C0034', '#4B0012', '#005B2F', "#D85706"]
+    model_colors = ['#0C0034', "#C20991", '#005B2F', "#C84E02"]
     colormap = sns.color_palette('viridis_r', as_cmap=True)
     colormap_gray = sns.color_palette('gray_r', as_cmap=True)
     
@@ -2135,11 +2157,11 @@ if __name__ == "__main__":
     fit_param_vals = read_best_fits(fit_param_files)
 
     #Compare model and data merger rates
-    #plot_BBH_merger_rate(data_dir, data_rates, plot_logscale=True, showplot=True, transparent=True, showLVK=True, compareTNGs=False)
-    compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, error_ylim=[1e-2, 1e4], plot_merger_rates=True, plot_logscale=True, showplot=True, showLVK=True, transparent=False)
+    plot_BBH_merger_rate(data_dir, data_rates, plot_logscale=True, showplot=True, transparent=True, showLVK=True, compareTNGs=False)
+    #compare_BBH_data_and_model_rates(data_dir, model_rates, data_rates, error_ylim=[1e-2, 1e4], plot_merger_rates=True, plot_logscale=True, showplot=True, showLVK=True, transparent=False)
 
     #Plot all mass distributions at z=0.2 
-    #plot_BBH_massdist_allTNGs(data_rates, only_stable = True, only_CE = True, channel_string='all', z = 0.2, showplot=True, transparent=True, compareTNGs=False)
+    plot_BBH_massdist_allTNGs(data_rates, only_stable = True, only_CE = True, channel_string='all', z = 0.2, showplot=True, transparent=True, compareTNGs=False)
 
     #Plot formation channel mass distributions for all TNGs (in one plot)
     #plot_BBH_mass_dist_over_z_allTNGs(model_rates, fit_param_vals, tngs=['TNG50-1', 'TNG100-1', 'TNG300-1'], z = [8, 7, 6, 5, 4, 3, 2, 1, 0.5, 0.2], showplot=False)
@@ -2151,7 +2173,7 @@ if __name__ == "__main__":
     #compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True, transparent=True, plotdiff=False)
     #compare_BBH_data_and_model_mass_dist_over_z(model_rates, data_rates, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True, transparent=True, plotdiff=True)
     
-    compare_BBH_data_and_model_mass_dist(model_rates, data_rates, only_stable = True, only_CE = True, channel_string='all', z = 0.2, showplot=True, transparent=False)
+    #compare_BBH_data_and_model_mass_dist(model_rates, data_rates, only_stable = True, only_CE = True, channel_string='all', z = 0.2, showplot=True, transparent=False)
     #residuals_BBH_data_and_model_mass_dist(model_rates, data_rates, only_stable = True, only_CE = True, channel_string='all', z = [0.2, 1, 2, 4, 6, 8], showplot=True)
     
     #Plot mass distribitiom for one TNG, split up into Z, z bins (make sure you select the right data_rates, model_rates index for the TNG used)

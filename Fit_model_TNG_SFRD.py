@@ -21,7 +21,7 @@ def readTNGdata(sim, loc = './', rbox=75, SFR=False, metals=True):
     ##########################################
     ## Read in the pure simulation data
     with h5.File(loc, "r") as f:
-        print(list(f.keys()))
+        #print(list(f.keys()))
         if 'COLIBRE' in sim:
             #Mass_formed     = f["mass_formed"][:]
             logMetalBins = f["metallicity_edges"][:] #NEED TO CONVERT TO Z, it is [Fe/H] by default !! 
@@ -54,12 +54,14 @@ def readTNGdata(sim, loc = './', rbox=75, SFR=False, metals=True):
         Rbox     = rbox/littleh
     else:
         Rbox = rbox
-    Sim_SFRD = BoxSfr / Rbox**3 *u.Mpc**-3
-    Sim_SFRD = Sim_SFRD.value
+    
     if 'COLIBRE' in sim:
         Sim_SFRD = BoxSfr*u.Mpc**-3
         Sim_SFRD = Sim_SFRD.value
-
+    else:
+        Sim_SFRD = BoxSfr / Rbox**3 *u.Mpc**-3
+        Sim_SFRD = Sim_SFRD.value
+        
     if SFR == False:
         ## The model comes in SFRD/DeltaZ, make sure your data does as well!! 
         Sim_SFRD       = Sim_SFRD/step_fit_logZ
@@ -70,7 +72,7 @@ def readTNGdata(sim, loc = './', rbox=75, SFR=False, metals=True):
         return Sim_SFRD, Lookbacktimes, Redshifts, Sim_center_Zbin, step_fit_logZ
 
 
-def interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng, ver, minZ_popSynth=1e-6, saveplot=False, redshiftlimandstep=[0, 14.1, 0.05], Nmetals=500):
+def interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng, ver, minZ_popSynth=1e-10, saveplot=False, redshiftlimandstep=[0, 14.1, 0.05], Nmetals=500):
 
     # Adjust what metallicities to include 
     tofit_Sim_metals = Sim_center_Zbin[np.where(Sim_center_Zbin > minZ_popSynth)[0]]  
@@ -80,7 +82,21 @@ def interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng
     tofit_Sim_lookbackt = Lookbacktimes[::-1] 
 
     # Interpolate the simulation data
-    f_interp = interpolate.interp2d(tofit_Sim_lookbackt, tofit_Sim_metals, tofit_Sim_SFRD.T, kind='cubic')
+    #f_interp = interpolate.interp2d(tofit_Sim_lookbackt, tofit_Sim_metals, tofit_Sim_SFRD.T, kind='cubic')
+    f_interp_grid = interpolate.RegularGridInterpolator((tofit_Sim_lookbackt, tofit_Sim_metals), tofit_Sim_SFRD, method='pchip', bounds_error=False, fill_value=None)
+
+    def f_interp(t_val, m_val):
+        # Ensure inputs are arrays for broadcasting
+        t_arr, m_arr = np.atleast_1d(t_val), np.atleast_1d(m_val)
+        
+        # Meshgrid creates a grid of query points (t, m)
+        T, M = np.meshgrid(t_arr, m_arr, indexing='ij')
+        
+        # RegularGridInterpolator expects an (N, 2) array of coordinates
+        pts = np.vstack([T.ravel(), M.ravel()]).T
+        
+        # Evaluate and reshape back to a 2D matrix matching the grid shape
+        return f_interp_grid(pts).reshape(T.shape)
 
     # Retrieve values at higher res regular intervals
     redshift_new         = np.arange(redshiftlimandstep[0], redshiftlimandstep[1], redshiftlimandstep[2]) #Redshifts[::-1]
@@ -97,7 +113,7 @@ def interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng
     metals_new           = np.logspace(min(log_tofit_Sim_metals), max(log_tofit_Sim_metals), Nmetals) #base=np.e
 
     SFRDnew = f_interp(Lookbacktimes_new,metals_new)
-    SFRDnew[SFRDnew < 0] = 0
+    #SFRDnew[SFRDnew < 0] = 0
 
     step_fit_logZ_new = np.diff(np.log(metals_new))[0]
 
@@ -110,7 +126,7 @@ def interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, Sim_center_Zbin, tng
         ax[0].set_xlabel("Redshift")
         ax[0].set_ylabel("SFRD(z)")
 
-        ax[1].plot(redshift_new, SFRDnew.T)
+        ax[1].plot(redshift_new, SFRDnew)
         ax[1].set_title('Interpolated')
         ax[1].set_xlabel("Redshift")
         ax[1].set_ylabel("SFRD(z)");
@@ -174,7 +190,7 @@ def calc_chi_square(fit_metals, Redshifts = [],  simulation_SFRD = [],
 
 
 def test_chi(x0 = [-0.09, 0.026, 1.9, 0.1, -3.3, 0.01, 2.6, 3.2, 6.2] ):
-    chi_square, data, model = calc_chi_square(metals_new, Redshifts = redshift_new, simulation_SFRD = SFRDnew.T, 
+    chi_square, data, model = calc_chi_square(fit_metals=metals_new, Redshifts = redshift_new, simulation_SFRD = SFRDnew.T, 
                                        muz  =x0[0], mu_0  =x0[1],sigma0  =x0[2], sigmaz =x0[3], alpha  =x0[4],
                                        sf_a =x0[5], sf_b=x0[6], sf_c=x0[7], sf_d=x0[8])
     return chi_square
@@ -182,16 +198,16 @@ def test_chi(x0 = [-0.09, 0.026, 1.9, 0.1, -3.3, 0.01, 2.6, 3.2, 6.2] ):
 
 if __name__ == "__main__":
     #Change file names to match TNG version <- turn these into arguments
-    tng= 'COLIBRE'
+    tng= 'TNG100-1'
     ver = 1
-    #Cosmol_sim_location = paths.data / str("SFRMetallicityFromGasWithMetals%s.hdf5"%(tng))
-    Cosmol_sim_location = paths.data / str("sfr_metallicity_redshift_L200_m6_Thermal_feh.hdf5")
-    fit_filename = 'test_best_fit_parameters_%s.txt'%(tng)
-    if (tng=='TNG50-1') or (tng=='TNG50-2') or (tng=='TNG50-3'):
+    Cosmol_sim_location = paths.data / str("SFRMetallicityFromGasWithMetals%s.hdf5"%(tng))
+    #Cosmol_sim_location = paths.data / str("sfr_metallicity_redshift_L200_m6_Thermal_feh.hdf5")
+    fit_filename = 'interp_test_best_fit_parameters_%s.txt'%(tng)
+    if 'TNG50' in tng:
         rbox=35
-    elif (tng=='TNG100-1') or (tng=='TNG100-2'):
+    elif 'TNG100' in tng:
         rbox=75
-    elif tng=='TNG300-1':
+    elif 'TNG300' in tng:
         rbox=205
     elif tng=='COLIBRE':
         rbox=200
@@ -205,17 +221,22 @@ if __name__ == "__main__":
     elif ver>1:
         minimize_method = 'nelder-mead' #nelder-mead, BFGS
     elif (tng=='TNG50-1') or (tng=='TNG100-1'):
-        minimize_method = 'BFGS'
+        minimize_method = 'nelder-mead'
     else:
         minimize_method = 'nelder-mead'
 
     #Read the TNG data and interpolate it
     Sim_SFRD, Lookbacktimes, Redshifts, Sim_center_Zbin, step_fit_logZ = readTNGdata(tng, loc = Cosmol_sim_location, rbox=rbox, metals=False)
-    Sim_SFRD = Sim_SFRD[:, 1:]
-    Sim_center_Zbin = Sim_center_Zbin[1:]
+    # Sim_SFRD = Sim_SFRD[:, 1:]
+    # Sim_center_Zbin = Sim_center_Zbin[1:]
+    Sim_SFRD = Sim_SFRD[1:, :]
+    Lookbacktimes = Lookbacktimes[1:]
+    Redshifts = Redshifts[1:]
     SFRDnew, redshift_new, Lookbacktimes_new, metals_new, step_fit_logZ_new = interpolate_TNGdata(Redshifts, Lookbacktimes, Sim_SFRD, 
                                                                                                   Sim_center_Zbin, saveplot=True, tng=tng, ver=ver, 
-                                                                                                  redshiftlimandstep=[0, 14.1, 0.05], Nmetals=500)
+                                                                                                  redshiftlimandstep=[0, 20, 0.05], Nmetals=500)
+
+    SFRDnew, redshift_new, Lookbacktimes_new, metals_new, step_fit_logZ_new = Sim_SFRD.T, Redshifts, Lookbacktimes, Sim_center_Zbin, step_fit_logZ
     
     #Fit the model to the data
     x0     = np.array([-0.15, 0.026, 1.1, 0.1, -3.3, 0.01, 2.6, 3.2, 6.2]) #best guess
